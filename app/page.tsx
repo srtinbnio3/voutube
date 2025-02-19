@@ -1,16 +1,34 @@
-import Hero from "@/components/hero";
-import ConnectSupabaseSteps from "@/components/tutorial/connect-supabase-steps";
-import SignUpUserSteps from "@/components/tutorial/sign-up-user-steps";
-import { hasEnvVars } from "@/utils/supabase/check-env-vars";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { ChannelList } from "./channels/_components/channel-list"
 
-export default async function Home() {
+export const dynamic = "force-dynamic"
+
+export default async function HomePage() {
+  const cookieStore = await cookies()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
+    }
+  )
+
+  const { data: channels } = await supabase
+    .from("channels")
+    .select("*")
+    .order("post_count", { ascending: false })
+    .limit(10)
+
   return (
-    <>
-      <Hero />
-      <main className="flex-1 flex flex-col gap-6 px-4">
-        <h2 className="font-medium text-xl mb-4">Next steps</h2>
-        {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-      </main>
-    </>
-  );
+    <div className="container max-w-4xl py-6">
+      <h1 className="text-2xl font-bold mb-6">チャンネル一覧</h1>
+      <ChannelList initialChannels={channels || []} />
+    </div>
+  )
 }
