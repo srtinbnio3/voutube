@@ -42,35 +42,64 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
         return
       }
 
-      // 投票データの更新
-      const { error } = await supabase
-        .from("votes")
-        .upsert({
-          post_id: postId,
-          user_id: session.user.id,
-          is_upvote: isUpvote,
-        })
+      // 現在の投票状態を確認
+      const isRemovingVote = currentVote === isUpvote
 
-      if (error) throw error
+      if (isRemovingVote) {
+        // 同じボタンを押した場合は投票を削除
+        const { error } = await supabase
+          .from("votes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", session.user.id)
 
-      // 投票状態の更新
-      setCurrentVote(isUpvote)
-      
-      // スコアの更新（楽観的更新）
-      if (currentVote === isUpvote) {
-        // 同じボタンを押した場合は投票を取り消し
+        if (error) throw error
+
+        // スコアを更新（-1 または +1）
         setScore(score - (isUpvote ? 1 : -1))
         setCurrentVote(null)
       } else {
-        // 異なるボタンを押した場合は投票を切り替え
-        setScore(score + (isUpvote ? (currentVote === false ? 2 : 1) : (currentVote === true ? -2 : -1)))
+        // 既存の投票があれば削除
+        if (currentVote !== null) {
+          const { error: deleteError } = await supabase
+            .from("votes")
+            .delete()
+            .eq("post_id", postId)
+            .eq("user_id", session.user.id)
+
+          if (deleteError) throw deleteError
+        }
+
+        // 新規投票を作成
+        const { error: insertError } = await supabase
+          .from("votes")
+          .insert({
+            post_id: postId,
+            user_id: session.user.id,
+            is_upvote: isUpvote,
+          })
+
+        if (insertError) throw insertError
+
+        // スコアを更新
+        if (currentVote !== null) {
+          // 投票を変更する場合は2ポイント変動
+          setScore(score + (isUpvote ? 2 : -2))
+        } else {
+          // 新規投票の場合は1ポイント変動
+          setScore(score + (isUpvote ? 1 : -1))
+        }
+        setCurrentVote(isUpvote)
       }
 
       router.refresh()
     } catch (error) {
+      console.error('投票処理でエラーが発生:', error)
       toast({
-        title: "エラーが発生しました",
-        description: error instanceof Error ? error.message : "投票に失敗しました",
+        title: "投票に失敗しました",
+        description: error instanceof Error 
+          ? `エラー: ${error.message}`
+          : "予期せぬエラーが発生しました",
         variant: "destructive",
       })
     } finally {
