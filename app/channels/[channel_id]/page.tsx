@@ -16,7 +16,7 @@ interface ChannelPageProps {
 }
 
 export default async function ChannelPage({ params }: ChannelPageProps) {
-  // Cookieの取得
+  // Cookieの取得（認証情報などが含まれる）
   const cookieStore = await cookies()
 
   // Supabaseクライアントの初期化
@@ -47,14 +47,25 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
   // チャンネルの投稿一覧を取得
   const { data: posts } = await supabase
     .from("posts")
-    .select("*")
-    .eq("channel_id", params.channel_id)  // このチャンネルの投稿のみ
-    .order("score", { ascending: false })  // スコアの高い順
-    .limit(10)  // 10件まで
+    .select(`
+      *,
+      votes (
+        is_upvote,
+        user_id
+      )
+    `)  // 投票情報も一緒に取得
+    .eq("channel_id", params.channel_id)
+    .order("score", { ascending: false })
+    .limit(10)
+
+  // ログイン中のユーザーIDを取得
+  const { data: { session } } = await supabase.auth.getSession()
+  const userId = session?.user?.id
 
   // ページのレイアウトを返す
   return (
     <div className="container max-w-4xl py-6">
+      {/* チャンネル情報と投稿フォームの表示 */}
       <div className="flex items-start justify-between">
         <ChannelInfo channel={channel} />
         <PostForm channelId={channel.id} />
