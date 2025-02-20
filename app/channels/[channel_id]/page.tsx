@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { ChannelInfo } from './_components/channel-info'
 import { PostCard } from './_components/post-card'
+import { PostForm } from './_components/post-form'
 
 // ページの動的生成を有効化（キャッシュを無効化）
 export const dynamic = "force-dynamic"
@@ -54,8 +55,10 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
   // ページのレイアウトを返す
   return (
     <div className="container max-w-4xl py-6">
-      {/* チャンネル情報の表示 */}
-      <ChannelInfo channel={channel} />
+      <div className="flex items-start justify-between">
+        <ChannelInfo channel={channel} />
+        <PostForm channelId={channel.id} />
+      </div>
       
       {/* 投稿一覧の表示 */}
       <div className="mt-8">
