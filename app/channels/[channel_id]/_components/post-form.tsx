@@ -30,6 +30,20 @@ export function PostForm({ channelId }: PostFormProps) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
+  // 投稿ボタンクリック時の処理
+  const handleClick = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session) {
+      // 現在のURLをredirect_toパラメータとして追加
+      const currentPath = window.location.pathname
+      router.push(`/sign-in?redirect_to=${encodeURIComponent(currentPath)}`)
+      return
+    }
+    
+    setIsOpen(true)
+  }
+
   // 投稿を作成する関数
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -71,7 +85,7 @@ export function PostForm({ channelId }: PostFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>新規投稿</Button>
+        <Button onClick={handleClick}>新規投稿</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
