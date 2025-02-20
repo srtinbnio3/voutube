@@ -45,20 +45,19 @@ export function PostForm({ channelId }: PostFormProps) {
   }
 
   // 投稿を作成する関数
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function handleSubmit(title: string, description: string) {
     setIsLoading(true)
 
     try {
-      const formData = new FormData(event.currentTarget)
-      const title = formData.get("title") as string
-      const description = formData.get("description") as string
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) throw new Error("ユーザーが見つかりません")
 
       const { error } = await supabase
         .from("posts")
         .insert([
           {
             channel_id: channelId,
+            user_id: session.user.id,
             title,
             description,
           },
@@ -73,8 +72,13 @@ export function PostForm({ channelId }: PostFormProps) {
       setIsOpen(false)
       router.refresh()
     } catch (error) {
+      // エラーの詳細をコンソールに出力
+      console.error('投稿エラー:', error)
+      
+      // ユーザーにより詳細なエラーメッセージを表示
       toast({
         title: "エラーが発生しました",
+        description: error instanceof Error ? error.message : "投稿に失敗しました",
         variant: "destructive",
       })
     } finally {
@@ -91,10 +95,10 @@ export function PostForm({ channelId }: PostFormProps) {
         <DialogHeader>
           <DialogTitle>新規投稿</DialogTitle>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div>
             <Input
-              name="title"
+              id="title"
               placeholder="タイトル"
               required
               minLength={3}
@@ -103,7 +107,7 @@ export function PostForm({ channelId }: PostFormProps) {
           </div>
           <div>
             <Textarea
-              name="description"
+              id="description"
               placeholder="説明（10文字以上1000文字以内）"
               required
               minLength={10}
@@ -111,11 +115,18 @@ export function PostForm({ channelId }: PostFormProps) {
             />
           </div>
           <div className="flex justify-end">
-            <Button type="submit" disabled={isLoading}>
+            <Button 
+              onClick={async () => {
+                const title = (document.getElementById('title') as HTMLInputElement).value
+                const description = (document.getElementById('description') as HTMLTextAreaElement).value
+                await handleSubmit(title, description)
+              }}
+              disabled={isLoading}
+            >
               {isLoading ? "投稿中..." : "投稿する"}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   )
