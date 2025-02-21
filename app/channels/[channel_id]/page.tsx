@@ -55,7 +55,8 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
       )
     `)  // 投票情報も一緒に取得
     .eq("channel_id", params.channel_id)
-    .order("score", { ascending: false })
+    .order("score", { ascending: false })  // スコアが高い順
+    .order("created_at", { ascending: false })  // 同じスコアの場合は新しい順
     .limit(10)
 
   // ログイン中のユーザーIDを取得
