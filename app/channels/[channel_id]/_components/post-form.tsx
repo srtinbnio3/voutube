@@ -24,6 +24,8 @@ export function PostForm({ channelId }: PostFormProps) {
   // 状態管理
   const [isOpen, setIsOpen] = useState(false)  // モーダルの開閉状態
   const [isLoading, setIsLoading] = useState(false)  // 投稿処理中の状態
+  const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
   const router = useRouter()  // ページ遷移用
   const { toast } = useToast()  // 通知表示用
   
@@ -50,32 +52,50 @@ export function PostForm({ channelId }: PostFormProps) {
   }
 
   // 投稿を作成する関数
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
     setIsLoading(true)
 
     try {
-      const formData = new FormData(event.currentTarget)
-      const title = formData.get("title") as string
-      const description = formData.get("description") as string
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error("ログインが必要です")
+      }
 
-      const { error } = await supabase
+      console.log('投稿データ:', {
+        channel_id: channelId,
+        title,
+        description,
+        user_id: session.user.id
+      })
+
+      const { data, error } = await supabase
         .from("posts")
         .insert({
           channel_id: channelId,
+          user_id: session.user.id,
           title,
           description,
         })
+        .select()
+        .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabaseエラー:', error)
+        throw error
+      }
 
+      console.log('投稿成功:', data)
       toast({
         title: "投稿を作成しました",
         description: "投稿が正常に作成されました",
       })
       setIsOpen(false)
+      setTitle("")
+      setDescription("")
       router.refresh()
     } catch (error) {
+      console.error('投稿エラー:', error)
       toast({
         title: "エラーが発生しました",
         description: error instanceof Error ? error.message : "投稿の作成に失敗しました",
@@ -99,15 +119,17 @@ export function PostForm({ channelId }: PostFormProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Input
-              name="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="タイトル"
               required
-              minLength={1}
+              minLength={3}
             />
           </div>
           <div>
             <Textarea
-              name="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="説明（10文字以上）"
               required
               minLength={10}
