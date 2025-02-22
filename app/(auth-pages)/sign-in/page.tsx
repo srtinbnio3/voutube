@@ -50,7 +50,7 @@ export default async function Login({
         <input
           type="hidden"
           name="redirect_to"
-          value={searchParams.redirect_to || "/"}
+          value={searchParams.redirect_to || "/channels"}
         />
 
         {/* ログインボタン */}

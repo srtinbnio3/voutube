@@ -12,14 +12,17 @@ export const updateSession = async (request: NextRequest) => {
       },
     });
 
+    // Supabaseクライアントの初期化
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
+          // リクエストからすべてのクッキーを取得
           getAll() {
             return request.cookies.getAll();
           },
+          // レスポンスにクッキーを設定
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value }) =>
               request.cookies.set(name, value),
@@ -35,24 +38,21 @@ export const updateSession = async (request: NextRequest) => {
       },
     );
 
-    // This will refresh session if expired - required for Server Components
+    // セッションの有効期限が切れている場合は更新（Server Componentsに必要）
     // https://supabase.com/docs/guides/auth/server-side/nextjs
     const user = await supabase.auth.getUser();
 
-    // protected routes
+    // 保護されたルートへのアクセス制御
+    // 未認証ユーザーが/protectedにアクセスした場合、ログインページへリダイレクト
     if (request.nextUrl.pathname.startsWith("/protected") && user.error) {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
-    if (request.nextUrl.pathname === "/" && !user.error) {
-      return NextResponse.redirect(new URL("/protected", request.url));
-    }
-
     return response;
   } catch (e) {
-    // If you are here, a Supabase client could not be created!
-    // This is likely because you have not set up environment variables.
-    // Check out http://localhost:3000 for Next Steps.
+    // Supabaseクライアントの作成に失敗した場合
+    // 環境変数が正しく設定されていない可能性があります
+    // http://localhost:3000 で次のステップを確認してください
     return NextResponse.next({
       request: {
         headers: request.headers,
