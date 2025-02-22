@@ -50,45 +50,39 @@ export function PostForm({ channelId }: PostFormProps) {
   }
 
   // 投稿を作成する関数
-  async function handleSubmit(title: string, description: string) {
-    setIsLoading(true)  // 投稿中の状態に設定
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setIsLoading(true)
 
     try {
-      // ログイン状態の再確認
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) throw new Error("ユーザーが見つかりません")
+      const formData = new FormData(event.currentTarget)
+      const title = formData.get("title") as string
+      const description = formData.get("description") as string
 
-      // データベースに投稿を保存
       const { error } = await supabase
         .from("posts")
-        .insert([
-          {
-            channel_id: channelId,
-            user_id: session.user.id,
-            title,
-            description,
-          },
-        ])
+        .insert({
+          channel_id: channelId,
+          title,
+          description,
+        })
 
       if (error) throw error
 
-      // 投稿成功時の処理
       toast({
         title: "投稿を作成しました",
+        description: "投稿が正常に作成されました",
       })
-      
-      setIsOpen(false)  // モーダルを閉じる
-      router.refresh()  // ページを更新して新しい投稿を表示
+      setIsOpen(false)
+      router.refresh()
     } catch (error) {
-      // エラー発生時の処理
-      console.error('投稿エラー:', error)
       toast({
         title: "エラーが発生しました",
-        description: error instanceof Error ? error.message : "投稿に失敗しました",
+        description: error instanceof Error ? error.message : "投稿の作成に失敗しました",
         variant: "destructive",
       })
     } finally {
-      setIsLoading(false)  // 投稿中の状態を解除
+      setIsLoading(false)
     }
   }
 
@@ -102,42 +96,29 @@ export function PostForm({ channelId }: PostFormProps) {
         <DialogHeader>
           <DialogTitle>新規投稿</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          {/* タイトル入力フィールド */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Input
-              id="title"
+              name="title"
               placeholder="タイトル"
               required
-              minLength={3}
-              maxLength={100}
+              minLength={1}
             />
           </div>
-          {/* 説明入力フィールド */}
           <div>
             <Textarea
-              id="description"
-              placeholder="説明（10文字以上1000文字以内）"
+              name="description"
+              placeholder="説明（10文字以上）"
               required
               minLength={10}
-              maxLength={1000}
             />
           </div>
-          {/* 投稿ボタン */}
           <div className="flex justify-end">
-            <Button 
-              onClick={async () => {
-                // 入力値を取得して投稿処理を実行
-                const title = (document.getElementById('title') as HTMLInputElement).value
-                const description = (document.getElementById('description') as HTMLTextAreaElement).value
-                await handleSubmit(title, description)
-              }}
-              disabled={isLoading}
-            >
-              {isLoading ? "投稿中..." : "投稿する"}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "投稿中..." : "投稿"}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   )

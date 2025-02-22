@@ -66,6 +66,8 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
   // ページのレイアウトを返す
   return (
     <div className="container max-w-4xl py-6">
+      <h1 className="text-2xl font-bold mb-6">{channel.name}</h1>
+      <p className="text-muted-foreground">{channel.description}</p>
       {/* チャンネル情報と投稿フォームの表示 */}
       <div className="flex items-start justify-between">
         <ChannelInfo channel={channel} />

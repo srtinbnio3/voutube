@@ -17,24 +17,19 @@ type PostWithVotes = Database["public"]["Tables"]["posts"]["Row"] & {
 interface PostCardProps {
   post: PostWithVotes
   userId?: string  // ログイン中のユーザーID（オプション）
-  onClick?: () => void
 }
 
-export function PostCard({ post, userId, onClick }: PostCardProps) {
-  // ユーザーの投票状態を取得
-  const userVote = userId 
-    ? post.votes?.find(vote => vote.user_id === userId)?.is_upvote
+export function PostCard({ post, userId }: PostCardProps) {
+  // ユーザーの投票状態を取得（undefinedの可能性を排除）
+  const userVote = userId && post.votes 
+    ? post.votes.find(vote => vote.user_id === userId)?.is_upvote ?? null
     : null
 
   return (
-    <Card 
-      className="hover:bg-accent cursor-pointer transition-colors"
-      onClick={onClick}
-    >
+    <Card>
       <CardHeader>
         <div className="flex items-start justify-between">
           <h3 className="font-semibold">{post.title}</h3>
-          {/* 投票ボタンを追加 */}
           <VoteButtons
             postId={post.id}
             initialScore={post.score || 0}
