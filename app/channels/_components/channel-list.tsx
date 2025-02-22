@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Database } from "@/database.types"
 import { ChannelCard } from "./channel-card"
@@ -15,9 +15,14 @@ interface ChannelListProps {
 
 export function ChannelList({ initialChannels }: ChannelListProps) {
   const router = useRouter()
-  const [channels] = useState<Channel[]>(initialChannels)
+  const [channels, setChannels] = useState<Channel[]>(initialChannels)
   const [sortBy, setSortBy] = useState("post_count")
   const [search, setSearch] = useState("")
+
+  // チャンネル一覧の更新を監視
+  useEffect(() => {
+    setChannels(initialChannels)
+  }, [initialChannels])
 
   const handleChannelClick = useCallback((channelId: string) => {
     router.push(`/channels/${channelId}`)
@@ -27,6 +32,15 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
     channel.name.toLowerCase().includes(search.toLowerCase())
   )
 
+  // ソート機能の実装
+  const sortedChannels = [...filteredChannels].sort((a, b) => {
+    if (sortBy === "post_count") {
+      return (b.post_count || 0) - (a.post_count || 0)
+    } else {
+      return new Date(b.latest_post_at || 0).getTime() - new Date(a.latest_post_at || 0).getTime()
+    }
+  })
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -35,7 +49,7 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
       </div>
       
       <div className="grid gap-4 sm:grid-cols-2">
-        {filteredChannels.map((channel) => (
+        {sortedChannels.map((channel) => (
           <ChannelCard
             key={channel.id}
             channel={channel}

@@ -65,6 +65,14 @@ alter table votes enable row level security;
 create policy "Channels are viewable by everyone" on channels
   for select using (true);
 
+-- 追加: 認証済みユーザーがチャンネルを作成できるポリシー
+create policy "Authenticated users can create channels" on channels
+  for insert with check (auth.role() = 'authenticated');
+
+-- 追加: チャンネルの更新ポリシー（必要に応じて）
+create policy "Users can update channels" on channels
+  for update using (auth.role() = 'authenticated');
+
 -- profiles policies
 create policy "Profiles are viewable by everyone" on profiles
   for select using (true);
