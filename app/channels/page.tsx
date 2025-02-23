@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export default async function ChannelsPage() {
-  // Cookieを取得（認証情報などが含まれる）
+  // Cookieを取得（認証情報を含む）
   const cookieStore = await cookies()
   
   // Supabaseクライアントの初期化
@@ -25,11 +25,10 @@ export default async function ChannelsPage() {
   )
 
   // データベースからチャンネル一覧を取得
-  // post_countの降順（投稿数が多い順）で並び替え
   const { data: channels } = await supabase
     .from("channels")
-    .select("*")
-    .order("post_count", { ascending: false })
+    .select("*")  // すべてのカラムを取得
+    .order("post_count", { ascending: false })  // 投稿数の多い順に並び替え
 
   return (
     <div className="container max-w-4xl py-6">
