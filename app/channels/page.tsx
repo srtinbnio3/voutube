@@ -8,8 +8,10 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export default async function ChannelsPage() {
+  // Cookieを取得（認証情報などが含まれる）
   const cookieStore = await cookies()
   
+  // Supabaseクライアントの初期化
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -22,6 +24,8 @@ export default async function ChannelsPage() {
     }
   )
 
+  // データベースからチャンネル一覧を取得
+  // post_countの降順（投稿数が多い順）で並び替え
   const { data: channels } = await supabase
     .from("channels")
     .select("*")
@@ -29,10 +33,12 @@ export default async function ChannelsPage() {
 
   return (
     <div className="container max-w-4xl py-6">
+      {/* ヘッダー部分 */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold">チャンネル一覧</h1>
-        <ChannelForm />
+        <ChannelForm />  {/* チャンネル作成フォーム */}
       </div>
+      {/* チャンネル一覧の表示 */}
       <ChannelList initialChannels={channels || []} />
     </div>
   )
