@@ -7,7 +7,8 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
+import Image from "next/image";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -15,7 +16,7 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "VouTube",
+  title: "IdeaTube",
   description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム",
 };
 
@@ -43,7 +44,15 @@ export default function RootLayout({
               <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                 <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
                   <div className="flex gap-5 items-center font-semibold">
-                    <Link href={"/"}>VouTube</Link>
+                    <Link href="/" className="flex items-center gap-1">
+                      <Image
+                        src="/icon-512x512.png"
+                        alt="IdeaTube Logo"
+                        width={32}
+                        height={32}
+                      />
+                      <span className="text-lg">IdeaTube</span>
+                    </Link>
                     <div className="flex items-center gap-2">
                       <DeployButton />
                     </div>
