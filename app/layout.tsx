@@ -48,7 +48,7 @@ export default function RootLayout({
               {/* ヘッダーナビゲーション */}
               <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                 <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-                  {/* 左側：ロゴとデプロイボタン */}
+                  {/* 左側：ロゴとサイト名 */}
                   <div className="flex gap-3 sm:gap-5 items-center font-semibold">
                     {/* ロゴとサイト名 - レスポンシブ対応 */}
                     <Link href="/" className="flex items-center gap-1">
@@ -62,10 +62,6 @@ export default function RootLayout({
                       {/* スマホでは非表示、タブレット以上で表示 */}
                       <span className="hidden sm:inline text-lg">IdeaTube</span>
                     </Link>
-                    {/* デプロイボタン - モバイルでは非表示 */}
-                    <div className="hidden sm:flex items-center gap-2">
-                      <DeployButton />
-                    </div>
                   </div>
                   {/* 右側：認証関連 */}
                   <div className="flex items-center">
@@ -82,15 +78,7 @@ export default function RootLayout({
               {/* フッター */}
               <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
                 <p>
-                  Powered by{" "}
-                  <a
-                    href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-                    target="_blank"
-                    className="font-bold hover:underline"
-                    rel="noreferrer"
-                  >
-                    Supabase
-                  </a>
+                  &copy; {new Date().getFullYear()} Masayoshi Kimura
                 </p>
                 <ThemeSwitcher />
               </footer>
