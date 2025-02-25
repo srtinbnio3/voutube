@@ -31,10 +31,10 @@ export default async function ChannelsPage() {
     .order("post_count", { ascending: false })  // 投稿数の多い順に並び替え
 
   return (
-    <div className="container max-w-4xl py-6">
+    <div className="container max-w-4xl py-4 sm:py-6 px-4 sm:px-6">
       {/* ヘッダー部分 */}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">チャンネル一覧</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold">チャンネル一覧</h1>
         <ChannelForm />  {/* チャンネル作成フォーム */}
       </div>
       {/* チャンネル一覧の表示 */}

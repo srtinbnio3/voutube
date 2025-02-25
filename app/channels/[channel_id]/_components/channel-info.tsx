@@ -24,12 +24,7 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
         <p className="text-sm text-muted-foreground">
           投稿数: {channel.post_count || 0}
         </p>
-        {/* 登録者数の表示（存在する場合のみ） */}
-        {channel.subscriber_count && (
-          <p className="text-sm text-muted-foreground">
-            登録者数: {channel.subscriber_count.toLocaleString()}
-          </p>
-        )}
+        {/* 登録者数の表示を削除 */}
       </div>
     </div>
   )
