@@ -16,7 +16,10 @@ import { useState } from "react"
 import { Search, Loader2 } from "lucide-react"
 import Image from "next/image"
 
-// YouTubeチャンネルの型定義
+/**
+ * YouTubeチャンネルの型定義
+ * YouTube APIから取得するチャンネル情報の構造を定義します
+ */
 type YouTubeChannel = {
   youtube_channel_id: string
   name: string
@@ -25,6 +28,14 @@ type YouTubeChannel = {
   subscriber_count?: number
 }
 
+/**
+ * チャンネル作成フォームコンポーネント
+ * 
+ * 新しいYouTubeチャンネルをシステムに追加するための
+ * ダイアログフォームを提供します。
+ * YouTube APIを使用してチャンネルを検索し、
+ * 選択されたチャンネル情報をSupabaseに保存します。
+ */
 export function ChannelForm() {
   // 状態管理
   const [isOpen, setIsOpen] = useState(false)
@@ -43,7 +54,10 @@ export function ChannelForm() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  // YouTubeチャンネルを検索する関数
+  /**
+   * YouTubeチャンネルを検索する関数
+   * 入力されたクエリでYouTube APIを検索し結果を表示します
+   */
   async function searchYouTubeChannels(e: React.FormEvent) {
     e.preventDefault()
     
@@ -73,7 +87,10 @@ export function ChannelForm() {
     }
   }
 
-  // チャンネルを選択する関数
+  /**
+   * チャンネルを選択する関数
+   * 検索結果から選択されたチャンネルを状態に保存します
+   */
   function selectChannel(channel: YouTubeChannel) {
     setSelectedChannel(channel)
   }

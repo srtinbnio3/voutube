@@ -1,11 +1,19 @@
 /**
  * YouTube Data API v3を利用するためのユーティリティ関数
+ * 
+ * このファイルではYouTube Data APIへのアクセスを抽象化し、
+ * チャンネル情報の取得や検索機能を提供します。
  */
 
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
-// チャンネル情報を取得する
+/**
+ * チャンネルIDに基づいてYouTubeチャンネル情報を取得する
+ * 
+ * @param channelId - 取得するYouTubeチャンネルのID
+ * @returns チャンネル情報オブジェクト、または見つからない場合はnull
+ */
 export async function getChannelInfo(channelId: string) {
   try {
     const response = await fetch(
@@ -36,7 +44,12 @@ export async function getChannelInfo(channelId: string) {
   }
 }
 
-// チャンネルを検索する
+/**
+ * キーワードに基づいてYouTubeチャンネルを検索する
+ * 
+ * @param query - 検索クエリ文字列
+ * @returns 検索結果のチャンネル情報配列
+ */
 export async function searchChannels(query: string) {
   try {
     const response = await fetch(
