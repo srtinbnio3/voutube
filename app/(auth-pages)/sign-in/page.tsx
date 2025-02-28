@@ -14,35 +14,35 @@ export default async function Login({
   return (
     <form className="flex-1 flex flex-col min-w-64">
       {/* ページタイトル */}
-      <h1 className="text-2xl font-medium">Sign in</h1>
+      <h1 className="text-2xl font-medium">ログイン</h1>
 
       {/* 新規登録ページへのリンク */}
       <p className="text-sm text-foreground">
-        Don't have an account?{" "}
+        アカウントをお持ちでないですか？{" "}
         <Link className="text-foreground font-medium underline" href="/sign-up">
-          Sign up
+          新規登録
         </Link>
       </p>
 
       <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
         {/* メールアドレス入力フィールド */}
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">メールアドレス</Label>
         <Input name="email" placeholder="you@example.com" required />
 
         {/* パスワード入力フィールド */}
         <div className="flex justify-between items-center">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">パスワード</Label>
           <Link
             className="text-xs text-foreground underline"
             href="/forgot-password"
           >
-            Forgot Password?
+            パスワードをお忘れですか？
           </Link>
         </div>
         <Input
           type="password"
           name="password"
-          placeholder="Your password"
+          placeholder="パスワードを入力"
           required
         />
 
@@ -54,8 +54,8 @@ export default async function Login({
         />
 
         {/* ログインボタン */}
-        <SubmitButton pendingText="Signing In..." formAction={signInAction}>
-          Sign in
+        <SubmitButton pendingText="ログイン中..." formAction={signInAction}>
+          ログイン
         </SubmitButton>
 
         {/* エラーメッセージの表示 */}

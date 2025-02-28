@@ -4,6 +4,13 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { sendVerificationEmail } from '@/app/api/send/route';
+
+// ランダムなトークンを生成する関数
+function generateToken() {
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15);
+}
 
 // 新規ユーザー登録の処理
 export const signUpAction = async (formData: FormData) => {
@@ -39,12 +46,19 @@ export const signUpAction = async (formData: FormData) => {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
   } else {
-    // 登録成功時のメッセージを表示
-    return encodedRedirect(
-      "success",
-      "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link.",
-    );
+    // 確認用トークンを生成
+    const token = generateToken();
+    
+    // メール送信
+    const emailResult = await sendVerificationEmail(email, token);
+    
+    if (!emailResult.success) {
+      // エラー処理
+      return { message: 'メール送信に失敗しました。もう一度お試しください。' };
+    }
+    
+    // 成功処理
+    return { message: '確認メールを送信しました。メールをご確認ください。' };
   }
 };
 
