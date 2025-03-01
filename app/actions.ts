@@ -4,7 +4,7 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { sendVerificationEmail } from '@/app/api/send/route';
+import { sendVerificationEmail } from '@/lib/email';
 
 // ランダムなトークンを生成する関数
 function generateToken() {

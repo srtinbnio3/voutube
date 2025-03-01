@@ -39,7 +39,7 @@ export default async function Signup(props: {
             minLength={6}
             required
           />
-          <SubmitButton formAction={signUpAction} pendingText="登録中...">
+          <SubmitButton formAction={signUpAction as any} pendingText="登録中...">
             登録する
           </SubmitButton>
           <FormMessage message={searchParams} />

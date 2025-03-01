@@ -9,13 +9,11 @@ import { PostForm } from './_components/post-form'
 export const dynamic = "force-dynamic"
 
 // URLのパラメータの型定義
-interface ChannelPageProps {
-  params: {
-    channel_id: string  // URLから取得するチャンネルID
-  }
-}
+export default async function ChannelPage(props: {
+  params: Promise<{ channel_id: string }>;
+}) {
+  const params = await props.params;
 
-export default async function ChannelPage({ params }: ChannelPageProps) {
   // Cookieの取得（認証情報などが含まれる）
   const cookieStore = await cookies()
 

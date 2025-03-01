@@ -1,16 +1,16 @@
 import { signInAction } from "@/app/actions";
-import { FormMessage } from "@/components/form-message";
+import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
 // ログインページのコンポーネント
-export default async function Login({
-  searchParams,  // URLパラメータ（エラーメッセージやリダイレクト先を含む）
-}: {
-  searchParams: { message: string; redirect_to?: string }
+export default async function Login(props: {
+  searchParams: Promise<Message>;
 }) {
+  const searchParams = await props.searchParams;
+
   return (
     <form className="flex-1 flex flex-col min-w-64">
       {/* ページタイトル */}
@@ -50,7 +50,7 @@ export default async function Login({
         <input
           type="hidden"
           name="redirect_to"
-          value={searchParams.redirect_to || "/channels"}
+          value={(searchParams as any).redirect_to || "/channels"}
         />
 
         {/* ログインボタン */}
