@@ -4,13 +4,6 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { sendVerificationEmail } from '@/lib/email';
-
-// ランダムなトークンを生成する関数
-function generateToken() {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
-}
 
 // 新規ユーザー登録の処理
 export const signUpAction = async (formData: FormData) => {
@@ -37,7 +30,7 @@ export const signUpAction = async (formData: FormData) => {
     password,
     options: {
       // メール認証後のリダイレクト先を設定
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
     },
   });
 
@@ -45,21 +38,14 @@ export const signUpAction = async (formData: FormData) => {
   if (error) {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
-  } else {
-    // 確認用トークンを生成
-    const token = generateToken();
-    
-    // メール送信
-    const emailResult = await sendVerificationEmail(email, token);
-    
-    if (!emailResult.success) {
-      // エラー処理
-      return { message: 'メール送信に失敗しました。もう一度お試しください。' };
-    }
-    
-    // 成功処理
-    return { message: '確認メールを送信しました。メールをご確認ください。' };
   }
+
+  // 成功した場合
+  return encodedRedirect(
+    "success",
+    "/sign-up",
+    "Check your email for the confirmation link",
+  );
 };
 
 // ログイン処理
