@@ -84,7 +84,7 @@ export default async function AuthButton() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/profile">マイプロフィール</Link>
+            <Link href={`/profile/${user.id}`}>マイプロフィール</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/profile/edit">プロフィール編集</Link>

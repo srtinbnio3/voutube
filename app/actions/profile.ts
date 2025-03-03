@@ -99,10 +99,10 @@ export async function updateProfileAction(formData: FormData) {
   }
   
   // キャッシュを更新
-  revalidatePath("/profile");
-  revalidatePath("/");
+  revalidatePath(`/profile/${user.id}`);
+  revalidatePath("/channels");
   
-  return encodedRedirect("success", "/profile", "プロフィールを更新しました");
+  return encodedRedirect("success", `/profile/${user.id}`, "プロフィールを更新しました");
 }
 
 // プロフィール画像をアップロードするサーバーアクション

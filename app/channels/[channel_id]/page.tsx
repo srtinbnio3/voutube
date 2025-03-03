@@ -50,8 +50,13 @@ export default async function ChannelPage(props: {
       votes (
         is_upvote,
         user_id
+      ),
+      profiles!user_id (
+        id,
+        username,
+        avatar_url
       )
-    `)  // 投票情報も一緒に取得
+    `)  // 投票情報とプロフィール情報も一緒に取得
     .eq("channel_id", params.channel_id)
     .order("score", { ascending: false })  // スコアが高い順
     .order("created_at", { ascending: false })  // 同じスコアの場合は新しい順
@@ -77,7 +82,7 @@ export default async function ChannelPage(props: {
         <h2 className="text-xl font-bold mb-4">投稿一覧</h2>
         <div className="grid gap-4">
           {posts?.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard key={post.id} post={post} userId={userId} />
           ))}
         </div>
       </div>
