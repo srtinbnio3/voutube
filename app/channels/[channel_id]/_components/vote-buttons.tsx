@@ -1,32 +1,25 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback } from "react"
+import { createBrowserClient } from "@supabase/ssr"
 import { useRouter } from "next/navigation"
-import { createBrowserClient } from '@supabase/ssr'
 import { Button } from "@/components/ui/button"
-import { ThumbsUp, ThumbsDown } from "lucide-react"
+import { ArrowBigUp, ArrowBigDown } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import debounce from "lodash/debounce"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { debounce } from "lodash"
 
 // コンポーネントのプロパティの型定義
 interface VoteButtonsProps {
   postId: string
   initialScore: number
-  initialVote: boolean | null  // undefinedを削除
+  initialVote: boolean | null
 }
 
-export function VoteButtons({ postId, initialScore, initialVote = null }: VoteButtonsProps) {
+export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsProps) {
   // 状態管理
   const [score, setScore] = useState(initialScore)
-  const [currentVote, setCurrentVote] = useState(initialVote)
+  const [currentVote, setCurrentVote] = useState<boolean | null>(initialVote)
   const [isLoading, setIsLoading] = useState(false)
-  
-  // 最後に成功したリクエストの状態を保持
-  const lastSuccessfulState = useRef({
-    score: initialScore,
-    vote: initialVote
-  })
   
   const router = useRouter()
   const { toast } = useToast()
@@ -37,146 +30,116 @@ export function VoteButtons({ postId, initialScore, initialVote = null }: VoteBu
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  // 実際のAPI呼び出しを行う関数（デバウンス適用）
-  const updateVoteInDatabase = useCallback(
-    debounce(async (
-      isUpvote: boolean,
-      previousVote: boolean | null,
-      onSuccess: () => void,
-      onError: () => void
-    ) => {
+  // 投票をデータベースに保存する関数（デバウンス処理）
+  const updateVoteInDb = useCallback(
+    debounce(async (isUpvote: boolean | null) => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) {
-          router.push(`/sign-in?redirect_to=${encodeURIComponent(window.location.pathname)}`)
+          // 未ログインの場合は処理を中断
           return
         }
 
-        const isRemovingVote = previousVote === isUpvote
+        const userId = session.user.id
 
-        if (isRemovingVote) {
-          const { error } = await supabase
+        if (isUpvote === null) {
+          // 投票を取り消す場合
+          await supabase
             .from("votes")
             .delete()
             .eq("post_id", postId)
-            .eq("user_id", session.user.id)
-
-          if (error) throw error
+            .eq("user_id", userId)
         } else {
-          if (previousVote !== null) {
-            const { error: deleteError } = await supabase
-              .from("votes")
-              .delete()
-              .eq("post_id", postId)
-              .eq("user_id", session.user.id)
-
-            if (deleteError) throw deleteError
-          }
-
-          const { error: insertError } = await supabase
+          // upsert: 存在すれば更新、なければ挿入
+          await supabase
             .from("votes")
-            .insert({
+            .upsert({
               post_id: postId,
-              user_id: session.user.id,
-              is_upvote: isUpvote,
+              user_id: userId,
+              is_upvote: isUpvote
             })
-
-          if (insertError) throw insertError
         }
 
-        // 成功時の状態を保存
-        lastSuccessfulState.current = {
-          score: score,
-          vote: isUpvote
-        }
-        onSuccess()
-        router.refresh()
+        // 投稿のスコアを更新
+        await supabase
+          .from("posts")
+          .update({ score })
+          .eq("id", postId)
+
       } catch (error) {
-        console.error('投票処理でエラーが発生:', error)
-        onError()
+        console.error("投票エラー:", error)
         toast({
-          title: "投票に失敗しました",
-          description: error instanceof Error 
-            ? `エラー: ${error.message}`
-            : "予期せぬエラーが発生しました",
+          title: "エラーが発生しました",
+          description: "投票の更新に失敗しました",
           variant: "destructive",
         })
+      } finally {
+        setIsLoading(false)
       }
-    }, 500), // 500ミリ秒のデバウンス
-    [postId, supabase, router, toast, score]
+    }, 500),
+    [postId, score, supabase, toast]
   )
 
-  // ボタンクリック時の処理
-  const handleVote = useCallback((isUpvote: boolean) => {
-    if (isLoading) return
-
-    const previousVote = currentVote
-    const previousScore = score
-
-    // 即座にUIを更新
-    if (previousVote === isUpvote) {
-      setScore(score - (isUpvote ? 1 : -1))
-      setCurrentVote(null)
-    } else {
-      if (previousVote !== null) {
-        setScore(score + (isUpvote ? 2 : -2))
-      } else {
-        setScore(score + (isUpvote ? 1 : -1))
-      }
-      setCurrentVote(isUpvote)
+  // 投票ボタンのクリックハンドラ
+  const handleVote = async (isUpvote: boolean) => {
+    setIsLoading(true)
+    
+    // ログイン確認
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      setIsLoading(false)
+      // 未ログインの場合、現在のURLを保持してログインページへリダイレクト
+      const currentPath = window.location.pathname
+      router.push(`/sign-in?redirect_to=${encodeURIComponent(currentPath)}`)
+      return
     }
 
-    setIsLoading(true)
+    // 現在の投票状態に基づいてスコアを更新
+    let newVote: boolean | null
+    let scoreChange = 0
 
-    // デバウンスされたAPI呼び出し
-    updateVoteInDatabase(
-      isUpvote,
-      previousVote,
-      () => {
-        setIsLoading(false)
-      },
-      () => {
-        // エラー時は前の状態に戻す
-        setScore(previousScore)
-        setCurrentVote(previousVote)
-        setIsLoading(false)
-      }
-    )
-  }, [isLoading, currentVote, score, updateVoteInDatabase])
+    if (currentVote === isUpvote) {
+      // 同じボタンを再度クリック：投票を取り消す
+      newVote = null
+      scoreChange = isUpvote ? -1 : 1
+    } else if (currentVote === null) {
+      // 未投票状態から投票
+      newVote = isUpvote
+      scoreChange = isUpvote ? 1 : -1
+    } else {
+      // 反対の投票から変更
+      newVote = isUpvote
+      scoreChange = isUpvote ? 2 : -2
+    }
+
+    // 状態を更新
+    setCurrentVote(newVote)
+    setScore(prevScore => prevScore + scoreChange)
+    
+    // データベースに反映
+    updateVoteInDb(newVote)
+  }
 
   return (
-    <div className="flex items-center gap-1">
-      {/* いいねボタン */}
+    <div className="flex flex-col items-center gap-1">
       <Button
         variant="ghost"
-        size="sm"
+        size="icon"
+        className={`h-8 w-8 rounded-full ${currentVote === true ? 'text-green-500' : ''}`}
         onClick={() => handleVote(true)}
         disabled={isLoading}
-        className={currentVote === true ? "text-green-500" : ""}
       >
-        {isLoading && currentVote === true ? (
-          <LoadingSpinner size="sm" />
-        ) : (
-          <ThumbsUp className="h-4 w-4" />
-        )}
+        <ArrowBigUp className="h-5 w-5" />
       </Button>
-
-      {/* スコア表示 */}
-      <span className="min-w-[2rem] text-center">{score}</span>
-
-      {/* バットボタン */}
+      <span className="text-sm font-medium">{score}</span>
       <Button
         variant="ghost"
-        size="sm"
+        size="icon"
+        className={`h-8 w-8 rounded-full ${currentVote === false ? 'text-red-500' : ''}`}
         onClick={() => handleVote(false)}
         disabled={isLoading}
-        className={currentVote === false ? "text-red-500" : ""}
       >
-        {isLoading && currentVote === false ? (
-          <LoadingSpinner size="sm" />
-        ) : (
-          <ThumbsDown className="h-4 w-4" />
-        )}
+        <ArrowBigDown className="h-5 w-5" />
       </Button>
     </div>
   )

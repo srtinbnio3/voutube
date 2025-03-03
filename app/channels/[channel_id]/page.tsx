@@ -65,6 +65,7 @@ export default async function ChannelPage(props: {
   // ログイン中のユーザーIDを取得
   const { data: { session } } = await supabase.auth.getSession()
   const userId = session?.user?.id
+  const isLoggedIn = !!session
 
   // ページのレイアウトを返す
   return (
@@ -74,7 +75,7 @@ export default async function ChannelPage(props: {
       {/* チャンネル情報と投稿フォームの表示 */}
       <div className="flex items-start justify-between">
         <ChannelInfo channel={channel} />
-        <PostForm channelId={channel.id} />
+        {isLoggedIn && <PostForm channelId={channel.id} />}
       </div>
       
       {/* 投稿一覧の表示 */}

@@ -45,8 +45,7 @@ export const updateSession = async (request: NextRequest) => {
     // 保護されたルートへのアクセス制御
     // 未認証ユーザーが保護されたパスにアクセスした場合、ログインページへリダイレクト
     if ((request.nextUrl.pathname.startsWith("/protected") ||
-         request.nextUrl.pathname.startsWith("/profile") ||
-         request.nextUrl.pathname.startsWith("/channels")) && 
+         request.nextUrl.pathname.startsWith("/profile")) && 
         (!user || userError)) {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }

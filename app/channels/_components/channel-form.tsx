@@ -123,7 +123,11 @@ export function ChannelForm() {
       // ログイン確認
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        throw new Error("ログインが必要です")
+        // 未ログインの場合、現在のURLを保持してログインページへリダイレクト
+        const currentPath = window.location.pathname
+        setIsOpen(false)
+        router.push(`/sign-in?redirect_to=${encodeURIComponent(currentPath)}`)
+        return
       }
 
       // 登録するチャンネルデータ

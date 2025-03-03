@@ -60,7 +60,11 @@ export function PostForm({ channelId }: PostFormProps) {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        throw new Error("ログインが必要です")
+        // 未ログインの場合、現在のURLを保持してログインページへリダイレクト
+        const currentPath = window.location.pathname
+        setIsOpen(false)
+        router.push(`/sign-in?redirect_to=${encodeURIComponent(currentPath)}`)
+        return
       }
 
       console.log('投稿データ:', {
