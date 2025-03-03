@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ThumbsUp, ThumbsDown } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import debounce from "lodash/debounce"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 // コンポーネントのプロパティの型定義
 interface VoteButtonsProps {
@@ -153,7 +154,11 @@ export function VoteButtons({ postId, initialScore, initialVote = null }: VoteBu
         disabled={isLoading}
         className={currentVote === true ? "text-green-500" : ""}
       >
-        <ThumbsUp className="h-4 w-4" />
+        {isLoading && currentVote === true ? (
+          <LoadingSpinner size="sm" />
+        ) : (
+          <ThumbsUp className="h-4 w-4" />
+        )}
       </Button>
 
       {/* スコア表示 */}
@@ -167,7 +172,11 @@ export function VoteButtons({ postId, initialScore, initialVote = null }: VoteBu
         disabled={isLoading}
         className={currentVote === false ? "text-red-500" : ""}
       >
-        <ThumbsDown className="h-4 w-4" />
+        {isLoading && currentVote === false ? (
+          <LoadingSpinner size="sm" />
+        ) : (
+          <ThumbsDown className="h-4 w-4" />
+        )}
       </Button>
     </div>
   )

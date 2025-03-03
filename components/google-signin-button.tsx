@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { signInWithGoogleAction } from "@/app/actions";
 import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";
+import { LoadingSpinner } from "./ui/loading-spinner";
 
 interface GoogleSignInButtonProps {
   className?: string;
@@ -34,7 +35,7 @@ export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
       className={`w-full flex items-center justify-center gap-2 ${className}`}
     >
       {isLoading ? (
-        <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+        <LoadingSpinner size="sm" />
       ) : (
         <FaGoogle className="h-4 w-4" />
       )}

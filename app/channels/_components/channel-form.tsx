@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Search, Loader2 } from "lucide-react"
 import Image from "next/image"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 /**
  * YouTubeチャンネルの型定義
@@ -196,18 +197,25 @@ export function ChannelForm() {
         {/* YouTube検索フォーム */}
         {!selectedChannel && (
           <div className="space-y-3">
-            <form onSubmit={searchYouTubeChannels} className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="YouTubeチャンネル名で検索"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-              <Button type="submit" disabled={isSearching} size="sm" className="flex-shrink-0">
-                {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "検索"}
+            <form onSubmit={searchYouTubeChannels} className="flex gap-2">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="YouTubeチャンネル名で検索"
+                className="flex-1"
+              />
+              <Button type="submit" disabled={isSearching || !searchQuery.trim()}>
+                {isSearching ? (
+                  <>
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    検索中
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    検索
+                  </>
+                )}
               </Button>
             </form>
             
@@ -271,7 +279,12 @@ export function ChannelForm() {
         <form onSubmit={handleSubmit}>
           <div className="flex justify-end mt-3">
             <Button type="submit" disabled={isLoading || !selectedChannel}>
-              {isLoading ? "作成中..." : "作成"}
+              {isLoading ? (
+                <>
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  作成中...
+                </>
+              ) : "作成"}
             </Button>
           </div>
         </form>

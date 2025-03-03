@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"  // 入力フィールド
 import { Textarea } from "@/components/ui/textarea"  // テキストエリア
 import { useToast } from "@/hooks/use-toast"  // 通知表示用フック
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 // コンポーネントのプロパティの型定義
 interface PostFormProps {
@@ -137,7 +138,12 @@ export function PostForm({ channelId }: PostFormProps) {
           </div>
           <div className="flex justify-end">
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "投稿中..." : "投稿"}
+              {isLoading ? (
+                <>
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  投稿中...
+                </>
+              ) : "投稿"}
             </Button>
           </div>
         </form>
