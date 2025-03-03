@@ -161,3 +161,25 @@ export const signOutAction = async () => {
   // ログインページへリダイレクト
   return redirect("/sign-in");
 };
+
+// Google認証でのログイン処理
+export const signInWithGoogleAction = async () => {
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin");
+
+  // Google認証を開始
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
+  });
+
+  // エラーが発生した場合
+  if (error) {
+    return encodedRedirect("error", "/sign-in", error.message);
+  }
+
+  // Google認証ページにリダイレクト
+  return redirect(data.url);
+};

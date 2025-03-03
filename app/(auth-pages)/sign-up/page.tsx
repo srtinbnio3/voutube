@@ -1,5 +1,6 @@
 import { signUpAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
+import { GoogleSignInButton } from "@/components/google-signin-button";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,20 @@ export default async function Signup(props: {
           <SubmitButton formAction={signUpAction as any} pendingText="登録中...">
             登録する
           </SubmitButton>
+          
+          {/* 区切り線 */}
+          <div className="relative my-3">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-muted-foreground/20"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-background px-2 text-muted-foreground">または</span>
+            </div>
+          </div>
+          
+          {/* Googleログインボタン */}
+          <GoogleSignInButton />
+          
           <FormMessage message={searchParams} />
         </div>
       </form>
