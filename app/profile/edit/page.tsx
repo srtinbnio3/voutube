@@ -4,25 +4,26 @@ import { FormMessage, Message } from "@/components/form-message";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function ProfileEditPage({
-  searchParams,
-}: {
-  searchParams: { status?: string; message?: string };
-}) {
+export default async function ProfileEditPage(
+  props: {
+    searchParams: Promise<{ status?: string; message?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   // Supabaseクライアントを作成
   const supabase = await createClient();
-  
+
   // 現在のユーザーを取得
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
+
   // ユーザーが認証されていない場合はログインページにリダイレクト
   if (userError || !user) {
     redirect("/sign-in");
   }
-  
+
   // プロフィール情報を取得
   const profile = await getUserProfile();
-  
+
   // 検索パラメータからメッセージ情報を取得
   const message: Message | undefined = searchParams.status === "success" && searchParams.message
     ? { success: searchParams.message }

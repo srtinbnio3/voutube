@@ -10,7 +10,7 @@ import { createClient } from "@/utils/supabase/server";
 export default async function ProfilePage({
   searchParams,
 }: {
-  searchParams: { status?: string; message?: string };
+  searchParams: Promise<{ status?: string; message?: string }>;
 }) {
   // Supabaseクライアントを作成
   const supabase = await createClient();

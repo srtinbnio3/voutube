@@ -5,26 +5,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export default async function UserProfilePage({
-  params,
-}: {
-  params: { user_id: string };
-}) {
+export default async function UserProfilePage(
+  props: {
+    params: Promise<{ user_id: string }>;
+  }
+) {
+  const params = await props.params;
   // Supabaseクライアントを作成
   const supabase = await createClient();
-  
+
   // ユーザープロフィールを取得
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", params.user_id)
     .single();
-  
+
   // プロフィールが存在しない場合は404ページを表示
   if (error || !profile) {
     notFound();
   }
-  
+
   // ユーザーの投稿を取得（最新10件）
   const { data: userPosts } = await supabase
     .from("posts")
@@ -38,7 +39,7 @@ export default async function UserProfilePage({
     .eq("user_id", params.user_id)
     .order("created_at", { ascending: false })
     .limit(10);
-  
+
   // ユーザー名の頭文字を取得（アバターのフォールバック用）
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();
