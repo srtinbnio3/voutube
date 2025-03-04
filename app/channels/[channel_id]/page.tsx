@@ -84,7 +84,7 @@ export default async function ChannelPage(props: {
       
       {/* 投稿フォームの表示 */}
       <div className="flex justify-end">
-        {isLoggedIn && <PostForm channelId={channel.id} />}
+        <PostForm channelId={channel.id} />
       </div>
       
       {/* 投稿一覧の表示 */}

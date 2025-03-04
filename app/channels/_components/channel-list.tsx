@@ -28,7 +28,7 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
   const sortedChannels = [...filteredChannels].sort((a, b) => {
     if (sortBy === "post_count") {
       return (b.post_count || 0) - (a.post_count || 0)
-    } else if (sortBy === "latest_post_at") {
+    } else if (sortBy === "latest") {
       return new Date(b.latest_post_at || 0).getTime() - new Date(a.latest_post_at || 0).getTime()
     }
     return 0

@@ -39,7 +39,7 @@ export default async function ChannelsPage() {
       {/* ヘッダー部分 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
         <h1 className="text-xl sm:text-2xl font-bold">チャンネル一覧</h1>
-        {isLoggedIn && <ChannelForm />}  {/* ログイン中のみチャンネル作成フォームを表示 */}
+        <ChannelForm />  {/* ログイン状態に関わらず表示 */}
       </div>
       {/* チャンネル一覧の表示 */}
       <ChannelList initialChannels={channels || []} />
