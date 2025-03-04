@@ -1,7 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Database } from "@/database.types"
 import { ChannelCard } from "./channel-card"
 import { SortSelect } from "./sort-select"
@@ -14,7 +13,6 @@ interface ChannelListProps {
 }
 
 export function ChannelList({ initialChannels }: ChannelListProps) {
-  const router = useRouter()
   const [channels, setChannels] = useState<Channel[]>(initialChannels)
   const [sortBy, setSortBy] = useState("post_count")
   const [search, setSearch] = useState("")
@@ -23,10 +21,6 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
     setChannels(initialChannels)
   }, [initialChannels])
 
-  const handleChannelClick = useCallback((channelId: string) => {
-    router.push(`/channels/${channelId}`)
-  }, [router])
-
   const filteredChannels = channels.filter(channel =>
     channel.name.toLowerCase().includes(search.toLowerCase())
   )
@@ -34,9 +28,10 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
   const sortedChannels = [...filteredChannels].sort((a, b) => {
     if (sortBy === "post_count") {
       return (b.post_count || 0) - (a.post_count || 0)
-    } else {
+    } else if (sortBy === "latest_post_at") {
       return new Date(b.latest_post_at || 0).getTime() - new Date(a.latest_post_at || 0).getTime()
     }
+    return 0
   })
 
   return (
@@ -51,7 +46,6 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
           <ChannelCard
             key={channel.id}
             channel={channel}
-            onClick={() => handleChannelClick(channel.id)}
           />
         ))}
       </div>
