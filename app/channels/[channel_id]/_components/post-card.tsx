@@ -1,7 +1,7 @@
 "use client"
 
 import { Database } from "@/database.types"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
 import { ja } from "date-fns/locale"
 import { VoteButtons } from "./vote-buttons"
@@ -38,41 +38,51 @@ export function PostCard({ post, userId }: PostCardProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <Link href={`/profile/${post.profiles.id}`} className="hover:opacity-80">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={post.profiles.avatar_url || undefined} alt={post.profiles.username} />
-                <AvatarFallback>{getInitials(post.profiles.username)}</AvatarFallback>
-              </Avatar>
-            </Link>
-            <div>
-              <h3 className="font-semibold">{post.title}</h3>
-              <Link 
-                href={`/profile/${post.profiles.id}`}
-                className="text-xs text-muted-foreground hover:underline"
-              >
-                {post.profiles.username}
-              </Link>
-            </div>
-          </div>
+    <Card className="mb-3">
+      <div className="flex">
+        {/* 左側：投票ボタン */}
+        <div className="py-4 px-2 bg-accent/30">
           <VoteButtons
             postId={post.id}
             initialScore={post.score || 0}
             initialVote={userVote}
           />
         </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {post.description}
-        </p>
-        <p className="text-xs text-muted-foreground mt-2">
-          投稿: {formatDistanceToNow(new Date(post.created_at), { locale: ja, addSuffix: true })}
-        </p>
-      </CardContent>
+        
+        {/* 右側：投稿内容 */}
+        <CardContent className="p-4 flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Link href={`/profile/${post.profiles.id}`} className="hover:opacity-80">
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={post.profiles.avatar_url || undefined} alt={post.profiles.username} />
+                <AvatarFallback>{getInitials(post.profiles.username)}</AvatarFallback>
+              </Avatar>
+            </Link>
+            <span className="text-xs text-muted-foreground">
+              <Link 
+                href={`/profile/${post.profiles.id}`}
+                className="hover:underline font-medium"
+              >
+                {post.profiles.username}
+              </Link>
+              {' • '}
+              {formatDistanceToNow(new Date(post.created_at), { locale: ja, addSuffix: true })}
+            </span>
+          </div>
+          
+          <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
+          
+          <p className="text-sm text-muted-foreground">
+            {post.description}
+          </p>
+          
+          <div className="flex gap-2 mt-3">
+            <Link href={`/channels/${post.channel_id}/posts/${post.id}`} className="text-xs text-muted-foreground hover:text-primary flex items-center">
+              {/* 「コメントを表示」のテキストを削除 */}
+            </Link>
+          </div>
+        </CardContent>
+      </div>
     </Card>
   )
 } 
