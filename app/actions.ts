@@ -163,15 +163,33 @@ export const signOutAction = async () => {
 };
 
 // Google認証でのログイン処理
-export const signInWithGoogleAction = async () => {
+export const signInWithGoogleAction = async (formData?: FormData) => {
   const supabase = await createClient();
-  const origin = (await headers()).get("origin");
+  const headersList = await headers();
+  const origin = headersList.get("origin");
+  
+  // FormDataからredirect_toを取得（ある場合）
+  let redirectTo = formData?.get("redirect_to")?.toString();
+  
+  // HTTPヘッダーからリファラーURLを取得
+  const referer = headersList.get("referer");
+  if (referer && !redirectTo) {
+    // URLからredirect_toクエリパラメータを抽出
+    const url = new URL(referer);
+    redirectTo = url.searchParams.get("redirect_to") || undefined;
+  }
+
+  // リダイレクト先URLの構築
+  const redirectUrl = new URL(`${origin}/auth/callback`);
+  if (redirectTo) {
+    redirectUrl.searchParams.set("redirect_to", redirectTo);
+  }
 
   // Google認証を開始
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: redirectUrl.toString(),
     },
   });
 

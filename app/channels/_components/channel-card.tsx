@@ -26,24 +26,26 @@ export function ChannelCard({ channel }: ChannelCardProps) {
     <Link href={`/channels/${channel.id}`}>
       <Card className="hover:bg-accent cursor-pointer transition-colors">
         <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-          <Avatar className="h-12 w-12">
-            {channel.icon_url ? (
-              <AvatarImage
-                src={channel.icon_url}
-                alt={channel.name}
-                referrerPolicy="no-referrer"
-                crossOrigin="anonymous"
-              />
-            ) : null}
-            <AvatarFallback delayMs={600}>
-              {initials || 'CH'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <h3 className="font-semibold">{channel.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              投稿数: {channel.post_count || 0}
-            </p>
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12">
+              {channel.icon_url && (
+                <AvatarImage 
+                  src={channel.icon_url} 
+                  alt={channel.name} 
+                  referrerPolicy="no-referrer"
+                  crossOrigin="anonymous"
+                />
+              )}
+              <AvatarFallback delayMs={600}>
+                {initials || 'CH'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <h3 className="font-semibold">{channel.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                投稿数: {channel.post_count || 0}
+              </p>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

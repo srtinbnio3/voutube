@@ -22,6 +22,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}${redirectTo}`);
   }
 
-  // リダイレクト先が指定されていない場合はルートページへ
-  return NextResponse.redirect(`${origin}/`);
+  // リダイレクト先が指定されていない場合はチャンネル一覧ページへ
+  return NextResponse.redirect(`${origin}/channels`);
 }
