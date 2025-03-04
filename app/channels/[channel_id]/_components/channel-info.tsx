@@ -13,18 +13,35 @@ interface ChannelInfoProps {
 }
 
 export function ChannelInfo({ channel }: ChannelInfoProps) {
+  // チャンネル名から2文字のイニシャルを生成
+  const initials = channel.name
+    .split('')
+    .filter(char => char.match(/[A-Za-z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/))
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+
   return (
     <div className="flex items-center gap-4">
-      <Avatar className="h-16 w-16">
-        <AvatarImage src={channel.icon_url || ""} />
-        <AvatarFallback>CH</AvatarFallback>  {/* アイコンが読み込めない場合の代替表示 */}
+      <Avatar className="h-12 w-12">
+        {channel.icon_url ? (
+          <AvatarImage
+            src={channel.icon_url}
+            alt={channel.name}
+            referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
+          />
+        ) : null}
+        <AvatarFallback delayMs={600}>
+          {initials || 'CH'}
+        </AvatarFallback>
       </Avatar>
       <div>
-        <h2 className="text-xl font-bold">{channel.name}</h2>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold">{channel.name}</h1>
+        <p className="text-muted-foreground">{channel.description}</p>
+        <p className="text-sm text-muted-foreground mt-1">
           投稿数: {channel.post_count || 0}
         </p>
-        {/* 登録者数の表示を削除 */}
       </div>
     </div>
   )

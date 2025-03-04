@@ -4,6 +4,9 @@ import { notFound } from 'next/navigation'
 import { ChannelInfo } from './_components/channel-info'
 import { PostCard } from './_components/post-card'
 import { PostForm } from './_components/post-form'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 // ページの動的生成を有効化（キャッシュを無効化）
 export const dynamic = "force-dynamic"
@@ -70,11 +73,17 @@ export default async function ChannelPage(props: {
   // ページのレイアウトを返す
   return (
     <div className="container max-w-4xl py-6">
-      <h1 className="text-2xl font-bold mb-6">{channel.name}</h1>
-      <p className="text-muted-foreground">{channel.description}</p>
-      {/* チャンネル情報と投稿フォームの表示 */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/channels">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </Button>
         <ChannelInfo channel={channel} />
+      </div>
+      
+      {/* 投稿フォームの表示 */}
+      <div className="flex justify-end">
         {isLoggedIn && <PostForm channelId={channel.id} />}
       </div>
       
