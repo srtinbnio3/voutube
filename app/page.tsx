@@ -30,7 +30,7 @@ export default function LandingPage() {
               - レスポンシブなテキストサイズ調整
               - グラデーションテキスト効果
             */}
-            <h1 className="text-4xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-orange-500">
+            <h1 className="text-4xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-[#FF0000] via-[#FF4444] to-[#FF6666]">
               <span className="sm:hidden">あなたのアイデアが、<br />次の動画を創る。</span>
               <span className="hidden sm:inline whitespace-nowrap">あなたのアイデアが、次の動画を創る。</span>
             </h1>
