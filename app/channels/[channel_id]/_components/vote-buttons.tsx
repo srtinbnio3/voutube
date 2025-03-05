@@ -128,19 +128,26 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
         className={`h-6 w-6 rounded-full p-0 ${currentVote === true ? 'text-orange-500' : ''}`}
         onClick={() => handleVote(true)}
         disabled={isLoading}
+        aria-label="upvote"
       >
         <ArrowBigUp className="h-4 w-4" />
       </Button>
-      <span className={`text-xs font-bold ${
-        currentVote === true ? 'text-orange-500' : 
-        currentVote === false ? 'text-blue-500' : ''
-      }`}>{score}</span>
+      <span 
+        data-testid="vote-score"
+        className={`text-xs font-bold ${
+          currentVote === true ? 'text-orange-500' : 
+          currentVote === false ? 'text-blue-500' : ''
+        }`}
+      >
+        {score}
+      </span>
       <Button
         variant="ghost"
         size="sm"
         className={`h-6 w-6 rounded-full p-0 ${currentVote === false ? 'text-blue-500' : ''}`}
         onClick={() => handleVote(false)}
         disabled={isLoading}
+        aria-label="downvote"
       >
         <ArrowBigDown className="h-4 w-4" />
       </Button>

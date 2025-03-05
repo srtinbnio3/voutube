@@ -70,7 +70,9 @@ export function PostCard({ post, userId }: PostCardProps) {
             </span>
           </div>
           
-          <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
+          <Link href={`/channels/${post.channel_id}/posts/${post.id}`} className="block">
+            <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
+          </Link>
           
           <p className="text-sm text-muted-foreground">
             {post.description}
