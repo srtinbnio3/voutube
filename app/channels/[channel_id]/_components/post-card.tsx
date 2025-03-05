@@ -73,6 +73,7 @@ export function PostCard({ post, userId }: PostCardProps) {
           <Link href={`/channels/${post.channel_id}/posts/${post.id}`} className="block">
             <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
           </Link>
+          {/* 注: 現在のMVPでは投稿詳細ページは未実装です。このリンクをクリックすると404エラーになります。 */}
           
           <p className="text-sm text-muted-foreground">
             {post.description}

@@ -36,7 +36,7 @@ stateDiagram-v2
     }
     
     ChannelDetail --> CreatePost: 投稿ボタン
-    ChannelDetail --> PostDetail: 投稿クリック
+    ChannelDetail --> PostDetail: 投稿クリック（MVPでは未実装）
     ChannelDetail --> ChannelList: チャンネル一覧へ戻る
     
     CreatePost --> ChannelDetail: 投稿完了
@@ -56,6 +56,10 @@ stateDiagram-v2
         CreatePost
         Vote
     }
+    
+    note right of PostDetail
+      現在のMVPでは未実装
+    end note
 ```
 
 ## 画面説明
@@ -104,12 +108,13 @@ stateDiagram-v2
 - 投稿/キャンセルボタン
 - 対象チャンネルは自動設定
 
-### 7. 投稿詳細（PostDetail）
+### 7. 投稿詳細（PostDetail）※MVPでは未実装
 - 投稿の詳細表示
 - いいね/バットボタン（認証済みユーザーのみ）
 - 現在のスコア表示
 - 投稿者情報
 - チャンネル情報
+- 注：現在のバージョンでは詳細ページは未実装で、カード表示のみ対応しています
 
 ## 遷移ルール
 
@@ -128,6 +133,7 @@ stateDiagram-v2
    - チャンネルページからの投稿は対象チャンネルが自動設定
    - 投稿後は該当チャンネルページに戻る
    - 投稿の編集・削除は未実装（MVP対象外）
+   - 投稿詳細ページは未実装（MVPでは投稿カードのみで表示）
 
 4. **投票関連**
    - 各投稿に対して1ユーザー1票

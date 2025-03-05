@@ -42,7 +42,7 @@ erDiagram
         uuid channel_id FK "channels reference"
         text title "3-100 chars"
         text description "10-1000 chars"
-        integer score "default 0"
+        integer score "default 0, nullable"
         timestamp created_at
         timestamp updated_at
     }
