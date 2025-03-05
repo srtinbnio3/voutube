@@ -44,7 +44,7 @@ export const signUpAction = async (formData: FormData) => {
   return encodedRedirect(
     "success",
     "/sign-up",
-    "Check your email for the confirmation link",
+    "確認メールを送信しました。メールのリンクをクリックして登録を完了してください。",
   );
 };
 
@@ -80,7 +80,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
 
   // メールアドレスが入力されているか確認
   if (!email) {
-    return encodedRedirect("error", "/forgot-password", "Email is required");
+    return encodedRedirect("error", "/forgot-password", "メールアドレスを入力してください");
   }
 
   // パスワードリセットメールを送信
@@ -93,7 +93,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/forgot-password",
-      "Could not reset password",
+      "パスワードのリセットに失敗しました",
     );
   }
 
@@ -106,7 +106,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   return encodedRedirect(
     "success",
     "/forgot-password",
-    "Check your email for a link to reset your password.",
+    "パスワードリセット用のメールを送信しました。メールのリンクをクリックしてパスワードを再設定してください。",
   );
 };
 
@@ -123,7 +123,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password and confirm password are required",
+      "パスワードと確認用パスワードを入力してください",
     );
   }
 
@@ -132,7 +132,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Passwords do not match",
+      "パスワードが一致しません",
     );
   }
 
@@ -145,12 +145,12 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password update failed",
+      "パスワードの更新に失敗しました",
     );
   }
 
   // 成功メッセージを表示
-  encodedRedirect("success", "/protected/reset-password", "Password updated");
+  encodedRedirect("success", "/protected/reset-password", "パスワードを更新しました");
 };
 
 // ログアウト処理
