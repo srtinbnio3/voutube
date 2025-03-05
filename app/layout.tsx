@@ -15,7 +15,17 @@ export const metadata: Metadata = {
   title: "IdeaTube",
   description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      {
+        url: "/favicon.ico",
+        sizes: "any",
+      },
+      {
+        url: "/icon-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
   },
 }
 
