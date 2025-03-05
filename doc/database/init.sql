@@ -164,4 +164,29 @@ create index channels_latest_post_at_idx on channels (latest_post_at desc);
 create index channels_youtube_id_idx on channels (youtube_channel_id);
 create index posts_channel_score_idx on posts (channel_id, score desc);
 create index posts_channel_created_idx on posts (channel_id, created_at desc);
-create index votes_post_id_idx on votes (post_id); 
+create index votes_post_id_idx on votes (post_id);
+
+-- Create profile for new user trigger
+create or replace function create_profile_for_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, username, avatar_url)
+  values (
+    new.id,
+    -- OAuth認証の場合はraw_user_meta_dataからusernameを取得、
+    -- なければメールアドレスのローカル部分を使用
+    coalesce(
+      (new.raw_user_meta_data->>'name')::text,
+      split_part(new.email, '@', 1)
+    ),
+    -- OAuth認証の場合はavatarを使用
+    (new.raw_user_meta_data->>'avatar_url')::text
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger the function every time a user is created
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function create_profile_for_new_user(); 
