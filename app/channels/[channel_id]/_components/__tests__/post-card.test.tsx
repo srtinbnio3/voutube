@@ -102,12 +102,14 @@ describe('PostCard', () => {
 
   // リンクのテスト
   describe('links', () => {
-    it('renders correct post link', () => {
+    it('does not render title as link since post detail page is not implemented in MVP', () => {
       render(<PostCard post={mockPost} />, { wrapper: TestWrapper })
       
-      const postLink = screen.getByRole('link', { name: /Test Post/i })
-      expect(postLink).toHaveAttribute('href', '/channels/1/posts/1')
-    })
+      // タイトルがリンクになっていないことを確認（タイトルテキストを含むaタグがない）
+      const titleText = screen.getByText('Test Post');
+      expect(titleText.tagName).not.toBe('A');
+      expect(titleText.closest('a')).toBeNull();
+    });
 
     it('renders correct user profile link', () => {
       render(<PostCard post={mockPost} />, { wrapper: TestWrapper })
