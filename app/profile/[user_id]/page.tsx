@@ -66,7 +66,7 @@ export default async function UserProfilePage(
 
       {userPosts && userPosts.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">{profile.username}の投稿</h2>
+          <h2 className="text-xl font-bold mb-4">{profile.username}の投稿企画</h2>
           <div className="grid gap-4">
             {userPosts.map((post) => (
               <Card key={post.id}>

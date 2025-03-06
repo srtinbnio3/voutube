@@ -89,7 +89,7 @@ export default async function ChannelPage(props: {
       
       {/* 投稿一覧の表示 */}
       <div className="mt-8">
-        <h2 className="text-xl font-bold mb-4">投稿一覧</h2>
+        <h2 className="text-xl font-bold mb-4">投稿企画一覧</h2>
         <div className="grid gap-4">
           {posts?.map((post) => (
             <PostCard key={post.id} post={post} userId={userId} />
