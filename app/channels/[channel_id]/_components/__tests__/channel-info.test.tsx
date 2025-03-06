@@ -24,8 +24,11 @@ describe('ChannelInfo', () => {
   it('renders channel details correctly', () => {
     render(<ChannelInfo channel={mockChannel} />)
     
+    // チャンネル情報グループの存在確認
+    expect(screen.getByRole('group', { name: 'チャンネル情報' })).toBeInTheDocument()
+    
     // チャンネル名の確認
-    expect(screen.getByText(mockChannel.name)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: mockChannel.name })).toBeInTheDocument()
     
     // チャンネル説明の確認
     expect(screen.getByText(mockChannel.description!)).toBeInTheDocument()
@@ -38,23 +41,41 @@ describe('ChannelInfo', () => {
   it('displays all channel information correctly', () => {
     render(<ChannelInfo channel={mockChannel} />)
     
-    // アバター画像の確認（Avatarコンポーネントのspanを確認）
-    const avatar = screen.getByTestId('channel-avatar')
-    expect(avatar).toHaveClass('relative', 'flex', 'shrink-0', 'overflow-hidden', 'rounded-full', 'h-12', 'w-12')
+    // アバター画像の確認
+    const avatarContainer = screen.getByRole('img', { name: `${mockChannel.name}のアバター` })
+      .closest('span')
+    expect(avatarContainer).toHaveClass(
+      'relative',
+      'flex',
+      'shrink-0',
+      'overflow-hidden',
+      'rounded-full',
+      'h-12',
+      'w-12'
+    )
     
-    // チャンネル名
-    expect(screen.getByRole('heading', { name: mockChannel.name })).toBeInTheDocument()
-    
-    // 説明
-    expect(screen.getByText(mockChannel.description!)).toBeInTheDocument()
+    // チャンネル詳細グループの確認
+    const detailsGroup = screen.getByRole('group', { name: 'チャンネル詳細' })
+    expect(detailsGroup).toBeInTheDocument()
   })
 
   // CHAN-02-04: レスポンシブ表示のテスト
   it('applies responsive classes correctly', () => {
     render(<ChannelInfo channel={mockChannel} />)
     
-    // 実装のクラス名に合わせて調整（最上位のdivを確認）
-    const container = screen.getByTestId('channel-info-container')
+    // チャンネル情報グループのレイアウトクラスを確認
+    const container = screen.getByRole('group', { name: 'チャンネル情報' })
     expect(container).toHaveClass('flex', 'items-center', 'gap-4')
+  })
+
+  // 説明文がない場合のフォールバックテスト
+  it('shows fallback text when description is missing', () => {
+    const channelWithoutDesc = {
+      ...mockChannel,
+      description: null
+    }
+    render(<ChannelInfo channel={channelWithoutDesc} />)
+    
+    expect(screen.getByText('説明はありません')).toBeInTheDocument()
   })
 }) 

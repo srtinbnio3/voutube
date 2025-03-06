@@ -22,8 +22,16 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
     .toUpperCase()
 
   return (
-    <div data-testid="channel-info-container" className="flex items-center gap-4">
-      <span data-testid="channel-avatar" className="relative flex shrink-0 overflow-hidden rounded-full h-12 w-12">
+    <div 
+      role="group" 
+      aria-label="チャンネル情報" 
+      className="flex items-center gap-4"
+    >
+      <span 
+        role="img" 
+        aria-label={`${channel.name}のアバター`}
+        className="relative flex shrink-0 overflow-hidden rounded-full h-12 w-12"
+      >
         <Avatar>
           {channel.icon_url ? (
             <AvatarImage
@@ -38,7 +46,7 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
           </AvatarFallback>
         </Avatar>
       </span>
-      <div>
+      <div role="group" aria-label="チャンネル詳細">
         <h1 className="text-2xl font-bold">{channel.name}</h1>
         <p className="text-muted-foreground">{channel.description ?? '説明はありません'}</p>
         <p className="text-sm text-muted-foreground mt-1">
