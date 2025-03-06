@@ -22,23 +22,25 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
     .toUpperCase()
 
   return (
-    <div className="flex items-center gap-4">
-      <Avatar className="h-12 w-12">
-        {channel.icon_url ? (
-          <AvatarImage
-            src={channel.icon_url}
-            alt={channel.name}
-            referrerPolicy="no-referrer"
-            crossOrigin="anonymous"
-          />
-        ) : null}
-        <AvatarFallback delayMs={600}>
-          {initials || 'CH'}
-        </AvatarFallback>
-      </Avatar>
+    <div data-testid="channel-info-container" className="flex items-center gap-4">
+      <span data-testid="channel-avatar" className="relative flex shrink-0 overflow-hidden rounded-full h-12 w-12">
+        <Avatar>
+          {channel.icon_url ? (
+            <AvatarImage
+              src={channel.icon_url}
+              alt={channel.name}
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
+            />
+          ) : null}
+          <AvatarFallback delayMs={600}>
+            {initials || 'CH'}
+          </AvatarFallback>
+        </Avatar>
+      </span>
       <div>
         <h1 className="text-2xl font-bold">{channel.name}</h1>
-        <p className="text-muted-foreground">{channel.description}</p>
+        <p className="text-muted-foreground">{channel.description ?? '説明はありません'}</p>
         <p className="text-sm text-muted-foreground mt-1">
           投稿数: {channel.post_count || 0}
         </p>
