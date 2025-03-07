@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { PostCard } from '../post-card'
 import { describe, it, expect, vi } from 'vitest'
 import { Database } from '@/database.types'
+import { mockUser, mockProfile } from '@/test/test-utils'
 
 // 投稿の型定義
 type Post = Database['public']['Tables']['posts']['Row']
@@ -33,7 +34,7 @@ vi.mock('@supabase/ssr', () => ({
       getSession: () => ({
         data: { 
           session: {
-            user: { id: 'test-user-id' }
+            user: mockUser
           }
         }
       })
@@ -53,31 +54,42 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
 }
 
 describe('PostCard', () => {
-  // 基本的な投稿データ
-  const mockPost: PostWithVotesAndProfile = {
-    id: '1',
-    title: 'Test Post',
-    description: 'Test Description',
+  // モックデータ
+  const mockPost = {
+    id: 'test-post-id',
+    title: 'テスト投稿',
+    description: 'これはテスト投稿です。',
+    score: 5,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    channel_id: '1',
-    user_id: '1',
-    score: 0,
+    channel_id: 'test-channel-id',
+    user_id: mockUser.id,
     votes: [],
-    profiles: {
-      id: '1',
-      username: 'testuser',
-      avatar_url: null
-    }
+    profiles: mockProfile
   }
+
+  it('投稿の内容が正しく表示される', () => {
+    render(<PostCard post={mockPost} userId={mockUser.id} />)
+    
+    expect(screen.getByText('テスト投稿')).toBeInTheDocument()
+    expect(screen.getByText('これはテスト投稿です。')).toBeInTheDocument()
+    expect(screen.getByText('testuser')).toBeInTheDocument()
+  })
+
+  it('スコアが正しく表示される', () => {
+    render(<PostCard post={mockPost} userId={mockUser.id} />)
+    
+    const scoreElement = screen.getByText('5')
+    expect(scoreElement).toBeInTheDocument()
+  })
 
   // 基本的な表示テスト
   describe('basic rendering', () => {
     it('renders post title and description', () => {
       render(<PostCard post={mockPost} />, { wrapper: TestWrapper })
       
-      expect(screen.getByText('Test Post')).toBeInTheDocument()
-      expect(screen.getByText('Test Description')).toBeInTheDocument()
+      expect(screen.getByText('テスト投稿')).toBeInTheDocument()
+      expect(screen.getByText('これはテスト投稿です。')).toBeInTheDocument()
     })
 
     it('renders user information', () => {
@@ -89,7 +101,7 @@ describe('PostCard', () => {
     it('renders vote buttons', () => {
       render(<PostCard post={mockPost} />, { wrapper: TestWrapper })
       
-      expect(screen.getByText('0')).toBeInTheDocument() // スコアの表示を確認
+      expect(screen.getByText('5')).toBeInTheDocument() // スコアの表示を確認
     })
 
     it('renders user avatar with fallback', () => {
@@ -106,7 +118,7 @@ describe('PostCard', () => {
       render(<PostCard post={mockPost} />, { wrapper: TestWrapper })
       
       // タイトルがリンクになっていないことを確認（タイトルテキストを含むaタグがない）
-      const titleText = screen.getByText('Test Post');
+      const titleText = screen.getByText('テスト投稿');
       expect(titleText.tagName).not.toBe('A');
       expect(titleText.closest('a')).toBeNull();
     });
@@ -115,7 +127,7 @@ describe('PostCard', () => {
       render(<PostCard post={mockPost} />, { wrapper: TestWrapper })
       
       const userLink = screen.getByRole('link', { name: /testuser/i })
-      expect(userLink).toHaveAttribute('href', '/profile/1')
+      expect(userLink).toHaveAttribute('href', `/profile/${mockUser.id}`)
     })
   })
 
@@ -144,7 +156,7 @@ describe('PostCard', () => {
       
       render(<PostCard post={postWithoutDesc} />, { wrapper: TestWrapper })
       
-      expect(screen.getByText('Test Post')).toBeInTheDocument()
+      expect(screen.getByText('テスト投稿')).toBeInTheDocument()
       // 説明文がない場合でもエラーにならないことを確認
     })
 

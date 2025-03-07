@@ -6,6 +6,11 @@ import { Database } from '@/database.types'
 // モックデータ - 実際のデータベース型に合わせる
 type Channel = Database['public']['Tables']['channels']['Row']
 
+// propsの型を更新
+interface ChannelInfoProps {
+  channel: Channel | null
+}
+
 const mockChannel: Channel = {
   id: '1',
   youtube_channel_id: 'UC1234567890',
@@ -77,5 +82,74 @@ describe('ChannelInfo', () => {
     render(<ChannelInfo channel={channelWithoutDesc} />)
     
     expect(screen.getByText('説明はありません')).toBeInTheDocument()
+  })
+
+  // CHAN-02-02: 存在しないチャンネルIDでの詳細表示
+  it('handles non-existent channel gracefully', () => {
+    const invalidChannel: Channel = {
+      ...mockChannel,
+      name: 'Not Found Channel',
+      description: null,
+      icon_url: null,
+      post_count: 0,
+      latest_post_at: null
+    }
+    
+    render(<ChannelInfo channel={invalidChannel} />)
+    
+    expect(screen.getByText('Not Found Channel')).toBeInTheDocument()
+    expect(screen.getByText('説明はありません')).toBeInTheDocument()
+    expect(screen.getByText('投稿数: 0')).toBeInTheDocument()
+  })
+
+  // CHAN-02-05: YouTubeチャンネルへのリンク
+  it('renders YouTube channel link correctly', () => {
+    render(<ChannelInfo channel={mockChannel} />)
+    
+    const youtubeLink = screen.getByRole('link', { name: /YouTubeチャンネルを開く/i })
+    expect(youtubeLink).toHaveAttribute(
+      'href',
+      `https://www.youtube.com/channel/${mockChannel.youtube_channel_id}`
+    )
+    expect(youtubeLink).toHaveAttribute('target', '_blank')
+    expect(youtubeLink).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  // CHAN-04-01: 投稿のあるチャンネルの統計表示
+  it('displays channel statistics correctly', () => {
+    render(<ChannelInfo channel={mockChannel} />)
+    
+    expect(screen.getByText(`投稿数: ${mockChannel.post_count}`)).toBeInTheDocument()
+    expect(screen.getByText(/登録者数: 1,000/)).toBeInTheDocument()
+  })
+
+  // CHAN-04-02: 投稿のないチャンネルの統計表示
+  it('displays statistics for channel without posts', () => {
+    const channelWithoutPosts = {
+      ...mockChannel,
+      post_count: 0,
+      latest_post_at: null
+    }
+    render(<ChannelInfo channel={channelWithoutPosts} />)
+    
+    expect(screen.getByText('投稿数: 0')).toBeInTheDocument()
+  })
+
+  // CHAN-04-03: 統計情報の更新確認
+  it('updates statistics when props change', () => {
+    const { rerender } = render(<ChannelInfo channel={mockChannel} />)
+    
+    // 初期表示の確認
+    expect(screen.getByText(`投稿数: ${mockChannel.post_count}`)).toBeInTheDocument()
+    
+    // 更新されたチャンネル情報でコンポーネントを再レンダリング
+    const updatedChannel = {
+      ...mockChannel,
+      post_count: 10
+    }
+    rerender(<ChannelInfo channel={updatedChannel} />)
+    
+    // 更新後の表示を確認
+    expect(screen.getByText('投稿数: 10')).toBeInTheDocument()
   })
 }) 

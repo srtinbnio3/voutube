@@ -5,6 +5,7 @@ import { Database } from "@/database.types"
 import { ChannelCard } from "./channel-card"
 import { SortSelect } from "./sort-select"
 import { SearchInput } from "./search-input"
+import { Button } from "@/components/ui/button"
 
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
 
@@ -16,10 +17,17 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
   const [channels, setChannels] = useState<Channel[]>(initialChannels)
   const [sortBy, setSortBy] = useState("post_count")
   const [search, setSearch] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 8
 
   useEffect(() => {
     setChannels(initialChannels)
+    setCurrentPage(1) // 新しいチャンネルリストが来たら1ページ目に戻る
   }, [initialChannels])
+
+  useEffect(() => {
+    setCurrentPage(1) // 検索やソートが変更されたら1ページ目に戻る
+  }, [search, sortBy])
 
   const filteredChannels = channels.filter(channel =>
     channel.name.toLowerCase().includes(search.toLowerCase())
@@ -34,6 +42,13 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
     return 0
   })
 
+  const paginatedChannels = sortedChannels.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
+  const totalPages = Math.ceil(sortedChannels.length / itemsPerPage)
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -42,13 +57,35 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
       </div>
       
       <div className="grid gap-4 sm:grid-cols-2">
-        {sortedChannels.map((channel) => (
+        {paginatedChannels.map((channel) => (
           <ChannelCard
             key={channel.id}
             channel={channel}
           />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-4 mt-4">
+          <Button
+            onClick={() => setCurrentPage(prev => prev - 1)}
+            disabled={currentPage === 1}
+            variant="outline"
+          >
+            前のページ
+          </Button>
+          <span className="flex items-center">
+            {currentPage} / {totalPages}
+          </span>
+          <Button
+            onClick={() => setCurrentPage(prev => prev + 1)}
+            disabled={currentPage >= totalPages}
+            variant="outline"
+          >
+            次のページ
+          </Button>
+        </div>
+      )}
     </div>
   )
 } 

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ChannelList } from '../channel-list'
 import { Database } from '@/database.types'
@@ -75,5 +75,45 @@ describe('ChannelList', () => {
     const grid = screen.getByText('テストチャンネル1').closest('.grid')
     expect(grid).toHaveClass('gap-4')
     expect(grid).toHaveClass('sm:grid-cols-2')
+  })
+
+  // CHAN-01-03: ページネーション動作確認
+  it('handles pagination correctly', async () => {
+    // 多数のチャンネルをモック
+    const manyChannels = Array.from({ length: 12 }, (_, i) => ({
+      ...mockChannels[0],
+      id: `${i + 1}`,
+      name: `テストチャンネル${i + 1}`,
+      youtube_channel_id: `UC${i}234567890`
+    }))
+
+    render(<ChannelList initialChannels={manyChannels} />)
+
+    // 最初のページのチャンネルが表示されていることを確認
+    expect(screen.getByText('テストチャンネル1')).toBeInTheDocument()
+    expect(screen.getByText('テストチャンネル8')).toBeInTheDocument()
+    
+    // 次へボタンをクリック
+    const nextButton = screen.getByRole('button', { name: /次のページ/i })
+    fireEvent.click(nextButton)
+
+    // 次のページのチャンネルが表示されていることを確認
+    await waitFor(() => {
+      expect(screen.getByText('テストチャンネル9')).toBeInTheDocument()
+      expect(screen.getByText('テストチャンネル12')).toBeInTheDocument()
+    })
+
+    // 前へボタンの表示を確認
+    const prevButton = screen.getByRole('button', { name: /前のページ/i })
+    expect(prevButton).toBeInTheDocument()
+
+    // 前へボタンをクリック
+    fireEvent.click(prevButton)
+
+    // 前のページのチャンネルが表示されていることを確認
+    await waitFor(() => {
+      expect(screen.getByText('テストチャンネル1')).toBeInTheDocument()
+      expect(screen.getByText('テストチャンネル8')).toBeInTheDocument()
+    })
   })
 }) 

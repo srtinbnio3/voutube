@@ -5,8 +5,19 @@
  * チャンネル情報の取得や検索機能を提供します。
  */
 
-const API_KEY = process.env.YOUTUBE_API_KEY;
-const BASE_URL = 'https://www.googleapis.com/youtube/v3';
+// APIキーが設定されていない場合のエラーメッセージ
+const API_KEY_ERROR = 'YouTube API key is not configured. Please check your environment variables.'
+
+// APIキーの取得と検証
+const getApiKey = () => {
+  const apiKey = process.env.YOUTUBE_API_KEY
+  if (!apiKey) {
+    throw new Error(API_KEY_ERROR)
+  }
+  return apiKey
+}
+
+const BASE_URL = 'https://www.googleapis.com/youtube/v3'
 
 /**
  * チャンネルIDに基づいてYouTubeチャンネル情報を取得する
@@ -16,11 +27,15 @@ const BASE_URL = 'https://www.googleapis.com/youtube/v3';
  */
 export async function getChannelInfo(channelId: string) {
   try {
+    const apiKey = getApiKey()
     const response = await fetch(
-      `${BASE_URL}/channels?part=snippet,statistics&id=${channelId}&key=${API_KEY}`
+      `${BASE_URL}/channels?part=snippet,statistics&id=${channelId}&key=${apiKey}`
     );
     
     if (!response.ok) {
+      if (response.status === 403) {
+        throw new Error('YouTube API quota exceeded or invalid API key')
+      }
       throw new Error('YouTube API request failed');
     }
     
@@ -52,11 +67,15 @@ export async function getChannelInfo(channelId: string) {
  */
 export async function searchChannels(query: string) {
   try {
+    const apiKey = getApiKey()
     const response = await fetch(
-      `${BASE_URL}/search?part=snippet&type=channel&q=${encodeURIComponent(query)}&maxResults=10&key=${API_KEY}`
+      `${BASE_URL}/search?part=snippet&type=channel&q=${encodeURIComponent(query)}&maxResults=10&key=${apiKey}`
     );
     
     if (!response.ok) {
+      if (response.status === 403) {
+        throw new Error('YouTube API quota exceeded or invalid API key')
+      }
       throw new Error('YouTube API search request failed');
     }
     
