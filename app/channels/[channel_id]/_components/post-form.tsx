@@ -27,6 +27,8 @@ export function PostForm({ channelId }: PostFormProps) {
   const [isLoading, setIsLoading] = useState(false)  // 投稿処理中の状態
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [titleError, setTitleError] = useState("")
+  const [descriptionError, setDescriptionError] = useState("")
   const router = useRouter()  // ページ遷移用
   const { toast } = useToast()  // 通知表示用
   
@@ -55,6 +57,23 @@ export function PostForm({ channelId }: PostFormProps) {
   // 投稿を作成する関数
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setTitleError("")
+    setDescriptionError("")
+
+    // バリデーション
+    if (title.length < 3) {
+      setTitleError("タイトルは3文字以上で入力してください")
+      return
+    }
+    if (title.length > 100) {
+      setTitleError("タイトルは100文字以内で入力してください")
+      return
+    }
+    if (description.length < 10) {
+      setDescriptionError("説明は10文字以上で入力してください")
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -121,24 +140,30 @@ export function PostForm({ channelId }: PostFormProps) {
         <DialogHeader>
           <DialogTitle>新規投稿</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" role="form">
           <div>
             <Input
+              placeholder="タイトル"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="タイトル"
               required
               minLength={3}
             />
+            {titleError && (
+              <p className="text-sm text-destructive mt-1">{titleError}</p>
+            )}
           </div>
           <div>
             <Textarea
+              placeholder="説明（10文字以上）"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="説明（10文字以上）"
               required
               minLength={10}
             />
+            {descriptionError && (
+              <p className="text-sm text-destructive mt-1">{descriptionError}</p>
+            )}
           </div>
           <div className="flex justify-end">
             <Button type="submit" disabled={isLoading}>
