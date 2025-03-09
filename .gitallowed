@@ -11,4 +11,8 @@ dummy-test-project.supabase.co
 dummy-test-anon-key-xxxxxxxxxxxxx
 dummy-test-youtube-api-key-xxxxxxxxxxxxx
 your-database-url-xxxxxxxxxxxxx
-dummy-test-database-url-xxxxxxxxxxxxx 
+dummy-test-database-url-xxxxxxxxxxxxx
+process.env.NEXT_PUBLIC_SUPABASE_URL
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY 
