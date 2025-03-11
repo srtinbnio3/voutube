@@ -36,7 +36,7 @@ export default function LandingPage() {
             </h1>
             {/* サブテキスト - モバイルでは改行あり */}
             <p className="text-lg sm:text-xl text-muted-foreground">
-              YouTuberと視聴者を繋ぐ、<br className="sm:hidden" />新しい企画プラットフォーム
+              企画提案と投票で、視聴者とYouTuberをつなぐ。<br className="sm:hidden" />みんなのアイデアから生まれる、次のバズる動画
             </p>
           </div>
           {/* CTAボタンセクション */}
