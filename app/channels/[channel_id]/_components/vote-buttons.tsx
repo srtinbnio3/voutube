@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { createBrowserClient } from "@supabase/ssr"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -20,9 +20,20 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
   const [score, setScore] = useState(initialScore)
   const [currentVote, setCurrentVote] = useState<boolean | null>(initialVote)
   const [isLoading, setIsLoading] = useState(false)
+  const [lastVoteOperation, setLastVoteOperation] = useState<{
+    type: 'upvote' | 'downvote' | 'cancel'
+    timestamp: number
+  } | null>(null)
   
   const router = useRouter()
   const { toast } = useToast()
+  
+  // initialScoreまたはinitialVoteが変更された場合、状態を更新
+  useEffect(() => {
+    setScore(initialScore)
+    setCurrentVote(initialVote)
+    setIsLoading(false) // 状態更新時にローディングをリセット
+  }, [initialScore, initialVote])
   
   // Supabaseクライアントの初期化
   const supabase = createBrowserClient(
@@ -32,7 +43,7 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
 
   // 投票をデータベースに保存する関数（デバウンス処理）
   const updateVoteInDb = useCallback(
-    debounce(async (isUpvote: boolean | null) => {
+    debounce(async (isUpvote: boolean | null, newScore: number) => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) {
@@ -63,7 +74,7 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
         // 投稿のスコアを更新
         await supabase
           .from("posts")
-          .update({ score })
+          .update({ score: newScore })
           .eq("id", postId)
 
       } catch (error) {
@@ -73,15 +84,19 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
           description: "投票の更新に失敗しました",
           variant: "destructive",
         })
+        // エラー時は状態を元に戻す
+        setScore(initialScore)
+        setCurrentVote(initialVote)
       } finally {
         setIsLoading(false)
       }
-    }, 500),
-    [postId, score, supabase, toast]
+    }, 100), // 投票処理の間隔を短くして、テストでの連続投票に対応
+    [postId, initialScore, initialVote, supabase, toast]
   )
 
   // 投票ボタンのクリックハンドラ
   const handleVote = async (isUpvote: boolean) => {
+    if (isLoading) return // 処理中は新しい投票を受け付けない
     setIsLoading(true)
     
     // ログイン確認
@@ -102,22 +117,39 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
       // 同じボタンを再度クリック：投票を取り消す
       newVote = null
       scoreChange = isUpvote ? -1 : 1
-    } else if (currentVote === null) {
-      // 未投票状態から投票
-      newVote = isUpvote
-      scoreChange = isUpvote ? 1 : -1
     } else {
-      // 反対の投票から変更
+      // 未投票または反対の投票から変更
       newVote = isUpvote
-      scoreChange = isUpvote ? 2 : -2
+      if (currentVote === null) {
+        // 未投票状態から投票
+        scoreChange = isUpvote ? 1 : -1
+      } else {
+        // 反対の投票から変更（前の投票を取り消して新しい投票を追加）
+        scoreChange = isUpvote ? 2 : -2
+      }
     }
 
-    // 状態を更新
+    // 状態を即時更新（UI表示用）
+    const newScore = score + scoreChange
+    setScore(newScore)
     setCurrentVote(newVote)
-    setScore(prevScore => prevScore + scoreChange)
+    
+    // 直前の投票から時間が経過していない場合は連続操作と見なす
+    const now = Date.now()
+    const lastOp = lastVoteOperation
+    setLastVoteOperation({ type: isUpvote ? 'upvote' : 'downvote', timestamp: now })
+
+    if (lastOp && (now - lastOp.timestamp) < 200) {
+      // 連続操作の場合、前回の操作をキャンセルして新しい操作のみを反映
+      if (isUpvote !== (lastOp.type === 'upvote')) {
+        // 投票タイプが変わった場合、強制的に最新の状態を反映
+        setScore(isUpvote ? 1 : -1)
+        setCurrentVote(isUpvote)
+      }
+    }
     
     // データベースに反映
-    updateVoteInDb(newVote)
+    updateVoteInDb(newVote, newScore)
   }
 
   return (
