@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowBigUp, ArrowBigDown } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { debounce } from "lodash"
+import { formatNumber } from "../../../lib/format"
 
 // コンポーネントのプロパティの型定義
 interface VoteButtonsProps {
@@ -171,7 +172,7 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
           currentVote === false ? 'text-blue-500' : ''
         }`}
       >
-        {score}
+        {formatNumber(score)}
       </span>
       <Button
         variant="ghost"

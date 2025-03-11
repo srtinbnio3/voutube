@@ -152,7 +152,7 @@ describe('ChannelInfo', () => {
     
     await waitFor(() => {
       expect(screen.getByText(`投稿数: ${mockChannel.post_count}`)).toBeInTheDocument()
-      expect(screen.getByText('登録者数: 1,000')).toBeInTheDocument()
+      expect(screen.getByText('登録者数: 1K')).toBeInTheDocument()
     })
   })
 

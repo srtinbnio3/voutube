@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Youtube } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createBrowserClient } from "@supabase/ssr"
+import { formatNumber } from "../../../lib/format"
 
 // チャンネルデータの型定義
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
@@ -96,7 +97,7 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
             投稿数: {channel.post_count || 0}
           </p>
           <p className="text-sm text-muted-foreground">
-            登録者数: {isLoading ? '読み込み中...' : (subscriberCount?.toLocaleString() || 0)}
+            登録者数: {isLoading ? '読み込み中...' : formatNumber(subscriberCount || 0)}
           </p>
         </div>
         <Button

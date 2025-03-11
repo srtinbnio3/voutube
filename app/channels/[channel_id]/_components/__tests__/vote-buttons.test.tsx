@@ -430,11 +430,27 @@ describe('VoteButtons', () => {
     test('VOTE-05-07: 高スコアの表示形式', () => {
       // 大きな数値でもスコアが正しく表示されることを確認
       const { rerender } = render(<VoteButtons {...defaultProps} initialScore={999999} />)
-      expect(screen.getByTestId('vote-score')).toHaveTextContent('999999')
+      expect(screen.getByTestId('vote-score')).toHaveTextContent('100.0万')
 
       // 負の大きな数値でもスコアが正しく表示されることを確認
       rerender(<VoteButtons {...defaultProps} initialScore={-999999} />)
-      expect(screen.getByTestId('vote-score')).toHaveTextContent('-999999')
+      expect(screen.getByTestId('vote-score')).toHaveTextContent('-100.0万')
+
+      // 1000以上のスコアの表示
+      rerender(<VoteButtons {...defaultProps} initialScore={1500} />)
+      expect(screen.getByTestId('vote-score')).toHaveTextContent('1.5K')
+
+      // 負の1000以上のスコアの表示
+      rerender(<VoteButtons {...defaultProps} initialScore={-1500} />)
+      expect(screen.getByTestId('vote-score')).toHaveTextContent('-1.5K')
+
+      // 10000以上のスコアの表示
+      rerender(<VoteButtons {...defaultProps} initialScore={25000} />)
+      expect(screen.getByTestId('vote-score')).toHaveTextContent('2.5万')
+
+      // 負の10000以上のスコアの表示
+      rerender(<VoteButtons {...defaultProps} initialScore={-25000} />)
+      expect(screen.getByTestId('vote-score')).toHaveTextContent('-2.5万')
     })
   })
 }) 

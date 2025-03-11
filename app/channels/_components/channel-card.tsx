@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { formatDistanceToNow } from "date-fns"
 import { ja } from "date-fns/locale"
 import Link from "next/link"
+import { formatNumber } from "../../lib/format"
 
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
 
@@ -43,7 +44,7 @@ export function ChannelCard({ channel }: ChannelCardProps) {
             <div className="flex flex-col">
               <h3 className="font-semibold">{channel.name}</h3>
               <p className="text-sm text-muted-foreground">
-                投稿数: {channel.post_count || 0}
+                投稿数: {channel.post_count || 0} · 登録者数: {formatNumber(channel.subscriber_count || 0)}
               </p>
             </div>
           </div>
