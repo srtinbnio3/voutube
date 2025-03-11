@@ -6,10 +6,14 @@
 export function formatNumber(num: number): string {
   const absNum = Math.abs(num)
   if (absNum >= 10000) {
-    return `${(num / 10000).toFixed(1)}万`
+    const value = num / 10000
+    // 小数点以下が0の場合は整数のみ表示
+    return Number.isInteger(value) ? `${Math.floor(value)}万` : `${value.toFixed(1)}万`
   }
   if (absNum >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`
+    const value = num / 1000
+    // 小数点以下が0の場合は整数のみ表示
+    return Number.isInteger(value) ? `${Math.floor(value)}K` : `${value.toFixed(1)}K`
   }
   return num.toString()
 } 
