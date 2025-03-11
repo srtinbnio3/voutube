@@ -8,20 +8,17 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/cypress/**',
-      '**/.{idea,git,cache,output,temp}/**',
-      'app/(auth-pages)/**/*.test.{js,jsx,ts,tsx}',     // 認証関連のテストを除外
-    ],
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    env: {
-      NODE_ENV: 'test'
+    include: ['**/*.test.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
     },
+  },
+  resolve: {
     alias: {
-      '@': path.resolve(__dirname, './')
-    }
-  }
+      '@': path.resolve(__dirname, './'),
+    },
+  },
 }) 

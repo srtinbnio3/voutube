@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ChannelCard } from '../channel-card'
 import { Database } from '@/database.types'
@@ -32,8 +32,9 @@ describe('ChannelCard', () => {
     // チャンネル名の確認
     expect(screen.getByText(mockChannel.name)).toBeInTheDocument()
     
-    // 投稿数の確認
-    expect(screen.getByText(`投稿数: ${mockChannel.post_count}`)).toBeInTheDocument()
+    // 投稿数の確認（部分一致）
+    const statsText = screen.getByText(/投稿数:.*登録者数:/)
+    expect(statsText).toHaveTextContent(`投稿数: ${mockChannel.post_count}`)
     
     // チャンネル説明の確認
     expect(screen.getByText(mockChannel.description!)).toBeInTheDocument()
@@ -54,7 +55,7 @@ describe('ChannelCard', () => {
   })
 
   // アイコンがない場合のフォールバック
-  it('renders fallback avatar when icon_url is null', () => {
+  it('renders fallback avatar when icon_url is null', async () => {
     const channelWithoutIcon = {
       ...mockChannel,
       icon_url: null
@@ -63,8 +64,7 @@ describe('ChannelCard', () => {
     render(<ChannelCard channel={channelWithoutIcon} />)
     
     // アバターフォールバックが表示されていることを確認
-    // CH（フォールバック値）もしくはイニシャルが表示される
-    const fallback = screen.getByText(/CH|[A-Z]{1,2}/)
+    const fallback = await screen.findByText(/^(CH|チャ)$/)
     expect(fallback).toBeInTheDocument()
   })
 
