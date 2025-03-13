@@ -3,12 +3,23 @@ import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
 // パスワードリセットページのコンポーネント
 // searchParams: URLパラメータからメッセージを受け取る（エラーメッセージなど）
 export default async function ResetPassword(props: {
   searchParams: Promise<Message>
 }) {
+  // 認証状態をチェック
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+
+  // すでにログインしている場合は、トップページにリダイレクト
+  if (session) {
+    redirect('/');
+  }
+
   // URLパラメータから非同期でメッセージを取得
   const searchParams = await props.searchParams
 
