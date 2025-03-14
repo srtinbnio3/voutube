@@ -281,7 +281,7 @@ async function sendSlackAlert(title, warnings) {
 }
 
 // スクリプトが直接実行された場合のみ実行
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   monitorSupabaseUsage()
     .then(() => {
       process.exit(0);
@@ -292,4 +292,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { monitorSupabaseUsage }; 
+export { monitorSupabaseUsage }; 
