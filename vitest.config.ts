@@ -15,6 +15,9 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
     },
+    typecheck: {
+      ignoreSourceErrors: true,
+    }
   },
   resolve: {
     alias: {

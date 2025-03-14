@@ -42,4 +42,7 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-}); 
+});
+
+// 注意: 型定義は app/@types/auth.d.ts に一元化されています
+// このファイルでは重複した型定義を削除しました 
