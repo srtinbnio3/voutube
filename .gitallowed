@@ -22,4 +22,6 @@ reset-password
 password-strength
 password-error
 password-input
-password-errors 
+password-errors
+YOUTUBE_API_KEY
+process.env.YOUTUBE_API_KEY 
