@@ -1,5 +1,5 @@
 // Supabase使用量監視スクリプト
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
 
 // 設定
