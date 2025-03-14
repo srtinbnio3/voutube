@@ -20,17 +20,17 @@ async function monitorYouTubeApiUsage() {
   }
 
   try {
-    // YouTube API使用量を取得
+    // YouTube APIの使用量を確認するためのテストリクエスト
     const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/quota?key=${YOUTUBE_API_KEY}`
+      `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=UC_x5XG1OV2P6uZZ5FSM9Ttw&key=${YOUTUBE_API_KEY}`
     );
 
     if (!response.ok) {
       throw new Error(`YouTube API request failed: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    const quotaUsed = data.items[0].quota;
+    // APIの使用量をレスポンスヘッダーから取得
+    const quotaUsed = parseInt(response.headers.get('x-quota-used') || '0', 10);
     const quotaPercentage = (quotaUsed / FREE_TIER_LIMITS.DAILY_QUOTA) * 100;
 
     // 警告メッセージを作成
