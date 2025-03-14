@@ -167,6 +167,15 @@ async function monitorSupabaseUsage() {
       }
     } else {
       console.log('すべてのリソースは無料枠の警告閾値内です');
+      if (SLACK_WEBHOOK_URL) {
+        await sendSlackAlert('Supabase使用量 正常', [{
+          resource: 'ステータス',
+          usage: '正常',
+          limit: `警告閾値: ${WARNING_THRESHOLD}%`,
+          percentage: '0'
+        }]);
+        console.log('Slackに正常状態を通知しました');
+      }
     }
     
     console.log('監視完了！');
