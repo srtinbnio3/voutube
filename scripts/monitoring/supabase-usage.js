@@ -1,6 +1,6 @@
 // Supabase使用量監視スクリプト
 const { createClient } = require('@supabase/supabase-js');
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 // 設定
 const SUPABASE_URL = process.env.SUPABASE_URL;
