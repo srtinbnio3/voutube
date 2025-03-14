@@ -73,7 +73,7 @@ export default function RootLayout({
               {/* フッター */}
               <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
                 <p>
-                  &copy; {new Date().getFullYear()} Masayoshi Kimura
+                  &copy; {new Date().getFullYear()} IdeaTube
                 </p>
                 <ThemeSwitcher />
               </footer>
