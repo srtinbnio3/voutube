@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
+import { validatePassword } from '@/app/utils/password-validation'
 
 // Supabaseのモック
 const mockSupabase = {
@@ -54,15 +55,10 @@ vi.mock('@/app/actions/auth', () => {
       return { status: 'error', message: 'このメールアドレスは既に登録されています' }
     }
     
-    // パスワード強度チェック（単純な例）
-    if (password.length < 8 || 
-        !/[A-Z]/.test(password) || 
-        !/[a-z]/.test(password) || 
-        !/[0-9]/.test(password)) {
-      return { 
-        status: 'error', 
-        message: 'パスワードは8文字以上で、大文字・小文字・数字をそれぞれ1文字以上含める必要があります' 
-      }
+    // パスワードバリデーション
+    const validation = validatePassword(password)
+    if (!validation.isValid) {
+      return { status: 'error', message: validation.error }
     }
     
     // 成功の場合

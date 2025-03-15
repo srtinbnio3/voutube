@@ -36,8 +36,10 @@ export default async function Signup(props: {
           <Input
             type="password"
             name="password"
-            placeholder="パスワードを入力"
-            minLength={6}
+            placeholder="パスワードを入力（8文字以上、大文字・小文字・数字を含む）"
+            minLength={8}
+            pattern="^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$"
+            title="パスワードは8文字以上で、大文字・小文字・数字をそれぞれ1文字以上含める必要があります"
             required
           />
           <SubmitButton formAction={signUpAction as any} pendingText="登録中...">
