@@ -55,6 +55,20 @@ export function ChannelForm() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
+  // 新規チャンネルボタンクリック時の処理
+  const handleNewChannelClick = async () => {
+    // ログイン確認
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      // 未ログインの場合、現在のURLを保持してログインページへリダイレクト
+      const currentPath = window.location.pathname
+      router.push(`/sign-in?redirect_to=${encodeURIComponent(currentPath)}`)
+      return
+    }
+    // ログイン済みの場合、ダイアログを開く
+    setIsOpen(true)
+  }
+
   /**
    * YouTubeチャンネルを検索する関数
    * 入力されたクエリでYouTube APIを検索し結果を表示します
@@ -120,16 +134,6 @@ export function ChannelForm() {
     setIsLoading(true)
 
     try {
-      // ログイン確認
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        // 未ログインの場合、現在のURLを保持してログインページへリダイレクト
-        const currentPath = window.location.pathname
-        setIsOpen(false)
-        router.push(`/sign-in?redirect_to=${encodeURIComponent(currentPath)}`)
-        return
-      }
-
       // 登録するチャンネルデータ
       const channelData = {
         name: selectedChannel.name,
@@ -191,7 +195,7 @@ export function ChannelForm() {
       }
     }}>
       <DialogTrigger asChild>
-        <Button>新規チャンネル</Button>
+        <Button onClick={handleNewChannelClick}>新規チャンネル</Button>
       </DialogTrigger>
       <DialogContent className="p-3 sm:p-4 w-[95vw] max-w-[400px] max-h-[90vh] overflow-hidden">
         <DialogHeader className="mb-2">
