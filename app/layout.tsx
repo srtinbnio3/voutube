@@ -4,6 +4,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 import Image from "next/image"
 import HeaderAuth from "@/components/header-auth"
+import { Twitter } from "lucide-react"
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -72,7 +73,15 @@ export default function RootLayout({
 
               {/* フッター */}
               <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-16">
-                <div className="flex gap-8">
+                <div className="flex gap-8 items-center">
+                  <Link
+                    href="https://x.com/kmrmsys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-blue-400 transition-colors"
+                  >
+                    <Twitter size={16} />
+                  </Link>
                   <Link href="/terms" className="hover:underline">利用規約</Link>
                   <Link href="/privacy" className="hover:underline">プライバシーポリシー</Link>
                 </div>
