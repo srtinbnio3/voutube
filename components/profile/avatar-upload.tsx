@@ -23,45 +23,16 @@ export function AvatarUpload({ initialAvatarUrl, username, onAvatarChange }: Ava
     return name.charAt(0).toUpperCase();
   };
 
-  // 画像選択ダイアログを開く
+  // 画像選択ダイアログを開く - 一時的に無効化
   const handleButtonClick = () => {
-    fileInputRef.current?.click();
+    // 一時的に無効化
+    return;
   };
 
-  // 画像がアップロードされたときの処理
+  // 画像がアップロードされたときの処理 - 一時的に無効化
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setIsUploading(true);
-
-      // FormDataを作成
-      const formData = new FormData();
-      formData.append("image", file);
-
-      // 画像をアップロード
-      const result = await uploadProfileImageAction(formData);
-
-      if ("error" in result) {
-        toast.error(result.error);
-        return;
-      }
-
-      // 画像URLを更新
-      setAvatarUrl(result.url);
-      onAvatarChange(result.url);
-      toast.success("プロフィール画像をアップロードしました");
-    } catch (error) {
-      console.error("画像アップロードエラー:", error);
-      toast.error("画像のアップロードに失敗しました");
-    } finally {
-      setIsUploading(false);
-      // 入力フィールドをリセット
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
+    // 一時的に無効化
+    return;
   };
 
   return (
@@ -75,15 +46,11 @@ export function AvatarUpload({ initialAvatarUrl, username, onAvatarChange }: Ava
           type="button"
           size="icon"
           variant="secondary"
-          className="absolute bottom-0 right-0 rounded-full w-8 h-8"
-          onClick={handleButtonClick}
-          disabled={isUploading}
+          className="absolute bottom-0 right-0 rounded-full w-8 h-8 opacity-50 cursor-not-allowed"
+          disabled={true}
+          title="画像アップロード機能は現在使用できません"
         >
-          {isUploading ? (
-            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-          ) : (
-            <FaCamera className="h-4 w-4" />
-          )}
+          <FaCamera className="h-4 w-4" />
         </Button>
       </div>
       <input
@@ -92,6 +59,7 @@ export function AvatarUpload({ initialAvatarUrl, username, onAvatarChange }: Ava
         className="hidden"
         accept="image/jpeg,image/png,image/gif,image/webp"
         onChange={handleFileChange}
+        disabled
       />
     </div>
   );

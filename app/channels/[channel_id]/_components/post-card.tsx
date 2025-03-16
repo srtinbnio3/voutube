@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useEffect, useState } from "react"
 
 // 投稿データの型定義を拡張
 type PostWithVotesAndProfile = Database["public"]["Tables"]["posts"]["Row"] & {
@@ -44,10 +45,16 @@ interface PostCardProps {
 export function PostCard({ post, userId }: PostCardProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const [relativeTime, setRelativeTime] = useState<string>("")
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+
+  useEffect(() => {
+    // クライアントサイドでのみ相対時間を計算
+    setRelativeTime(formatDistanceToNow(new Date(post.created_at), { locale: ja, addSuffix: true }))
+  }, [post.created_at])
 
   // 投稿を削除する関数
   const handleDelete = async () => {
@@ -118,7 +125,7 @@ export function PostCard({ post, userId }: PostCardProps) {
                   {post.profiles.username}
                 </Link>
                 {' • '}
-                {formatDistanceToNow(new Date(post.created_at), { locale: ja, addSuffix: true })}
+                {relativeTime || new Date(post.created_at).toLocaleDateString("ja-JP")}
               </span>
             </div>
             {isAuthor && (

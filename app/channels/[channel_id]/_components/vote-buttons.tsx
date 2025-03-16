@@ -18,22 +18,23 @@ interface VoteButtonsProps {
 
 export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsProps) {
   // 状態管理
-  const [score, setScore] = useState(initialScore)
+  const [score, setScore] = useState<number>(initialScore)
   const [currentVote, setCurrentVote] = useState<boolean | null>(initialVote)
   const [isLoading, setIsLoading] = useState(false)
   const [lastVoteOperation, setLastVoteOperation] = useState<{
     type: 'upvote' | 'downvote' | 'cancel'
     timestamp: number
+    score: number
+    vote: boolean | null
   } | null>(null)
   
   const router = useRouter()
   const { toast } = useToast()
   
-  // initialScoreまたはinitialVoteが変更された場合、状態を更新
+  // 初期値の設定をuseEffectで行う
   useEffect(() => {
     setScore(initialScore)
     setCurrentVote(initialVote)
-    setIsLoading(false) // 状態更新時にローディングをリセット
   }, [initialScore, initialVote])
   
   // Supabaseクライアントの初期化
@@ -97,60 +98,79 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
 
   // 投票ボタンのクリックハンドラ
   const handleVote = async (isUpvote: boolean) => {
-    if (isLoading) return // 処理中は新しい投票を受け付けない
+    if (isLoading) return
     setIsLoading(true)
     
-    // ログイン確認
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       setIsLoading(false)
-      // 未ログインの場合、現在のURLを保持してログインページへリダイレクト
       const currentPath = window.location.pathname
       router.push(`/sign-in?redirect_to=${encodeURIComponent(currentPath)}`)
       return
     }
 
-    // 現在の投票状態に基づいてスコアを更新
-    let newVote: boolean | null
-    let scoreChange = 0
-
-    if (currentVote === isUpvote) {
-      // 同じボタンを再度クリック：投票を取り消す
-      newVote = null
-      scoreChange = isUpvote ? -1 : 1
-    } else {
-      // 未投票または反対の投票から変更
-      newVote = isUpvote
-      if (currentVote === null) {
-        // 未投票状態から投票
-        scoreChange = isUpvote ? 1 : -1
-      } else {
-        // 反対の投票から変更（前の投票を取り消して新しい投票を追加）
-        scoreChange = isUpvote ? 2 : -2
-      }
-    }
-
-    // 状態を即時更新（UI表示用）
-    const newScore = score + scoreChange
-    setScore(newScore)
-    setCurrentVote(newVote)
-    
-    // 直前の投票から時間が経過していない場合は連続操作と見なす
     const now = Date.now()
     const lastOp = lastVoteOperation
-    setLastVoteOperation({ type: isUpvote ? 'upvote' : 'downvote', timestamp: now })
+    const previousVote = currentVote
+    const previousScore = score
 
-    if (lastOp && (now - lastOp.timestamp) < 200) {
-      // 連続操作の場合、前回の操作をキャンセルして新しい操作のみを反映
-      if (isUpvote !== (lastOp.type === 'upvote')) {
-        // 投票タイプが変わった場合、強制的に最新の状態を反映
-        setScore(isUpvote ? 1 : -1)
-        setCurrentVote(isUpvote)
+    let newVote: boolean | null = null
+    let newScore: number = previousScore
+
+    // 連続操作の判定を最初に行う
+    const isContinuousOperation = lastOp && (now - lastOp.timestamp) < 200
+
+    // 状態更新の関数を定義
+    const updateVoteState = (vote: boolean | null, score: number) => {
+      setLastVoteOperation({
+        type: isUpvote ? 'upvote' : 'downvote',
+        timestamp: now,
+        score: previousScore,
+        vote: previousVote
+      })
+      setCurrentVote(vote)
+      setScore(score)
+    }
+
+    if (isContinuousOperation) {
+      // 連続操作の場合
+      if (lastOp.vote === isUpvote) {
+        // 同じ方向への連続投票は取り消し
+        newVote = null
+        newScore = lastOp.score
+      } else {
+        // 反対方向への投票
+        newVote = isUpvote
+        newScore = lastOp.score + (isUpvote ? 2 : -2)
+      }
+    } else {
+      // 通常の操作の場合
+      if (currentVote === isUpvote) {
+        // 同じ方向の投票は取り消し
+        newVote = null
+        newScore = score + (isUpvote ? -1 : 1)
+      } else {
+        // 反対方向または新規の投票
+        newVote = isUpvote
+        const scoreDiff = currentVote === null ? 1 : 2
+        newScore = score + (isUpvote ? scoreDiff : -scoreDiff)
       }
     }
-    
+
+    // 状態を即時更新（同期的に実行）
+    updateVoteState(newVote, newScore)
+
     // データベースに反映
     updateVoteInDb(newVote, newScore)
+  }
+
+  // ボタンのスタイルを計算する関数
+  const getButtonStyle = (isUpvote: boolean) => {
+    const baseStyle = 'h-6 w-6 rounded-full p-0'
+    if (currentVote === isUpvote) {
+      return `${baseStyle} ${isUpvote ? 'text-orange-500' : 'text-blue-500'}`
+    }
+    return baseStyle
   }
 
   return (
@@ -158,7 +178,7 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
       <Button
         variant="ghost"
         size="sm"
-        className={`h-6 w-6 rounded-full p-0 ${currentVote === true ? 'text-orange-500' : ''}`}
+        className={getButtonStyle(true)}
         onClick={() => handleVote(true)}
         disabled={isLoading}
         aria-label="upvote"
@@ -177,7 +197,7 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
       <Button
         variant="ghost"
         size="sm"
-        className={`h-6 w-6 rounded-full p-0 ${currentVote === false ? 'text-blue-500' : ''}`}
+        className={getButtonStyle(false)}
         onClick={() => handleVote(false)}
         disabled={isLoading}
         aria-label="downvote"
