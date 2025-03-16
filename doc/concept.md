@@ -1,15 +1,15 @@
-# VouTube アプリケーション概念図
+# IdeaTube アプリケーション概念図
 
 ## サービス概要図
 
 ```mermaid
 graph TB
     subgraph Users[ユーザー]
-        Viewer[視聴者]
         YouTuber[YouTuber]
+        Viewer[視聴者]
     end
 
-    subgraph Platform[VouTubeプラットフォーム]
+    subgraph Platform[IdeaTubeプラットフォーム]
         Ideas[企画アイデア]
         Voting[投票システム]
         Ranking[ランキング]

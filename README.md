@@ -1,9 +1,9 @@
 # IdeaTube
 
-[![GitHub license](https://img.shields.io/github/license/srtinbnio3/voutube)](https://github.com/srtinbnio3/voutube/blob/main/LICENSE)
-[![GitHub issues](https://img.shields.io/github/issues/srtinbnio3/voutube)](https://github.com/srtinbnio3/voutube/issues)
-[![GitHub stars](https://img.shields.io/github/stars/srtinbnio3/voutube)](https://github.com/srtinbnio3/voutube/stargazers)
-[![Deploy Status](https://img.shields.io/github/deployments/srtinbnio3/voutube/Production?label=vercel&logo=vercel)](https://voutube.vercel.app)
+[![GitHub license](https://img.shields.io/github/license/srtinbnio3/ideatube)](https://github.com/srtinbnio3/ideatube/blob/main/LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/srtinbnio3/ideatube)](https://github.com/srtinbnio3/ideatube/issues)
+[![GitHub stars](https://img.shields.io/github/stars/srtinbnio3/ideatube)](https://github.com/srtinbnio3/ideatube/stargazers)
+[![Deploy Status](https://img.shields.io/github/deployments/srtinbnio3/ideatube/Production?label=vercel&logo=vercel)](https://ideatube.vercel.app)
 
 YouTubeチャンネルについてのアイデアや感想を共有するためのコミュニティプラットフォーム。ユーザーはYouTubeチャンネルに関連する投稿を作成し、他のユーザーの投稿に対して投票することができます。
 
@@ -49,8 +49,8 @@ YouTubeチャンネルについてのアイデアや感想を共有するため�
 
 1. リポジトリのクローン
 ```bash
-git clone https://github.com/srtinbnio3/voutube.git
-cd voutube
+git clone https://github.com/srtinbnio3/ideatube.git
+cd ideatube
 ```
 
 2. 依存関係のインストール

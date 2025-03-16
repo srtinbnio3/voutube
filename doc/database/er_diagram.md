@@ -1,4 +1,4 @@
-# VouTube データベースER図
+# IdeaTube データベースER図
 
 ```mermaid
 erDiagram

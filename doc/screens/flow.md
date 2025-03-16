@@ -1,4 +1,4 @@
-# VouTube 画面遷移図
+# IdeaTube 画面遷移図
 
 ```mermaid
 stateDiagram-v2

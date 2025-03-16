@@ -1,8 +1,8 @@
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "利用規約 - Voutube",
-  description: "Voutubeの利用規約です。",
+  title: "利用規約 - IdeaTube",
+  description: "IdeaTubeの利用規約です。",
 }
 
 export default function TermsPage() {
