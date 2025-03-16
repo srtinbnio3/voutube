@@ -71,11 +71,17 @@ export default function RootLayout({
               {children}
 
               {/* フッター */}
-              <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-                <p>
-                  &copy; {new Date().getFullYear()} IdeaTube
-                </p>
-                <ThemeSwitcher />
+              <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-16">
+                <div className="flex gap-8">
+                  <Link href="/terms" className="hover:underline">利用規約</Link>
+                  <Link href="/privacy" className="hover:underline">プライバシーポリシー</Link>
+                </div>
+                <div className="flex items-center gap-8">
+                  <p>
+                    &copy; {new Date().getFullYear()} IdeaTube
+                  </p>
+                  <ThemeSwitcher />
+                </div>
               </footer>
             </div>
           </main>
