@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import HeaderAuth from "@/components/header-auth"
 import { Twitter } from "lucide-react"
+import { Analytics } from '@vercel/analytics/react'
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -95,6 +96,7 @@ export default function RootLayout({
             </div>
           </main>
           <Toaster />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
