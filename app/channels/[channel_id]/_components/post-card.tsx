@@ -156,7 +156,7 @@ export function PostCard({ post, userId }: PostCardProps) {
           {/* MVPでは投稿詳細ページが未実装のため、リンクではなく通常のテキストとして表示 */}
           <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
           
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
             {post.description}
           </p>
           
