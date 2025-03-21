@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { encodedRedirect } from "@/utils/utils";
 import { Tables } from "@/database.types";
+import sharp from "sharp";
 
 // ユーザープロフィールを取得する関数
 export async function getUserProfile() {
@@ -115,7 +116,14 @@ export async function uploadProfileImageAction(formData: FormData) {
   if (userError || !user) {
     return { error: "ユーザー情報の取得に失敗しました" };
   }
-  
+
+  // 現在のプロフィール画像を取得
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("id", user.id)
+    .single();
+
   // 画像ファイルを取得
   const file = formData.get("image") as File;
   
@@ -133,29 +141,60 @@ export async function uploadProfileImageAction(formData: FormData) {
   if (!validTypes.includes(file.type)) {
     return { error: "JPG、PNG、GIF、WebP形式の画像のみアップロード可能です" };
   }
-  
-  // ファイル名を生成（ユーザーID + タイムスタンプ + 拡張子）
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-  const filePath = `avatars/${fileName}`;
-  
-  // Storageにアップロード
-  const { error: uploadError, data } = await supabase.storage
-    .from("user-content")
-    .upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
-  
-  if (uploadError) {
-    console.error("画像アップロードエラー:", uploadError);
-    return { error: "画像のアップロードに失敗しました" };
+
+  try {
+    // ファイルをArrayBufferに変換
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // 画像の最適化
+    const optimizedBuffer = await sharp(buffer)
+      .resize(400, 400, {
+        fit: 'cover',
+        position: 'center'
+      })
+      .webp({
+        quality: 80,
+        effort: 6
+      })
+      .toBuffer();
+
+    // ファイル名を生成（ユーザーID + タイムスタンプ + .webp）
+    const fileName = `${user.id}_${Date.now()}.webp`;
+    const filePath = `avatars/${fileName}`;
+    
+    // Storageにアップロード
+    const { error: uploadError, data } = await supabase.storage
+      .from("user-content")
+      .upload(filePath, optimizedBuffer, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: "image/webp"
+      });
+    
+    if (uploadError) {
+      console.error("画像アップロードエラー:", uploadError);
+      return { error: "画像のアップロードに失敗しました" };
+    }
+    
+    // 画像の公開URLを取得
+    const { data: { publicUrl } } = supabase.storage
+      .from("user-content")
+      .getPublicUrl(filePath);
+
+    // 古い画像を削除
+    if (profile?.avatar_url) {
+      const oldFilePath = profile.avatar_url.split('/').pop();
+      if (oldFilePath) {
+        await supabase.storage
+          .from("user-content")
+          .remove([`avatars/${oldFilePath}`]);
+      }
+    }
+    
+    return { url: publicUrl };
+  } catch (error) {
+    console.error("画像処理エラー:", error);
+    return { error: "画像の処理に失敗しました" };
   }
-  
-  // 画像の公開URLを取得
-  const { data: { publicUrl } } = supabase.storage
-    .from("user-content")
-    .getPublicUrl(filePath);
-  
-  return { url: publicUrl };
 } 

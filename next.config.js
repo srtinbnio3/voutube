@@ -32,6 +32,11 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '5mb'
+    }
+  }
 }
 
 export default nextConfig 

@@ -189,4 +189,20 @@ $$ language plpgsql security definer;
 -- Trigger the function every time a user is created
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute function create_profile_for_new_user(); 
+  for each row execute function create_profile_for_new_user();
+
+-- 認証済みユーザーのみアップロード可能
+CREATE POLICY "認証済みユーザーのみアップロード可能" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'user-content');
+
+-- 認証済みユーザーは自分のファイルのみ更新可能
+CREATE POLICY "認証済みユーザーは自分のファイルのみ更新可能" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'user-content' AND auth.uid()::text = (storage.foldername(name))[1])
+  WITH CHECK (bucket_id = 'user-content' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- 全ユーザーが閲覧可能
+CREATE POLICY "全ユーザーが閲覧可能" ON storage.objects
+  FOR SELECT TO public
+  USING (bucket_id = 'user-content'); 
