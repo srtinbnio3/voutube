@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: main  # 本番環境（mainブランチ）のみ監視
       
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -28,12 +30,14 @@ jobs:
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          ENVIRONMENT: "production"
         run: node scripts/monitoring/youtube-api-usage.js
       
       - name: Output status on error
         if: failure()
         run: |
           echo "YouTube API監視スクリプトの実行中にエラーが発生しました。"
+          echo "環境: production"
           echo "GitHub ActionsのSecretsに以下の値が設定されていることを確認してください："
           echo "- YOUTUBE_API_KEY"
           echo "- SLACK_WEBHOOK_URL（オプション）" 

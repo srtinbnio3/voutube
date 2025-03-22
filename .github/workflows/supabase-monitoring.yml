@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: main  # 本番環境（mainブランチ）のみ監視
       
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -29,12 +31,14 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          ENVIRONMENT: "production"
         run: node scripts/monitoring/supabase-usage.js
       
       - name: Output status on error
         if: failure()
         run: |
           echo "Supabase監視スクリプトの実行中にエラーが発生しました。"
+          echo "環境: production"
           echo "GitHub ActionsのSecretsに以下の値が設定されていることを確認してください："
           echo "- SUPABASE_URL"
           echo "- SUPABASE_SERVICE_KEY"
