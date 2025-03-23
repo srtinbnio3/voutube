@@ -14,10 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
+      - name: Checkout main branch code
         uses: actions/checkout@v3
         with:
-          ref: main  # 本番環境（mainブランチ）のみ監視
+          ref: refs/heads/main  # より明示的にmainブランチを指定（デフォルトブランチに関わらず）
+          fetch-depth: 1
       
       - name: Setup Node.js
         uses: actions/setup-node@v3
