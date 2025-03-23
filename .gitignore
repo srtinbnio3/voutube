@@ -92,3 +92,6 @@ coverage/
 
 # Optional stylelint cache
 .stylelintcache
+
+# New directories
+.cursor/
