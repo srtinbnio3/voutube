@@ -4,9 +4,13 @@ on:
   schedule:
     - cron: '0 */4 * * *'  # 4時間ごとに実行（UTC時間）
   workflow_dispatch:  # 手動実行用
+  push:
+    branches:
+      - main
 
 jobs:
   monitor-youtube-api:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     
     steps:
