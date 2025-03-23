@@ -50,6 +50,9 @@ export function PostCard({ post, userId }: PostCardProps) {
   const router = useRouter()
   const { toast } = useToast()  // 通知を表示するための道具
   const [relativeTime, setRelativeTime] = useState<string>("")  // 「3分前」などの時間表示用
+  // 投票の状態を管理
+  const [userVoteState, setUserVoteState] = useState<boolean | null>(null)
+  const [initialUserVoteChecked, setInitialUserVoteChecked] = useState(false)
   
   // データベースに接続するための設定
   const supabase = createBrowserClient(
@@ -61,6 +64,61 @@ export function PostCard({ post, userId }: PostCardProps) {
   useEffect(() => {
     setRelativeTime(formatDistanceToNow(new Date(post.created_at), { locale: ja, addSuffix: true }))
   }, [post.created_at])
+
+  // 最新の投票状態を確認するための関数
+  useEffect(() => {
+    // ユーザーIDがない場合は何もしない
+    if (!userId) {
+      setUserVoteState(null);
+      setInitialUserVoteChecked(true);
+      return;
+    }
+
+    // 初回のみ最新の投票状態を取得
+    const fetchVoteStatus = async () => {
+      try {
+        console.log("初回投票状態を取得中...", { postId: post.id, userId });
+        
+        // 投票データと投稿スコアを同時に取得
+        const [voteResponse, postResponse] = await Promise.all([
+          supabase
+            .from("votes")
+            .select("is_upvote")
+            .eq("post_id", post.id)
+            .eq("user_id", userId)
+            .maybeSingle(),
+          supabase
+            .from("posts")
+            .select("score")
+            .eq("id", post.id)
+            .single()
+        ]);
+        
+        // 投票データがあれば、それを使用
+        if (voteResponse.data) {
+          console.log("サーバーから取得した投票状態:", voteResponse.data.is_upvote);
+          setUserVoteState(voteResponse.data.is_upvote);
+        } else {
+          console.log("投票データなし - 未投票状態");
+          setUserVoteState(null);
+        }
+        setInitialUserVoteChecked(true);
+      } catch (error) {
+        console.error("投票状態の取得エラー:", error);
+        // エラーが発生した場合は既存のvotes配列を検索
+        const existingVote = post.votes?.find(vote => vote.user_id === userId)?.is_upvote ?? null;
+        console.log("既存データを使用:", existingVote);
+        setUserVoteState(existingVote);
+        setInitialUserVoteChecked(true);
+      }
+    };
+
+    // 初回のみ実行し、定期更新は行わない
+    fetchVoteStatus();
+    
+    // 定期更新の処理は削除
+    
+  }, [userId, post.id, post.votes, supabase]);
 
   // 投稿を削除するためのボタンが押されたときの動作
   const handleDelete = async () => {
@@ -110,11 +168,13 @@ export function PostCard({ post, userId }: PostCardProps) {
       <div className="flex">
         {/* 左側に投票（いいね・よくないね）ボタンを置きます */}
         <div className="py-4 px-2 bg-accent/30">
-          <VoteButtons
-            postId={post.id}
-            initialScore={post.score || 0}
-            initialVote={userVote}
-          />
+          {initialUserVoteChecked && (
+            <VoteButtons
+              postId={post.id}
+              initialScore={post.score || 0}
+              initialVote={userVoteState}
+            />
+          )}
         </div>
         
         {/* 右側に投稿の内容を表示します */}
