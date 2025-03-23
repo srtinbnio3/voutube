@@ -10,15 +10,13 @@ on:
 
 jobs:
   monitor-supabase-usage:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout main branch code
+      - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: refs/heads/main  # より明示的にmainブランチを指定（デフォルトブランチに関わらず）
-          fetch-depth: 1
+          ref: main  # 本番環境（mainブランチ）のみ監視
       
       - name: Setup Node.js
         uses: actions/setup-node@v3
