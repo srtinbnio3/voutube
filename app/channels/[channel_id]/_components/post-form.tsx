@@ -160,6 +160,7 @@ export function PostForm({ channelId }: PostFormProps) {
               onChange={(e) => setDescription(e.target.value)}
               required
               minLength={10}
+              className="min-h-[120px]"
             />
             {descriptionError && (
               <p className="text-sm text-destructive mt-1">{descriptionError}</p>
