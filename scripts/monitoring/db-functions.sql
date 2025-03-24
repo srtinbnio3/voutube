@@ -20,20 +20,16 @@ RETURNS TABLE(table_name text, row_count bigint)
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
+DECLARE
+  r RECORD;
 BEGIN
-  RETURN QUERY
-  SELECT 
-    relname::text, 
-    CASE 
-      WHEN reltuples < 1000 THEN (SELECT count(*) FROM pg_catalog.pg_class c WHERE c.relname = relname)::bigint
-      ELSE reltuples::bigint
-    END as row_count
-  FROM pg_class
-  WHERE relkind = 'r' 
-    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
-    AND relname NOT LIKE 'pg_%'
-    AND relname NOT LIKE '_%;'
-  ORDER BY row_count DESC;
+  FOR r IN 
+    SELECT tablename::text
+    FROM pg_tables
+    WHERE schemaname = 'public'
+  LOOP
+    RETURN QUERY EXECUTE format('SELECT %L::text, count(*)::bigint FROM %I', r.tablename, r.tablename);
+  END LOOP;
 END;
 $$;
 

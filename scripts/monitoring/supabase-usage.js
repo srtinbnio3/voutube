@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
 
 // 設定
-const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 
@@ -111,8 +111,19 @@ async function monitorSupabaseUsage() {
         usage: table.row_count,
         limit: FREE_TIER_LIMITS.MAX_ROWS,
         percentage: (table.row_count / FREE_TIER_LIMITS.MAX_ROWS) * 100
-      })).filter(t => t.percentage > WARNING_THRESHOLD)
+      }))
     };
+
+    // 使用量情報を表示
+    console.log('\n=== Supabase使用量レポート ===');
+    console.log(`データベースサイズ: ${formatBytes(usageData.database.usage)} / ${formatBytes(usageData.database.limit)} (${usageData.database.percentage.toFixed(1)}%)`);
+    console.log(`ストレージ使用量: ${formatBytes(usageData.storage.usage)} / ${formatBytes(usageData.storage.limit)} (${usageData.storage.percentage.toFixed(1)}%)`);
+    console.log(`ユーザー数: ${usageData.users.usage} / ${usageData.users.limit} (${usageData.users.percentage.toFixed(1)}%)`);
+    console.log('\nテーブル行数:');
+    usageData.tables.forEach(table => {
+      console.log(`- ${table.name}: ${table.usage} / ${table.limit} (${table.percentage.toFixed(1)}%)`);
+    });
+    console.log('===========================\n');
     
     // 警告が必要なリソースを検出
     const warnings = [];
@@ -158,7 +169,7 @@ async function monitorSupabaseUsage() {
     // 警告があれば通知
     if (warnings.length > 0) {
       if (SLACK_WEBHOOK_URL) {
-        await sendSlackAlert('Supabase無料枠の使用量警告', warnings);
+        await sendSlackAlert('Supabase無料枠の使用量警告', warnings, usageData);
         console.log('Slackに警告を送信しました');
       } else {
         console.log('警告：');
@@ -168,12 +179,7 @@ async function monitorSupabaseUsage() {
     } else {
       console.log('すべてのリソースは無料枠の警告閾値内です');
       if (SLACK_WEBHOOK_URL) {
-        await sendSlackAlert('Supabase使用量 正常', [{
-          resource: 'ステータス',
-          usage: '正常',
-          limit: `警告閾値: ${WARNING_THRESHOLD}%`,
-          percentage: '0'
-        }]);
+        await sendSlackAlert('Supabase使用量 正常', [], usageData);
         console.log('Slackに正常状態を通知しました');
       }
     }
@@ -225,7 +231,7 @@ function formatBytes(bytes, decimals = 2) {
 /**
  * Slack通知を送信
  */
-async function sendSlackAlert(title, warnings) {
+async function sendSlackAlert(title, warnings, usageData) {
   if (!SLACK_WEBHOOK_URL) {
     console.error('SLACK_WEBHOOK_URL が設定されていません');
     return;
@@ -235,6 +241,17 @@ async function sendSlackAlert(title, warnings) {
     const warningsText = warnings.map(w => 
       `• *${w.resource}*: ${w.usage}/${w.limit} (${w.percentage}%)`
     ).join('\n');
+
+    // 使用量の詳細情報を追加
+    const usageDetails = [
+      `*データベースサイズ*: ${formatBytes(usageData.database.usage)} / ${formatBytes(usageData.database.limit)} (${usageData.database.percentage.toFixed(1)}%)`,
+      `*ストレージ使用量*: ${formatBytes(usageData.storage.usage)} / ${formatBytes(usageData.storage.limit)} (${usageData.storage.percentage.toFixed(1)}%)`,
+      `*ユーザー数*: ${usageData.users.usage} / ${usageData.users.limit} (${usageData.users.percentage.toFixed(1)}%)`,
+      '\n*テーブル行数:*',
+      ...usageData.tables.map(table => 
+        `• ${table.name}: ${table.usage} / ${table.limit} (${table.percentage.toFixed(1)}%)`
+      )
+    ].join('\n');
     
     const payload = {
       blocks: [
@@ -250,40 +267,35 @@ async function sendSlackAlert(title, warnings) {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `以下のリソースが無料枠の上限（${WARNING_THRESHOLD}%）に近づいています：`
+            text: '*現在の使用量:*\n' + usageDetails
           }
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: warningsText
-          }
-        },
-        {
-          type: 'divider'
-        },
-        {
-          type: 'context',
-          elements: [
-            {
-              type: 'mrkdwn',
-              text: `実行時刻: ${new Date().toLocaleString('ja-JP')}`
-            }
-          ]
         }
       ]
     };
+
+    // 警告がある場合は警告セクションを追加
+    if (warnings.length > 0) {
+      payload.blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: '*警告:*\n' + warningsText
+        }
+      });
+    }
     
     const response = await fetch(SLACK_WEBHOOK_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     });
     
     if (!response.ok) {
       throw new Error(`Slack通知の送信に失敗: ${response.statusText}`);
     }
+    
   } catch (error) {
     console.error('Slack通知の送信中にエラーが発生:', error);
   }
