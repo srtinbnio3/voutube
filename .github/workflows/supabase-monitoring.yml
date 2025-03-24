@@ -31,7 +31,7 @@ jobs:
       
       - name: Run monitoring script
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           ENVIRONMENT: "production"
@@ -43,6 +43,6 @@ jobs:
           echo "Supabase監視スクリプトの実行中にエラーが発生しました。"
           echo "環境: production"
           echo "GitHub ActionsのSecretsに以下の値が設定されていることを確認してください："
-          echo "- SUPABASE_URL"
+          echo "- NEXT_PUBLIC_SUPABASE_URL"
           echo "- SUPABASE_SERVICE_KEY"
           echo "- SLACK_WEBHOOK_URL（オプション）" 
