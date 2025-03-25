@@ -6,6 +6,7 @@ import Image from "next/image"
 import HeaderAuth from "@/components/header-auth"
 import { Twitter } from "lucide-react"
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { reportWebVitals as reportWebVitalsMetric } from './lib/analytics'
 
 import { ThemeProvider } from "@/components/theme-provider"
@@ -44,6 +45,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" suppressHydrationWarning>
+      <head />
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <ThemeProvider
           attribute="class"
@@ -103,6 +105,7 @@ export default function RootLayout({
           </main>
           <Toaster />
           <Analytics />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
