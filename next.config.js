@@ -36,6 +36,17 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '5mb'
     }
+  },
+  /**
+   * Vercelのアナリティクス設定
+   * 
+   * SpeedInsightsとWebVitalsの計測を有効化します
+   * - SpeedInsights: ページの読み込み速度やパフォーマンスを計測
+   * - WebVitals: Core Web Vitals（LCP、FID、CLS）を計測
+   */
+  analyticsId: true,
+  speedInsights: {
+    enabled: true,
   }
 }
 
