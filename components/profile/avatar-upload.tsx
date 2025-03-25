@@ -344,7 +344,10 @@ export function AvatarUpload({ initialAvatarUrl, username, onAvatarChange }: Ava
     <div className="flex flex-col items-center gap-4">
       <div className="relative">
         <Avatar className="w-24 h-24">
-          <AvatarImage src={avatarUrl || undefined} alt={username} />
+          <AvatarImage 
+            src={avatarUrl || undefined} 
+            alt={username} 
+          />
           <AvatarFallback className="text-2xl">{getInitials(username)}</AvatarFallback>
         </Avatar>
         <Button

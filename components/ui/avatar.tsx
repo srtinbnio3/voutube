@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
-
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 const Avatar = React.forwardRef<
@@ -22,13 +22,26 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & {
+    src?: string
+    alt?: string
+    width?: number
+    height?: number
+  }
+>(({ className, src, alt, width = 40, height = 40, ...props }, ref) => (
+  <div className="aspect-square h-full w-full relative">
+    {src ? (
+      <Image
+        src={src}
+        alt={alt || ""}
+        fill
+        className={cn("object-cover", className)}
+        loading="lazy"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        quality={90}
+      />
+    ) : null}
+  </div>
 ))
 AvatarImage.displayName = AvatarPrimitive.Image.displayName
 

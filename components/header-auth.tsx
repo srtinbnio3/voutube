@@ -73,7 +73,10 @@ export default async function AuthButton() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.username || user.email || ""} />
+              <AvatarImage 
+                src={profile?.avatar_url || undefined} 
+                alt={profile?.username || user.email || ""} 
+              />
               <AvatarFallback>{getInitials(profile?.username || user.email?.split("@")[0] || "")}</AvatarFallback>
             </Avatar>
           </Button>

@@ -271,6 +271,8 @@ export function ChannelForm() {
                   width={32}
                   height={32}
                   className="rounded-full w-full h-full object-cover"
+                  loading="lazy"
+                  quality={90}
                 />
               )}
             </div>
