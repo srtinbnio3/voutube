@@ -184,7 +184,10 @@ export function PostCard({ post, userId }: PostCardProps) {
             <div className="flex items-center gap-2">
               <Link href={`/profile/${post.profiles.id}`} className="hover:opacity-80">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={post.profiles.avatar_url || undefined} alt={post.profiles.username} />
+                  <AvatarImage 
+                    src={post.profiles.avatar_url || undefined} 
+                    alt={post.profiles.username} 
+                  />
                   <AvatarFallback>{getInitials(post.profiles.username)}</AvatarFallback>
                 </Avatar>
               </Link>
