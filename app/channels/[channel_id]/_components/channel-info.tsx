@@ -1,13 +1,14 @@
 "use client"  // クライアントサイドでの実行を指定
 
-import { Database } from "@/database.types"  // データベースの型定義
+import { useState } from "react"
+import { Database } from "@/database.types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Youtube } from "lucide-react"
-import { useEffect, useState } from "react"
-import { createBrowserClient } from "@supabase/ssr"
 import { formatNumber } from "../../../lib/format"
+import { createBrowserClient } from "@supabase/ssr"
+import useSWR from 'swr'
+import { fetcher } from '../../../lib/fetcher'
 
 // チャンネルデータの型定義
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
@@ -18,8 +19,14 @@ interface ChannelInfoProps {
 }
 
 export function ChannelInfo({ channel }: ChannelInfoProps) {
-  const [subscriberCount, setSubscriberCount] = useState<number | null>(channel.subscriber_count)
-  const [isLoading, setIsLoading] = useState(false)
+  const { data: channelData, error, isLoading } = useSWR(
+    `/api/youtube/channel?id=${channel.youtube_channel_id}`,
+    fetcher,
+    {
+      refreshInterval: 300000, // 5分ごとに更新
+      revalidateOnFocus: false,
+    }
+  )
 
   // チャンネル名から2文字のイニシャルを生成
   const initials = channel.name
@@ -29,40 +36,23 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
     .join('')
     .toUpperCase()
 
-  useEffect(() => {
-    async function fetchSubscriberCount() {
-      setIsLoading(true)
-      try {
-        // YouTubeのAPIから最新の登録者数を取得
-        const response = await fetch(`/api/youtube/channel?id=${channel.youtube_channel_id}`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch channel info')
-        }
-        const data = await response.json()
-        
-        // 登録者数を更新
-        setSubscriberCount(data.subscriber_count)
+  // データベースの更新
+  const updateDatabase = async (subscriberCount: number) => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    
+    await supabase
+      .from('channels')
+      .update({ subscriber_count: subscriberCount })
+      .eq('id', channel.id)
+  }
 
-        // データベースも更新
-        const supabase = createBrowserClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
-        
-        await supabase
-          .from('channels')
-          .update({ subscriber_count: data.subscriber_count })
-          .eq('id', channel.id)
-
-      } catch (error) {
-        console.error('Error fetching subscriber count:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchSubscriberCount()
-  }, [channel.id, channel.youtube_channel_id])
+  // チャンネルデータが更新されたらデータベースも更新
+  if (channelData?.subscriber_count) {
+    updateDatabase(channelData.subscriber_count)
+  }
 
   return (
     <div 
@@ -97,7 +87,7 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
             投稿数: {channel.post_count || 0}
           </p>
           <p className="text-sm text-muted-foreground">
-            登録者数: {isLoading ? '読み込み中...' : formatNumber(subscriberCount || 0)}
+            登録者数: {isLoading ? '読み込み中...' : formatNumber(channelData?.subscriber_count || 0)}
           </p>
         </div>
         <Button

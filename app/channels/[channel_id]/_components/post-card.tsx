@@ -25,6 +25,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useCallback, useEffect, useState, memo } from "react"
+import useSWR from 'swr'
+import { fetcher } from '../../../lib/fetcher'
 
 // 投稿の情報（タイトル、内容、投票、投稿者など）の形を決めます
 type PostWithVotesAndProfile = Database["public"]["Tables"]["posts"]["Row"] & {
@@ -65,58 +67,27 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
     setRelativeTime(formatDistanceToNow(new Date(post.created_at), { locale: ja, addSuffix: true }))
   }, [post.created_at])
 
-  // 最新の投票状態を確認するための関数
-  useEffect(() => {
-    // ユーザーIDがない場合は何もしない
-    if (!userId) {
-      setUserVoteState(null);
-      setInitialUserVoteChecked(true);
-      return;
+  // 投票状態の取得
+  const { data: voteData } = useSWR(
+    userId ? `/api/posts/${post.id}/votes` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
     }
+  )
 
-    // 初回のみ最新の投票状態を取得
-    const fetchVoteStatus = async () => {
-      try {
-        console.log("初回投票状態を取得中...", { postId: post.id, userId });
-        
-        // 投票データと投稿スコアを同時に取得
-        const [voteResponse, postResponse] = await Promise.all([
-          supabase
-            .from("votes")
-            .select("is_upvote")
-            .eq("post_id", post.id)
-            .eq("user_id", userId)
-            .maybeSingle(),
-          supabase
-            .from("posts")
-            .select("score")
-            .eq("id", post.id)
-            .single()
-        ]);
-        
-        // 投票データがあれば、それを使用
-        if (voteResponse.data) {
-          console.log("サーバーから取得した投票状態:", voteResponse.data.is_upvote);
-          setUserVoteState(voteResponse.data.is_upvote);
-        } else {
-          console.log("投票データなし - 未投票状態");
-          setUserVoteState(null);
-        }
-        setInitialUserVoteChecked(true);
-      } catch (error) {
-        console.error("投票状態の取得エラー:", error);
-        // エラーが発生した場合は既存のvotes配列を検索
-        const existingVote = post.votes?.find(vote => vote.user_id === userId)?.is_upvote ?? null;
-        console.log("既存データを使用:", existingVote);
-        setUserVoteState(existingVote);
-        setInitialUserVoteChecked(true);
+  // 投票データが更新されたら状態を更新
+  useEffect(() => {
+    if (voteData && !initialUserVoteChecked && userId) {
+      // ユーザーの投票状態を更新
+      const userVote = voteData.votes?.find((vote: { user_id: string; is_upvote: boolean }) => vote.user_id === userId)
+      if (userVote) {
+        setUserVoteState(userVote.is_upvote)
       }
-    };
-
-    // 初回のみ実行し、定期更新は行わない
-    fetchVoteStatus();
-    
-  }, [userId, post.id, post.votes, supabase]);
+      setInitialUserVoteChecked(true)
+    }
+  }, [voteData, initialUserVoteChecked, userId])
 
   // 投稿を削除するためのボタンが押されたときの動作
   const handleDelete = useCallback(async () => {
@@ -166,13 +137,11 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
       <div className="flex">
         {/* 左側に投票（いいね・よくないね）ボタンを置きます */}
         <div className="py-4 px-2 bg-accent/30">
-          {initialUserVoteChecked && (
-            <VoteButtons
-              postId={post.id}
-              initialScore={post.score || 0}
-              initialVote={userVoteState}
-            />
-          )}
+          <VoteButtons
+            postId={post.id}
+            initialScore={post.score || 0}
+            initialVote={userVote}
+          />
         </div>
         
         {/* 右側に投稿の内容を表示します */}
