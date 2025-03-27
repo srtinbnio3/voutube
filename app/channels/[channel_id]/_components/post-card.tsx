@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState, memo } from "react"
 
 // 投稿の情報（タイトル、内容、投票、投稿者など）の形を決めます
 type PostWithVotesAndProfile = Database["public"]["Tables"]["posts"]["Row"] & {
@@ -46,7 +46,7 @@ interface PostCardProps {
 }
 
 // 投稿カードを作る関数です
-export function PostCard({ post, userId }: PostCardProps) {
+const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
   const router = useRouter()
   const { toast } = useToast()  // 通知を表示するための道具
   const [relativeTime, setRelativeTime] = useState<string>("")  // 「3分前」などの時間表示用
@@ -116,12 +116,10 @@ export function PostCard({ post, userId }: PostCardProps) {
     // 初回のみ実行し、定期更新は行わない
     fetchVoteStatus();
     
-    // 定期更新の処理は削除
-    
   }, [userId, post.id, post.votes, supabase]);
 
   // 投稿を削除するためのボタンが押されたときの動作
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     try {
       // データベースから投稿を削除します
       const { error } = await supabase
@@ -147,7 +145,7 @@ export function PostCard({ post, userId }: PostCardProps) {
         variant: "destructive",
       })
     }
-  }
+  }, [post.id, userId, supabase, toast, router])
 
   // この投稿に対する「いいね」や「よくないね」の状態を確認します
   const userVote = userId && post.votes 
@@ -246,4 +244,10 @@ export function PostCard({ post, userId }: PostCardProps) {
       </div>
     </Card>
   )
-} 
+})
+
+// コンポーネントの名前を設定
+PostCard.displayName = 'PostCard'
+
+// コンポーネントをエクスポート
+export { PostCard } 

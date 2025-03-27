@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns"
 import { ja } from "date-fns/locale"
 import Link from "next/link"
 import { formatNumber } from "../../lib/format"
+import { memo, useMemo } from "react"
 
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
 
@@ -14,14 +15,22 @@ interface ChannelCardProps {
   channel: Channel
 }
 
-export function ChannelCard({ channel }: ChannelCardProps) {
+const ChannelCard = memo(function ChannelCard({ channel }: ChannelCardProps) {
   // チャンネル名から2文字のイニシャルを生成
-  const initials = channel.name
-    .split('')
-    .filter(char => char.match(/[A-Za-z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/))
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+  const initials = useMemo(() => {
+    return channel.name
+      .split('')
+      .filter(char => char.match(/[A-Za-z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/))
+      .slice(0, 2)
+      .join('')
+      .toUpperCase()
+  }, [channel.name])
+
+  // 最終投稿日時の相対表示
+  const relativeTime = useMemo(() => {
+    if (!channel.latest_post_at) return null
+    return formatDistanceToNow(new Date(channel.latest_post_at), { locale: ja, addSuffix: true })
+  }, [channel.latest_post_at])
 
   return (
     <Link href={`/channels/${channel.id}`}>
@@ -53,13 +62,19 @@ export function ChannelCard({ channel }: ChannelCardProps) {
           <p className="text-sm text-muted-foreground line-clamp-2">
             {channel.description || "説明はありません"}
           </p>
-          {channel.latest_post_at && (
+          {relativeTime && (
             <p className="text-xs text-muted-foreground mt-2">
-              最終投稿: {formatDistanceToNow(new Date(channel.latest_post_at), { locale: ja, addSuffix: true })}
+              最終投稿: {relativeTime}
             </p>
           )}
         </CardContent>
       </Card>
     </Link>
   )
-} 
+})
+
+// コンポーネントの名前を設定
+ChannelCard.displayName = 'ChannelCard'
+
+// コンポーネントをエクスポート
+export { ChannelCard } 

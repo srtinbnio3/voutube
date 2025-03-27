@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, memo } from "react"
 import { createBrowserClient } from "@supabase/ssr"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -18,7 +18,7 @@ interface VoteButtonsProps {
 }
 
 // 投票ボタンを作る関数です
-export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsProps) {
+const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsProps) {
   // 画面に表示する情報を管理します
   const [score, setScore] = useState<number>(initialScore)           // 現在の投票スコア
   const [currentVote, setCurrentVote] = useState<boolean | null>(initialVote)  // 現在の投票状態
@@ -42,7 +42,7 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
   )
 
   // 投票ボタンが押されたときの動作
-  const handleVote = async (isUpvote: boolean) => {
+  const handleVote = useCallback(async (isUpvote: boolean) => {
     // 処理中なら何もしません
     if (isLoading) return
     setIsLoading(true)
@@ -215,17 +215,17 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
       setIsLoading(false);
       setLoadingType(null);
     }
-  };
+  }, [isLoading, currentVote, score, postId, supabase, router, toast]);
 
   // ボタンの見た目を決める関数
-  const getButtonStyle = (isUpvote: boolean) => {
+  const getButtonStyle = useCallback((isUpvote: boolean) => {
     const baseStyle = 'h-6 w-6 rounded-full p-0 transition-all duration-200'
     // 選ばれているボタンは色を変えます（いいね=オレンジ、よくないね=青）
     if (currentVote === isUpvote) {
       return `${baseStyle} ${isUpvote ? 'text-orange-500' : 'text-blue-500'} active:scale-110`
     }
     return `${baseStyle} hover:bg-accent hover:scale-105`
-  }
+  }, [currentVote])
 
   // 投票ボタンのデザインを作ります
   return (
@@ -288,4 +288,10 @@ export function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsPr
       </Button>
     </div>
   )
-} 
+})
+
+// コンポーネントの名前を設定
+VoteButtons.displayName = 'VoteButtons'
+
+// コンポーネントをエクスポート
+export { VoteButtons } 
