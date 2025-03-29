@@ -16,8 +16,40 @@ import { ThemeSwitcher } from "@/components/theme-switcher"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "IdeaTube",
-  description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム",
+  title: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
+  description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。",
+  keywords: "YouTube, 企画, アイデア, クリエイター, 視聴者, プラットフォーム",
+  authors: [{ name: "IdeaTube Team" }],
+  creator: "IdeaTube Team",
+  publisher: "IdeaTube",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: "ja_JP",
+    url: "https://ideatube.app",
+    siteName: "IdeaTube",
+    title: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
+    description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
+    description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。",
+    images: ["/og-image.png"],
+    creator: "@kmrmsys",
+  },
   icons: {
     icon: [
       {
@@ -45,7 +77,40 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <head />
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "IdeaTube",
+              "url": "https://ideatube.app",
+              "description": "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://ideatube.app/channels?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "IdeaTube",
+              "url": "https://ideatube.app",
+              "logo": "https://ideatube.app/icon-512x512.png",
+              "sameAs": [
+                "https://x.com/kmrmsys"
+              ]
+            })
+          }}
+        />
+      </head>
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <ThemeProvider
           attribute="class"
