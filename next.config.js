@@ -13,17 +13,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'yt3.ggpht.com',
-        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: 'i.ytimg.com',
-        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: '**.googleusercontent.com',
-        pathname: '**',
       }
     ],
     formats: ['image/avif', 'image/webp'],

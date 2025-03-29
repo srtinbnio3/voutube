@@ -16,6 +16,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://voutube.vercel.app'),
   title: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
   description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。",
   keywords: "YouTube, 企画, アイデア, クリエイター, 視聴者, プラットフォーム",
@@ -78,6 +79,7 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <head>
+        <meta name="google-site-verification" content="あなたのメタタグ" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

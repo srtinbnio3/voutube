@@ -39,6 +39,7 @@ const AvatarImage = React.forwardRef<
         loading="lazy"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         quality={90}
+        unoptimized={true}
       />
     ) : null}
   </div>

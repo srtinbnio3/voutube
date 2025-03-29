@@ -1,44 +1,24 @@
 import { MetadataRoute } from 'next'
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://ideatube.app'
-
-  // 静的ページ
-  const staticPages = [
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
     {
-      url: baseUrl,
+      url: 'https://voutube.vercel.app',
       lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `${baseUrl}/channels`,
+      url: 'https://voutube.vercel.app/search',
       lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 0.9,
+      changeFrequency: 'daily',
+      priority: 0.8,
     },
     {
-      url: `${baseUrl}/terms`,
+      url: 'https://voutube.vercel.app/about',
       lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
+      changeFrequency: 'monthly',
       priority: 0.5,
     },
   ]
-
-  // チャンネルページの動的生成
-  const { data: channels } = await fetch(`${baseUrl}/api/channels`).then(res => res.json())
-  const channelPages = channels?.map((channel: any) => ({
-    url: `${baseUrl}/channels/${channel.id}`,
-    lastModified: new Date(channel.updated_at),
-    changeFrequency: 'daily' as const,
-    priority: 0.8,
-  })) || []
-
-  return [...staticPages, ...channelPages]
 } 
