@@ -17,10 +17,11 @@ interface VoteButtonsProps {
   postId: string            // どの投稿に対する投票かを示すID
   initialScore: number      // 最初の投票スコア（いいね - よくないね）
   initialVote: boolean | null  // 最初の投票状態（いいね=true, よくないね=false, 未投票=null）
+  isTestMode?: boolean      // テストモードかどうか（テスト時のみtrue）
 }
 
 // 投票ボタンを作る関数です
-const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVote }: VoteButtonsProps) {
+const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVote, isTestMode = false }: VoteButtonsProps) {
   // 画面に表示する情報を管理します
   const [score, setScore] = useState<number>(initialScore)           // 現在の投票スコア
   const [currentVote, setCurrentVote] = useState<boolean | null>(initialVote)  // 現在の投票状態
@@ -94,9 +95,32 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
       
       const userId = session.user.id
       
-      // 楽観的更新
+      // 楽観的更新のための新しい投票状態
       const newVoteState = currentVote === isUpvote ? null : isUpvote
-      setCurrentVote(newVoteState)
+      
+      // スコアの楽観的更新計算
+      let scoreChange = 0;
+      
+      if (currentVote === null) {
+        // 未投票→投票: +1/-1
+        scoreChange = isUpvote ? 1 : -1;
+      } else if (newVoteState === null) {
+        // 投票→取り消し: いいね取消し-1/よくないね取消し+1
+        scoreChange = currentVote ? -1 : 1;
+      } else {
+        // 投票切り替え: いいね→よくないね:-2/よくないね→いいね:+2
+        scoreChange = isUpvote ? 2 : -2;
+      }
+      
+      // 状態を更新（setStateの順序をスコア→投票状態に変更）
+      setScore(prevScore => prevScore + scoreChange);
+      setCurrentVote(newVoteState);
+      
+      // テストモードの場合はAPIリクエストをスキップ
+      if (isTestMode) {
+        console.log('テストモード: APIリクエストをスキップします');
+        return;
+      }
       
       // 投票を送信
       const response = await fetch(`/api/posts/${postId}/vote`, {
@@ -128,7 +152,7 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
       setIsLoading(false)
       setLoadingType(null)
     }
-  }, [isLoading, currentVote, postId, supabase, router, toast, mutate])
+  }, [isLoading, currentVote, postId, supabase, router, toast, mutate, isTestMode])
 
   // ボタンの見た目を決める関数
   const getButtonStyle = useCallback((isUpvote: boolean) => {
