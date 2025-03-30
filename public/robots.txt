@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://ideatube.app/sitemap.xml
+Sitemap: https://ideatube.net/sitemap.xml
 
 # Disallow
 Disallow: /api/

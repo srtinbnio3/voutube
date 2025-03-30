@@ -13,14 +13,17 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'yt3.ggpht.com',
+        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: 'i.ytimg.com',
+        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: '**.googleusercontent.com',
+        pathname: '**',
       }
     ],
     formats: ['image/avif', 'image/webp'],
@@ -38,26 +41,12 @@ const nextConfig = {
     }
   },
   /**
-   * Vercelのアナリティクス設定
-   * 
-   * SpeedInsightsとWebVitalsの計測を有効化します
-   * - SpeedInsights: ページの読み込み速度やパフォーマンスを計測
-   * - WebVitals: Core Web Vitals（LCP、FID、CLS）を計測
+   * キャッシュ戦略の設定
    */
-  analyticsId: true,
-  speedInsights: {
-    enabled: true,
-  },
-  /**
-   * パフォーマンス最適化の設定
-   */
+  swcMinify: true,
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  swcMinify: true,
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
   /**
    * キャッシュ戦略の設定
    */

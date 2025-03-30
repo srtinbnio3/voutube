@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ja_JP",
-    url: "https://ideatube.app",
+    url: "https://ideatube.net",
     siteName: "IdeaTube",
     title: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
     description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。",
@@ -87,11 +87,11 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               "name": "IdeaTube",
-              "url": "https://ideatube.app",
+              "url": "https://ideatube.net",
               "description": "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。",
               "potentialAction": {
                 "@type": "SearchAction",
-                "target": "https://ideatube.app/channels?q={search_term_string}",
+                "target": "https://ideatube.net/channels?q={search_term_string}",
                 "query-input": "required name=search_term_string"
               }
             })
@@ -104,8 +104,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "IdeaTube",
-              "url": "https://ideatube.app",
-              "logo": "https://ideatube.app/icon-512x512.png",
+              "url": "https://ideatube.net",
+              "logo": "https://ideatube.net/icon-512x512.png",
               "sameAs": [
                 "https://x.com/kmrmsys"
               ]
