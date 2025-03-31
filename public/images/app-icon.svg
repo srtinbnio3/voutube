@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景画像 -->
+  <image x="0" y="0" width="512" height="512" href="/Users/kimu/dev/voutube/public/icon-512x512.png"/>
+  
+  <!-- アプリ名の背景（半透明の黒い帯） -->
+  <rect x="0" y="412" width="512" height="100" fill="rgba(0,0,0,0.7)"/>
+  
+  <!-- アプリ名 -->
+  <text x="256" y="472" font-family="Arial Black" font-size="48" fill="white" text-anchor="middle" dominant-baseline="middle">
+    IdeaTube
+  </text>
+</svg> 
