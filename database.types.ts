@@ -48,6 +48,58 @@ export type Database = {
         }
         Relationships: []
       }
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           channel_id: string
@@ -167,7 +219,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_connection_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      get_db_size: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      get_slow_queries: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          query: string
+          calls: number
+          avg_time: number
+          max_time: number
+          avg_rows: number
+        }[]
+      }
+      get_table_row_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          table_name: string
+          row_count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
