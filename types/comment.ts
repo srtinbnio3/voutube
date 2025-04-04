@@ -6,6 +6,7 @@ export type Comment = Database['public']['Tables']['comments']['Row'] & {
     username: string
     avatar_url: string | null
   }
+  mentioned_username?: string
   replies?: Comment[]
 }
 
@@ -17,10 +18,12 @@ export type CreateCommentInput = {
   postId: string
   content: string
   parentId?: string | null
+  mentioned_username?: string
 }
 
 export type UpdateCommentInput = {
   content: string
+  mentioned_username?: string
 }
 
 export type CommentResponse = {

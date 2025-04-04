@@ -63,43 +63,103 @@ export function CommentList({ postId }: CommentListProps) {
   }
 
   const handleCommentAdded = (newComment: CommentWithReplies) => {
+    // APIからの返信で親コメントIDが変更されている場合があるため、その状態を確認
+    const originalParentId = newComment.parent_id;
+    
     // 親コメントの場合は先頭に追加
-    if (!newComment.parent_id) {
+    if (!originalParentId) {
       setComments((prev) => [newComment, ...prev])
-      return
+      return;
     }
 
     // 返信の場合は親コメントに追加
     setComments((prev) => {
-      return prev.map((comment) => {
-        if (comment.id === newComment.parent_id) {
-          // 返信配列がない場合は作成
-          if (!comment.replies) {
-            comment.replies = []
+      // まず該当する親コメントを直接探す
+      const parentComment = prev.find(comment => comment.id === originalParentId);
+
+      if (parentComment) {
+        // 直接の親コメントが見つかった場合
+        return prev.map((comment) => {
+          if (comment.id === originalParentId) {
+            return {
+              ...comment,
+              replies: Array.isArray(comment.replies) 
+                ? [...comment.replies, newComment] 
+                : [newComment]
+            };
           }
-          return {
-            ...comment,
-            replies: [...comment.replies, newComment]
+          return comment;
+        });
+      } else {
+        // 直接の親が見つからない場合（2階層目以降の返信の場合）
+        // すべての親コメントの返信を検索して、元の親IDを持つコメントを探す
+        let foundParentId: string | null = null;
+        
+        // どの親コメントに追加すべきかを特定
+        prev.forEach(comment => {
+          if (Array.isArray(comment.replies)) {
+            const isReplyInThisThread = comment.replies.some(reply => reply.id === originalParentId);
+            if (isReplyInThisThread) {
+              foundParentId = comment.id;
+            }
           }
+        });
+        
+        if (foundParentId) {
+          // 親コメントが見つかった場合、そのコメントの返信として追加
+          return prev.map(comment => {
+            if (comment.id === foundParentId) {
+              return {
+                ...comment,
+                replies: Array.isArray(comment.replies) 
+                  ? [...comment.replies, newComment] 
+                  : [newComment]
+              };
+            }
+            return comment;
+          });
         }
-        return comment
-      })
-    })
+        
+        // それでも見つからない場合は、状態を変更せずにコンソールに警告
+        console.warn('親コメントが見つかりませんでした:', originalParentId);
+        return prev;
+      }
+    });
   }
 
-  const handleCommentUpdated = (updatedComment: Comment) => {
+  const handleCommentUpdated = (updatedComment: CommentWithReplies) => {
+    // フラグで更新か追加かを判断
+    const isNewReply = updatedComment.replies && updatedComment.replies.length === 0 && updatedComment.parent_id;
+    
+    if (isNewReply) {
+      // 新しい返信の場合はhandleCommentAddedを利用
+      handleCommentAdded(updatedComment);
+      return;
+    }
+    
+    // 既存コメントの更新の場合
     setComments((prev) => {
       return prev.map((comment) => {
         // 親コメントの更新
         if (comment.id === updatedComment.id) {
-          return { ...comment, ...updatedComment }
+          // updatedCommentのrepliesがなければ、既存のrepliesを保持
+          return { 
+            ...comment, 
+            ...updatedComment,
+            replies: updatedComment.replies || comment.replies || []
+          }
         }
         
         // 返信コメントの更新
         if (comment.replies) {
           const updatedReplies = comment.replies.map((reply) => {
             if (reply.id === updatedComment.id) {
-              return { ...reply, ...updatedComment }
+              return { 
+                ...reply, 
+                ...updatedComment,
+                // ネストした返信の場合はrepliesを空配列に設定
+                replies: Array.isArray(updatedComment.replies) ? updatedComment.replies : []
+              }
             }
             return reply
           })
@@ -180,7 +240,10 @@ export function CommentList({ postId }: CommentListProps) {
                     {comment.replies.map((reply) => (
                       <CommentItem
                         key={reply.id}
-                        comment={reply as CommentWithReplies}
+                        comment={{
+                          ...reply,
+                          replies: Array.isArray(reply.replies) ? reply.replies : []
+                        }}
                         onCommentUpdated={handleCommentUpdated}
                         onCommentDeleted={handleCommentDeleted}
                       />

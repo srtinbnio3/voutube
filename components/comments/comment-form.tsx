@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast'
 interface CommentFormProps {
   postId: string
   parentId?: string
+  replyToUsername?: string
   onCommentAdded: (comment: CommentWithReplies) => void
   onCancel?: () => void
 }
@@ -16,10 +17,11 @@ interface CommentFormProps {
 export function CommentForm({
   postId,
   parentId,
+  replyToUsername,
   onCommentAdded,
   onCancel
 }: CommentFormProps) {
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState(replyToUsername ? `@${replyToUsername} ` : '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
@@ -37,6 +39,11 @@ export function CommentForm({
 
     setIsSubmitting(true)
     try {
+      // @メンションの処理
+      const mentioned_username = replyToUsername && content.startsWith(`@${replyToUsername}`) 
+        ? replyToUsername 
+        : undefined
+
       const response = await fetch('/api/comments/create', {
         method: 'POST',
         headers: {
@@ -45,7 +52,8 @@ export function CommentForm({
         body: JSON.stringify({
           postId,
           content: content.trim(),
-          parentId
+          parentId,
+          mentioned_username
         })
       })
 
@@ -76,7 +84,7 @@ export function CommentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Textarea
-        placeholder="コメントを入力..."
+        placeholder={replyToUsername ? `@${replyToUsername} に返信...` : 'コメントを入力...'}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         className="min-h-[100px] text-sm sm:text-base"

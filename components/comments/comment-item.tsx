@@ -4,31 +4,28 @@ import { useState } from 'react'
 import { CommentWithReplies } from '@/types/comment'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { formatDistanceToNow } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { MessageSquare, Trash2 } from 'lucide-react'
 import Link from 'next/link'
+import { CommentForm } from './comment-form'
 
 interface CommentItemProps {
   comment: CommentWithReplies
   onCommentUpdated: (comment: CommentWithReplies) => void
   onCommentDeleted: (commentId: string) => void
+  isNested?: boolean
 }
 
-export function CommentItem({ comment, onCommentUpdated, onCommentDeleted }: CommentItemProps) {
+export function CommentItem({ 
+  comment, 
+  onCommentUpdated, 
+  onCommentDeleted,
+  isNested = false 
+}: CommentItemProps) {
   const [isReplying, setIsReplying] = useState(false)
-  const [replyContent, setReplyContent] = useState("")
   const { toast } = useToast()
-
-  // 返信モードの切り替え
-  const toggleReply = () => {
-    setIsReplying(!isReplying)
-    if (!isReplying) {
-      setReplyContent("")
-    }
-  }
 
   // コメントの削除
   const handleDelete = async () => {
@@ -57,57 +54,44 @@ export function CommentItem({ comment, onCommentUpdated, onCommentDeleted }: Com
     }
   }
 
-  // 返信の投稿
-  const handleReply = async () => {
-    if (!replyContent.trim()) {
-      toast({
-        title: 'エラー',
-        description: '返信を入力してください',
-        variant: 'destructive'
-      })
-      return
-    }
-
-    try {
-      const response = await fetch('/api/comments/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          postId: comment.post_id,
-          content: replyContent.trim(),
-          parentId: comment.id
-        })
-      })
-
-      if (!response.ok) throw new Error('返信の投稿に失敗しました')
-
-      const newReply = await response.json()
-      onCommentUpdated({
-        ...comment,
-        replies: [...(comment.replies || []), newReply]
-      })
-      setIsReplying(false)
-      setReplyContent("")
-
-      toast({
-        title: '投稿完了',
-        description: '返信が投稿されました'
-      })
-    } catch (error) {
-      console.error('返信投稿エラー:', error)
-      toast({
-        title: 'エラーが発生しました',
-        description: '返信の投稿に失敗しました',
-        variant: 'destructive'
-      })
-    }
+  // 返信の追加
+  const handleCommentAdded = (newReply: CommentWithReplies) => {
+    // APIから返されたコメントをそのまま親コンポーネントに通知
+    // これにより、親コンポーネントで適切な場所に追加される
+    onCommentUpdated(newReply);
+    setIsReplying(false);
   }
 
   // ユーザー名の頭文字を取得（アバターのフォールバック用）
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase()
+  }
+
+  // コメント内容の表示（@メンション対応）
+  const renderContent = () => {
+    if (comment.mentioned_username) {
+      // @メンションが含まれる場合のレンダリング
+      const mentionPattern = new RegExp(`@${comment.mentioned_username}\\s?`);
+      const contentWithoutMention = comment.content.replace(mentionPattern, '');
+      
+      return (
+        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+          <Link 
+            href={`/profile/${comment.profiles.id}`} 
+            className="text-blue-500 hover:underline font-medium"
+          >
+            @{comment.mentioned_username}
+          </Link>
+          {' '}{contentWithoutMention}
+        </p>
+      )
+    }
+    
+    return (
+      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+        {comment.content}
+      </p>
+    )
   }
 
   return (
@@ -139,16 +123,14 @@ export function CommentItem({ comment, onCommentUpdated, onCommentDeleted }: Com
             </span>
           </div>
 
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-            {comment.content}
-          </p>
+          {renderContent()}
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap pt-2">
             <Button
               variant="ghost"
               size="sm"
               className="text-muted-foreground hover:text-primary text-xs sm:text-sm"
-              onClick={toggleReply}
+              onClick={() => setIsReplying(!isReplying)}
             >
               <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               返信
@@ -167,21 +149,14 @@ export function CommentItem({ comment, onCommentUpdated, onCommentDeleted }: Com
 
       {/* 返信フォーム */}
       {isReplying && (
-        <div className="ml-4 sm:ml-12 space-y-2">
-          <Textarea
-            placeholder="返信を入力..."
-            value={replyContent}
-            onChange={(e) => setReplyContent(e.target.value)}
-            className="min-h-[100px] text-sm sm:text-base"
+        <div className="ml-4 sm:ml-12">
+          <CommentForm
+            postId={comment.post_id}
+            parentId={comment.id}
+            replyToUsername={comment.profiles.username}
+            onCommentAdded={handleCommentAdded}
+            onCancel={() => setIsReplying(false)}
           />
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={toggleReply} className="text-xs sm:text-sm">
-              キャンセル
-            </Button>
-            <Button onClick={handleReply} className="text-xs sm:text-sm">
-              返信
-            </Button>
-          </div>
         </div>
       )}
     </div>
