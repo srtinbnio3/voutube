@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { formatDistanceToNow } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { MessageSquare, Pencil, Trash2 } from 'lucide-react'
+import { MessageSquare, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface CommentItemProps {
@@ -18,67 +18,15 @@ interface CommentItemProps {
 }
 
 export function CommentItem({ comment, onCommentUpdated, onCommentDeleted }: CommentItemProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedContent, setEditedContent] = useState(comment.content)
   const [isReplying, setIsReplying] = useState(false)
   const [replyContent, setReplyContent] = useState("")
   const { toast } = useToast()
-
-  // 編集モードの切り替え
-  const toggleEdit = () => {
-    setIsEditing(!isEditing)
-    if (!isEditing) {
-      setEditedContent(comment.content)
-    }
-  }
 
   // 返信モードの切り替え
   const toggleReply = () => {
     setIsReplying(!isReplying)
     if (!isReplying) {
       setReplyContent("")
-    }
-  }
-
-  // コメントの更新
-  const handleUpdate = async () => {
-    if (!editedContent.trim()) {
-      toast({
-        title: 'エラー',
-        description: 'コメントを入力してください',
-        variant: 'destructive'
-      })
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/comments/${comment.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          content: editedContent.trim()
-        })
-      })
-
-      if (!response.ok) throw new Error('コメントの更新に失敗しました')
-
-      const updatedComment = await response.json()
-      onCommentUpdated(updatedComment)
-      setIsEditing(false)
-
-      toast({
-        title: '更新完了',
-        description: 'コメントが更新されました'
-      })
-    } catch (error) {
-      console.error('コメント更新エラー:', error)
-      toast({
-        title: 'エラーが発生しました',
-        description: 'コメントの更新に失敗しました',
-        variant: 'destructive'
-      })
     }
   }
 
@@ -176,87 +124,63 @@ export function CommentItem({ comment, onCommentUpdated, onCommentDeleted }: Com
           </Avatar>
         </Link>
         <div className="flex-1 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Link
-                href={`/profile/${comment.profiles.id}`}
-                className="font-medium hover:underline"
-              >
-                {comment.profiles.username}
-              </Link>
-              <span className="text-sm text-muted-foreground">
-                {formatDistanceToNow(new Date(comment.created_at), {
-                  locale: ja,
-                  addSuffix: true
-                })}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-primary"
-                onClick={toggleReply}
-              >
-                <MessageSquare className="h-4 w-4 mr-1" />
-                返信
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-primary"
-                onClick={toggleEdit}
-              >
-                <Pencil className="h-4 w-4 mr-1" />
-                編集
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={handleDelete}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/profile/${comment.profiles.id}`}
+              className="font-medium hover:underline"
+            >
+              {comment.profiles.username}
+            </Link>
+            <span className="text-sm text-muted-foreground">
+              {formatDistanceToNow(new Date(comment.created_at), {
+                locale: ja,
+                addSuffix: true
+              })}
+            </span>
           </div>
 
-          {isEditing ? (
-            <div className="space-y-2">
-              <Textarea
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
-                className="min-h-[100px]"
-              />
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={toggleEdit}>
-                  キャンセル
-                </Button>
-                <Button onClick={handleUpdate}>更新</Button>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {comment.content}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+            {comment.content}
+          </p>
+
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-primary text-xs sm:text-sm"
+              onClick={toggleReply}
+            >
+              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              返信
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive text-xs sm:text-sm"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* 返信フォーム */}
       {isReplying && (
-        <div className="ml-12 space-y-2">
+        <div className="ml-4 sm:ml-12 space-y-2">
           <Textarea
             placeholder="返信を入力..."
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
-            className="min-h-[100px]"
+            className="min-h-[100px] text-sm sm:text-base"
           />
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={toggleReply}>
+            <Button variant="outline" onClick={toggleReply} className="text-xs sm:text-sm">
               キャンセル
             </Button>
-            <Button onClick={handleReply}>返信</Button>
+            <Button onClick={handleReply} className="text-xs sm:text-sm">
+              返信
+            </Button>
           </div>
         </div>
       )}

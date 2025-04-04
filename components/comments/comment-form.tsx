@@ -79,7 +79,7 @@ export function CommentForm({
         placeholder="コメントを入力..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="min-h-[100px]"
+        className="min-h-[100px] text-sm sm:text-base"
         disabled={isSubmitting}
       />
       <div className="flex justify-end space-x-2">
@@ -89,11 +89,12 @@ export function CommentForm({
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
+            className="text-xs sm:text-sm"
           >
             キャンセル
           </Button>
         )}
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className="text-xs sm:text-sm">
           {isSubmitting ? '投稿中...' : '投稿'}
         </Button>
       </div>
