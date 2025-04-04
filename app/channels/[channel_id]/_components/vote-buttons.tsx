@@ -157,11 +157,10 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
   // ボタンの見た目を決める関数
   const getButtonStyle = useCallback((isUpvote: boolean) => {
     const baseStyle = 'h-6 w-6 rounded-full p-0 transition-all duration-200'
-    // 選ばれているボタンは色を変えます（いいね=オレンジ、よくないね=青）
     if (currentVote === isUpvote) {
       return `${baseStyle} ${isUpvote ? 'text-orange-500' : 'text-blue-500'} active:scale-110`
     }
-    return `${baseStyle} hover:bg-accent hover:scale-105`
+    return `${baseStyle} ${isUpvote ? 'hover:bg-orange-500/10' : 'hover:bg-blue-500/10'} hover:scale-105`
   }, [currentVote])
 
   // 投票ボタンのデザインを作ります

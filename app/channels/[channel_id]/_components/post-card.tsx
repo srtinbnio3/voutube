@@ -133,10 +133,10 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
 
   // 投稿カードのデザインを作ります
   return (
-    <Card className="mb-3">
+    <Card className="mb-3 hover:bg-accent transition-colors group">
       <div className="flex">
         {/* 左側に投票（いいね・よくないね）ボタンを置きます */}
-        <div className="py-4 px-2 bg-accent/30">
+        <div className="py-4 px-2 bg-accent/30 relative z-10">
           <VoteButtons
             postId={post.id}
             initialScore={post.score || 0}
@@ -145,71 +145,75 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
         </div>
         
         {/* 右側に投稿の内容を表示します */}
-        <CardContent className="p-4 flex-1">
-          {/* 投稿者の情報（アイコン、名前、投稿時間）を表示します */}
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
-              <Link href={`/profile/${post.profiles.id}`} className="hover:opacity-80">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage 
-                    src={post.profiles.avatar_url || undefined} 
-                    alt={post.profiles.username} 
-                  />
-                  <AvatarFallback>{getInitials(post.profiles.username)}</AvatarFallback>
-                </Avatar>
-              </Link>
-              <span className="text-xs text-muted-foreground">
-                <Link 
-                  href={`/profile/${post.profiles.id}`}
-                  className="hover:underline font-medium"
-                >
-                  {post.profiles.username}
-                </Link>
-                {' • '}
-                {relativeTime || new Date(post.created_at).toLocaleDateString("ja-JP")}
-              </span>
-            </div>
+        <Link href={`/channels/${post.channel_id}/posts/${post.id}`} className="flex-1 cursor-pointer">
+          <CardContent className="p-4">
+            {/* 投稿者の情報（アイコン、名前、投稿時間）を表示します */}
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2">
+                <div onClick={(e) => e.stopPropagation()} className="relative z-10">
+                  <Link href={`/profile/${post.profiles.id}`} className="hover:opacity-80">
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage 
+                        src={post.profiles.avatar_url || undefined} 
+                        alt={post.profiles.username} 
+                      />
+                      <AvatarFallback>{getInitials(post.profiles.username)}</AvatarFallback>
+                    </Avatar>
+                  </Link>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  <div onClick={(e) => e.stopPropagation()} className="relative z-10 inline">
+                    <Link 
+                      href={`/profile/${post.profiles.id}`}
+                      className="hover:underline font-medium"
+                    >
+                      {post.profiles.username}
+                    </Link>
+                  </div>
+                  {' • '}
+                  {relativeTime || new Date(post.created_at).toLocaleDateString("ja-JP")}
+                </span>
+              </div>
 
-            {/* 投稿した本人なら、削除ボタンを表示します */}
-            {isAuthor && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button className="text-destructive hover:text-destructive/80" aria-label="投稿を削除">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>投稿を削除しますか？</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      この操作は取り消せません。投稿は完全に削除されます。
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      削除する
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-          </div>
-          
-          {/* 投稿のタイトルを表示します */}
-          <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
-          
-          {/* 投稿の内容を表示します（改行もそのまま表示されます） */}
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-            {post.description}
-          </p>
-          
-          {/* 将来、コメント機能などを追加するための場所 */}
-          <div className="flex gap-2 mt-3">
-            <Link href={`/channels/${post.channel_id}/posts/${post.id}`} className="text-xs text-muted-foreground hover:text-primary flex items-center">
-            </Link>
-          </div>
-        </CardContent>
+              {/* 投稿した本人なら、削除ボタンを表示します */}
+              {isAuthor && (
+                <div onClick={(e) => e.stopPropagation()} className="relative z-10">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="text-destructive hover:text-destructive/80" aria-label="投稿を削除">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>投稿を削除しますか？</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          この操作は取り消せません。投稿は完全に削除されます。
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          削除する
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
+            </div>
+            
+            {/* 投稿のタイトルを表示します */}
+            <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+              {post.title}
+            </h3>
+            
+            {/* 投稿の内容を表示します（改行もそのまま表示されます） */}
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {post.description}
+            </p>
+          </CardContent>
+        </Link>
       </div>
     </Card>
   )

@@ -5,7 +5,7 @@ import { Comment, CommentResponse, CommentWithReplies } from '@/types/comment'
 import { CommentItem } from './comment-item'
 import { CommentForm } from './comment-form'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface CommentListProps {
   postId: string
@@ -14,8 +14,9 @@ interface CommentListProps {
 export function CommentList({ postId }: CommentListProps) {
   const [comments, setComments] = useState<CommentWithReplies[]>([])
   const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)
 
   const fetchComments = async (currentPage = 1) => {
@@ -128,18 +129,67 @@ export function CommentList({ postId }: CommentListProps) {
     })
   }
 
+  const toggleReplies = (commentId: string) => {
+    setExpandedReplies(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId)
+      } else {
+        newSet.add(commentId)
+      }
+      return newSet
+    })
+  }
+
   return (
     <div className="space-y-6">
       <CommentForm postId={postId} onCommentAdded={handleCommentAdded} />
       
       <div className="space-y-6">
         {comments.map((comment) => (
-          <CommentItem
-            key={comment.id}
-            comment={comment}
-            onCommentUpdated={handleCommentUpdated}
-            onCommentDeleted={handleCommentDeleted}
-          />
+          <div key={comment.id} className="space-y-4">
+            <CommentItem
+              comment={comment}
+              onCommentUpdated={handleCommentUpdated}
+              onCommentDeleted={handleCommentDeleted}
+            />
+            
+            {comment.replies && comment.replies.length > 0 && (
+              <div className="ml-8 space-y-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-primary"
+                  onClick={() => toggleReplies(comment.id)}
+                >
+                  {expandedReplies.has(comment.id) ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-1" />
+                      返信を折りたたむ
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      返信を表示 ({comment.replies.length})
+                    </>
+                  )}
+                </Button>
+                
+                {expandedReplies.has(comment.id) && (
+                  <div className="space-y-4">
+                    {comment.replies.map((reply) => (
+                      <CommentItem
+                        key={reply.id}
+                        comment={reply}
+                        onCommentUpdated={handleCommentUpdated}
+                        onCommentDeleted={handleCommentDeleted}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         ))}
         
         {isLoading && (
