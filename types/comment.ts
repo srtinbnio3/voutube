@@ -2,6 +2,7 @@ import { Database } from '@/database.types'
 
 export type Comment = Database['public']['Tables']['comments']['Row'] & {
   profiles: {
+    id: string
     username: string
     avatar_url: string | null
   }

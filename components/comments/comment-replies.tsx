@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Comment } from '@/types/comment'
+import { Comment, CommentWithReplies } from '@/types/comment'
 import { Button } from '@/components/ui/button'
 import { CommentForm } from './comment-form'
 import { CommentItem } from './comment-item'
@@ -59,7 +59,7 @@ export function CommentReplies({
           {comment.replies?.map((reply) => (
             <CommentItem
               key={reply.id}
-              comment={reply}
+              comment={reply as CommentWithReplies}
               onCommentUpdated={onCommentUpdated}
               onCommentDeleted={onCommentDeleted}
             />

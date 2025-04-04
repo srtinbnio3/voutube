@@ -180,7 +180,7 @@ export function CommentList({ postId }: CommentListProps) {
                     {comment.replies.map((reply) => (
                       <CommentItem
                         key={reply.id}
-                        comment={reply}
+                        comment={reply as CommentWithReplies}
                         onCommentUpdated={handleCommentUpdated}
                         onCommentDeleted={handleCommentDeleted}
                       />

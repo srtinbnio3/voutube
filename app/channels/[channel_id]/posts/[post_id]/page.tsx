@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { CommentList } from "@/components/comments/comment-list"
 
-export default async function PostDetailPage({
-  params,
-}: {
-  params: { channel_id: string; post_id: string }
-}) {
+export default async function PostDetailPage(
+  props: {
+    params: Promise<{ channel_id: string; post_id: string }>;
+  }
+) {
+  const params = await props.params;
   const supabase = await createClient()
 
   // 投稿の取得
