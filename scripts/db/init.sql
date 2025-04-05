@@ -54,11 +54,22 @@ create table votes (
   constraint unique_user_post unique (user_id, post_id)
 );
 
+-- コメントテーブルの作成
+create table comments (
+  id uuid default gen_random_uuid() primary key,
+  post_id uuid references posts(id) on delete cascade not null,
+  user_id uuid references profiles(id) on delete cascade not null,
+  content text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Enable RLS
 alter table channels enable row level security;
 alter table profiles enable row level security;
 alter table posts enable row level security;
 alter table votes enable row level security;
+alter table comments enable row level security;
 
 -- RLS Policies
 -- channels policies
@@ -108,6 +119,26 @@ create policy "Users can update their own votes" on votes
 
 create policy "Users can delete their own votes" on votes
   for delete using (auth.uid() = user_id);
+
+-- コメントの閲覧ポリシー（全ユーザーが閲覧可能）
+create policy "コメントは全ユーザーが閲覧可能"
+  on comments for select
+  using (true);
+
+-- コメントの作成ポリシー（認証済みユーザーのみ）
+create policy "認証済みユーザーのみコメントを作成可能"
+  on comments for insert
+  with check (auth.uid() = user_id);
+
+-- コメントの更新ポリシー（自分のコメントのみ）
+create policy "自分のコメントのみ更新可能"
+  on comments for update
+  using (auth.uid() = user_id);
+
+-- コメントの削除ポリシー（自分のコメントのみ）
+create policy "自分のコメントのみ削除可能"
+  on comments for delete
+  using (auth.uid() = user_id);
 
 -- Triggers
 -- Update channel stats
@@ -205,4 +236,20 @@ CREATE POLICY "認証済みユーザーは自分のファイルのみ更新可�
 -- 全ユーザーが閲覧可能
 CREATE POLICY "全ユーザーが閲覧可能" ON storage.objects
   FOR SELECT TO public
-  USING (bucket_id = 'user-content'); 
+  USING (bucket_id = 'user-content');
+
+-- 更新日時を自動更新するトリガーの作成
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+  new.updated_at = timezone('utc'::text, now());
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger update_comments_updated_at
+  before update on comments
+  for each row
+  execute function update_updated_at_column();
+
+ALTER TABLE comments ADD COLUMN mentioned_username text; 
