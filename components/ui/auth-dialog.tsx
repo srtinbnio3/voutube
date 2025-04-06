@@ -17,12 +17,12 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-bold">
-            ログインしてね 🤝
+            ログインしてね😉
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4 py-4">
           <p className="text-center text-sm text-muted-foreground">
-            サポートを行うにはログインが必要です 💬
+            その操作にはログインが必要です😎
           </p>
           
           <div className="relative h-60 w-full">
