@@ -4,11 +4,18 @@ import { useState } from "react"
 import { Database } from "@/database.types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Youtube } from "lucide-react"
+import { Youtube, Share2, Link as LinkIcon } from "lucide-react"
 import { formatNumber } from "../../../lib/format"
 import { createBrowserClient } from "@supabase/ssr"
 import useSWR from 'swr'
 import { fetcher } from '../../../lib/fetcher'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useToast } from "@/components/ui/use-toast"
 
 // チャンネルデータの型定義
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
@@ -19,12 +26,13 @@ interface ChannelInfoProps {
 }
 
 export function ChannelInfo({ channel }: ChannelInfoProps) {
+  const { toast } = useToast()
   const { data: channelData, error, isLoading } = useSWR(
-    `/api/youtube/channel?id=${channel.youtube_channel_id}`,
+    `/api/channels/${channel.id}/subscriber-count`,
     fetcher,
     {
-      refreshInterval: 300000, // 5分ごとに更新
       revalidateOnFocus: false,
+      revalidateOnReconnect: false,
     }
   )
 
@@ -36,29 +44,27 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
     .join('')
     .toUpperCase()
 
-  // データベースの更新
-  const updateDatabase = async (subscriberCount: number) => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+  const handleShare = async (type: 'x' | 'copy') => {
+    const url = `${window.location.origin}/channels/${channel.id}`
     
-    await supabase
-      .from('channels')
-      .update({ subscriber_count: subscriberCount })
-      .eq('id', channel.id)
-  }
-
-  // チャンネルデータが更新されたらデータベースも更新
-  if (channelData?.subscriber_count) {
-    updateDatabase(channelData.subscriber_count)
+    if (type === 'x') {
+      const text = `${channel.name}の投稿企画一覧`
+      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+      window.open(shareUrl, '_blank')
+    } else {
+      await navigator.clipboard.writeText(url)
+      toast({
+        title: "リンクをコピーしました",
+        description: "チャンネルのURLがクリップボードにコピーされました",
+      })
+    }
   }
 
   return (
     <div 
       role="group" 
       aria-label="チャンネル情報" 
-      className="flex items-center gap-4"
+      className="flex items-center gap-4 flex-1"
     >
       <span 
         role="img" 
@@ -79,9 +85,38 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
           </AvatarFallback>
         </Avatar>
       </span>
-      <div role="group" aria-label="チャンネル詳細" className="space-y-2">
-        <h1 className="text-2xl font-bold">{channel.name}</h1>
-        <p className="text-muted-foreground">{channel.description ?? '説明はありません'}</p>
+      <div role="group" aria-label="チャンネル詳細" className="space-y-2 flex-1">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">{channel.name}</h1>
+            <p className="text-muted-foreground">{channel.description ?? '説明はありません'}</p>
+          </div>
+          <div className="flex-shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleShare('x')}>
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    className="mr-2 h-4 w-4 fill-current"
+                  >
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                  Xでシェア
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleShare('copy')}>
+                  <LinkIcon className="mr-2 h-4 w-4" />
+                  リンクをコピー
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
         <div className="flex gap-4">
           <p className="text-sm text-muted-foreground">
             投稿数: {channel.post_count || 0}

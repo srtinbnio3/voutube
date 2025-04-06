@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
+import useSWR from 'swr'
+import { fetcher } from '../../lib/fetcher'
 
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
 
@@ -26,6 +28,17 @@ interface ChannelCardProps {
 
 const ChannelCard = memo(function ChannelCard({ channel }: ChannelCardProps) {
   const { toast } = useToast()
+  
+  // 登録者数を取得
+  const { data: channelData, error, isLoading } = useSWR(
+    `/api/channels/${channel.id}/subscriber-count`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  )
+
   // チャンネル名から2文字のイニシャルを生成
   const initials = useMemo(() => {
     return channel.name
@@ -79,7 +92,7 @@ const ChannelCard = memo(function ChannelCard({ channel }: ChannelCardProps) {
             <div className="flex flex-col">
               <h3 className="font-semibold">{channel.name}</h3>
               <p className="text-sm text-muted-foreground">
-                投稿数: {channel.post_count || 0} · 登録者数: {formatNumber(channel.subscriber_count || 0)}
+                企画投稿数: {channel.post_count || 0} · 登録者数: {isLoading ? '読み込み中...' : formatNumber(channelData?.subscriber_count || 0)}
               </p>
             </div>
           </div>
