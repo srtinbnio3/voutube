@@ -7,10 +7,14 @@ import { getChannelInfo } from '@/utils/youtube'
 const UPDATE_INTERVAL = 60 * 60 * 1000
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { channel_id: string } }
+  request: NextRequest
 ) {
   try {
+    // URLからchannel_idを取得
+    const url = new URL(request.url)
+    const pathParts = url.pathname.split('/')
+    const channel_id = pathParts[pathParts.length - 2]
+
     const cookieStore = await cookies()
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,7 +32,7 @@ export async function GET(
     const { data: channel } = await supabase
       .from('channels')
       .select('youtube_channel_id, subscriber_count, updated_at')
-      .eq('id', params.channel_id)
+      .eq('id', channel_id)
       .single()
 
     if (!channel) {
@@ -60,7 +64,7 @@ export async function GET(
         subscriber_count: channelInfo.subscriber_count,
         updated_at: new Date().toISOString()
       })
-      .eq('id', params.channel_id)
+      .eq('id', channel_id)
 
     if (updateError) {
       console.error('データベース更新エラー:', updateError)
