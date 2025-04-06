@@ -47,61 +47,46 @@ export default async function UserProfilePage(
 
   return (
     <div className="container max-w-6xl py-6 space-y-6">
-      <h1 className="text-3xl font-bold">ユーザープロフィール</h1>
-
-      <Card className="max-w-md">
-        <CardHeader className="flex flex-col items-center gap-4">
-          <Avatar className="w-32 h-32">
-            <AvatarImage src={profile.avatar_url || undefined} alt={profile.username} />
-            <AvatarFallback className="text-4xl">{getInitials(profile.username)}</AvatarFallback>
-          </Avatar>
-          <div className="text-center">
-            <CardTitle className="text-2xl">{profile.username}</CardTitle>
-            <CardDescription>
-              登録日: {new Date(profile.created_at).toLocaleDateString("ja-JP")}
-            </CardDescription>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {userPosts && userPosts.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">{profile.username}の投稿企画</h2>
-          <div className="grid gap-4">
-            {userPosts.map((post) => (
-              <Card key={post.id}>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold">{post.title}</h3>
-                    <span className="text-xs bg-muted px-2 py-1 rounded-full">
-                      スコア: {post.score || 0}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {post.description}
-                  </p>
-                  <div className="flex justify-between items-center mt-4">
-                    <Link 
-                      href={`/channels/${post.channels.id}`}
-                      className="text-xs text-muted-foreground hover:underline"
-                    >
-                      {post.channels.name}
-                    </Link>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(post.created_at).toLocaleDateString("ja-JP")}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+      <h1 className="text-3xl font-bold text-center">ユーザープロフィール</h1>
 
       <div className="flex justify-center">
-        <Button asChild variant="outline">
-          <Link href="/channels">チャンネル一覧に戻る</Link>
-        </Button>
+        <Card className="max-w-md w-full">
+          <CardHeader className="flex flex-col items-center gap-4">
+            <Avatar className="w-32 h-32">
+              <AvatarImage src={profile.avatar_url || undefined} alt={profile.username} />
+              <AvatarFallback className="text-4xl">{getInitials(profile.username)}</AvatarFallback>
+            </Avatar>
+            <div className="text-center">
+              <CardTitle className="text-2xl">{profile.username}</CardTitle>
+              <CardDescription>
+                登録日: {new Date(profile.created_at).toLocaleDateString("ja-JP")}
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {userPosts && userPosts.length > 0 ? (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold">最近の投稿</h2>
+                <ul className="space-y-2">
+                  {userPosts.map((post) => (
+                    <li key={post.id}>
+                      <Link href={`/channels/${post.channels.id}/posts/${post.id}`}>
+                        <div className="p-2 hover:bg-muted rounded-lg">
+                          <p className="font-medium">{post.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {post.channels.name} • {new Date(post.created_at).toLocaleDateString("ja-JP")}
+                          </p>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground">投稿はまだありません</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

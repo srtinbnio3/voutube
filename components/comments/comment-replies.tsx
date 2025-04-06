@@ -5,6 +5,8 @@ import { Comment, CommentWithReplies } from '@/types/comment'
 import { Button } from '@/components/ui/button'
 import { CommentForm } from './comment-form'
 import { CommentItem } from './comment-item'
+import { useAuthDialog } from '@/hooks/use-auth-dialog'
+import { AuthDialog } from '@/components/ui/auth-dialog'
 
 interface CommentRepliesProps {
   comment: Comment
@@ -19,6 +21,7 @@ export function CommentReplies({
 }: CommentRepliesProps) {
   const [isReplying, setIsReplying] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
+  const { open, setOpen, checkAuthAndShowDialog } = useAuthDialog()
 
   const handleCommentAdded = (newComment: Comment) => {
     if (!comment.replies) {
@@ -28,17 +31,26 @@ export function CommentReplies({
     setIsReplying(false)
   }
 
+  const handleReplyClick = async () => {
+    const isAuthenticated = await checkAuthAndShowDialog()
+    if (!isAuthenticated) return
+    
+    setIsReplying(true)
+  }
+
   if (!comment.replies?.length && !isReplying) {
     return (
       <div className="ml-12">
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setIsReplying(true)}
+          onClick={handleReplyClick}
           className="text-sm text-muted-foreground hover:text-foreground"
         >
           返信する
         </Button>
+        
+        <AuthDialog open={open} onOpenChange={setOpen} />
       </div>
     )
   }
@@ -75,7 +87,7 @@ export function CommentReplies({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsReplying(true)}
+              onClick={handleReplyClick}
               className="text-sm text-muted-foreground hover:text-foreground"
             >
               返信する
@@ -83,6 +95,8 @@ export function CommentReplies({
           )}
         </>
       )}
+      
+      <AuthDialog open={open} onOpenChange={setOpen} />
     </div>
   )
 } 

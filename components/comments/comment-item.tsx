@@ -10,6 +10,8 @@ import { ja } from 'date-fns/locale'
 import { MessageSquare, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { CommentForm } from './comment-form'
+import { useAuthDialog } from '@/hooks/use-auth-dialog'
+import { AuthDialog } from '@/components/ui/auth-dialog'
 
 interface CommentItemProps {
   comment: CommentWithReplies
@@ -26,6 +28,7 @@ export function CommentItem({
 }: CommentItemProps) {
   const [isReplying, setIsReplying] = useState(false)
   const { toast } = useToast()
+  const { open, setOpen, checkAuthAndShowDialog } = useAuthDialog()
 
   // コメントの削除
   const handleDelete = async () => {
@@ -52,6 +55,16 @@ export function CommentItem({
         variant: 'destructive'
       })
     }
+  }
+
+  // 返信ボタンのクリック処理
+  const handleReplyClick = async () => {
+    // ログイン状態を確認し、未ログインならダイアログを表示
+    const isAuthenticated = await checkAuthAndShowDialog()
+    if (!isAuthenticated) return
+    
+    // ログイン済みなら返信フォームを表示
+    setIsReplying(!isReplying)
   }
 
   // 返信の追加
@@ -130,7 +143,7 @@ export function CommentItem({
               variant="ghost"
               size="sm"
               className="text-muted-foreground hover:text-primary text-xs sm:text-sm"
-              onClick={() => setIsReplying(!isReplying)}
+              onClick={handleReplyClick}
             >
               <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               返信
@@ -159,6 +172,9 @@ export function CommentItem({
           />
         </div>
       )}
+      
+      {/* 認証ダイアログ */}
+      <AuthDialog open={open} onOpenChange={setOpen} />
     </div>
   )
 } 

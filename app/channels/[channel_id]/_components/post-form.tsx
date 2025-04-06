@@ -15,6 +15,9 @@ import { Input } from "@/components/ui/input"  // 入力フィールド
 import { Textarea } from "@/components/ui/textarea"  // テキストエリア
 import { useToast } from "@/hooks/use-toast"  // 通知表示用フック
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { useAuthDialog } from "@/hooks/use-auth-dialog"  // 認証ダイアログフック
+import { AuthDialog } from "@/components/ui/auth-dialog"  // 認証ダイアログコンポーネント
+import { Plus } from "lucide-react"
 
 // コンポーネントのプロパティの型定義
 interface PostFormProps {
@@ -31,6 +34,7 @@ export function PostForm({ channelId }: PostFormProps) {
   const [descriptionError, setDescriptionError] = useState("")
   const router = useRouter()  // ページ遷移用
   const { toast } = useToast()  // 通知表示用
+  const { open, setOpen, checkAuthAndShowDialog } = useAuthDialog()  // 認証ダイアログフック
   
   // Supabaseクライアントの初期化
   const supabase = createBrowserClient(
@@ -40,15 +44,9 @@ export function PostForm({ channelId }: PostFormProps) {
 
   // 新規投稿ボタンクリック時の処理
   const handleClick = async () => {
-    // ログイン状態の確認
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session) {
-      // 未ログインの場合、現在のURLを保持してログインページへ
-      const currentPath = window.location.pathname
-      router.push(`/sign-in?redirect_to=${encodeURIComponent(currentPath)}`)
-      return
-    }
+    // ログイン状態の確認と未ログイン時のダイアログ表示
+    const isAuthenticated = await checkAuthAndShowDialog()
+    if (!isAuthenticated) return
     
     // ログイン済みの場合、投稿モーダルを開く
     setIsOpen(true)
@@ -132,52 +130,64 @@ export function PostForm({ channelId }: PostFormProps) {
 
   // UIの描画
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button onClick={handleClick}>新規投稿</Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>新規投稿</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4" role="form">
-          <div>
-            <Input
-              placeholder="タイトル"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              minLength={3}
-            />
-            {titleError && (
-              <p className="text-sm text-destructive mt-1">{titleError}</p>
-            )}
-          </div>
-          <div>
-            <Textarea
-              placeholder="説明（10文字以上）"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              minLength={10}
-              className="min-h-[120px]"
-            />
-            {descriptionError && (
-              <p className="text-sm text-destructive mt-1">{descriptionError}</p>
-            )}
-          </div>
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <LoadingSpinner size="sm" className="mr-2" />
-                  投稿中...
-                </>
-              ) : "投稿"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <>
+      <div className="mb-4">
+        <Button 
+          onClick={handleClick} 
+          variant="default" 
+          className="flex w-full items-center justify-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          <span>新規投稿</span>
+        </Button>
+      </div>
+      
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>新規投稿</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4" role="form">
+            <div>
+              <Input
+                placeholder="タイトル"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                minLength={3}
+              />
+              {titleError && (
+                <p className="text-sm text-destructive mt-1">{titleError}</p>
+              )}
+            </div>
+            <div>
+              <Textarea
+                placeholder="説明（10文字以上）"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                minLength={10}
+                className="min-h-[120px]"
+              />
+              {descriptionError && (
+                <p className="text-sm text-destructive mt-1">{descriptionError}</p>
+              )}
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    投稿中...
+                  </>
+                ) : "投稿"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      <AuthDialog open={open} onOpenChange={setOpen} />
+    </>
   )
 } 

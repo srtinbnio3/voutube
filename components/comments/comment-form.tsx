@@ -5,6 +5,8 @@ import { CommentWithReplies } from '@/types/comment'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
+import { useAuthDialog } from '@/hooks/use-auth-dialog'
+import { AuthDialog } from '@/components/ui/auth-dialog'
 
 interface CommentFormProps {
   postId: string
@@ -24,6 +26,7 @@ export function CommentForm({
   const [content, setContent] = useState(replyToUsername ? `@${replyToUsername} ` : '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
+  const { open, setOpen, checkAuthAndShowDialog } = useAuthDialog()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,6 +39,10 @@ export function CommentForm({
       })
       return
     }
+
+    // ログイン状態を確認し、未ログインならダイアログを表示
+    const isAuthenticated = await checkAuthAndShowDialog()
+    if (!isAuthenticated) return
 
     setIsSubmitting(true)
     try {
@@ -82,30 +89,35 @@ export function CommentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Textarea
-        placeholder={replyToUsername ? `@${replyToUsername} に返信...` : 'コメントを入力...'}
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        className="min-h-[100px] text-sm sm:text-base"
-        disabled={isSubmitting}
-      />
-      <div className="flex justify-end space-x-2">
-        {onCancel && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-            className="text-xs sm:text-sm"
-          >
-            キャンセル
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Textarea
+          placeholder={replyToUsername ? `@${replyToUsername} に返信...` : 'コメントを入力...'}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="min-h-[100px] text-sm sm:text-base"
+          disabled={isSubmitting}
+        />
+        <div className="flex justify-end space-x-2">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="text-xs sm:text-sm"
+            >
+              キャンセル
+            </Button>
+          )}
+          <Button type="submit" disabled={isSubmitting} className="text-xs sm:text-sm">
+            {isSubmitting ? '投稿中...' : '投稿'}
           </Button>
-        )}
-        <Button type="submit" disabled={isSubmitting} className="text-xs sm:text-sm">
-          {isSubmitting ? '投稿中...' : '投稿'}
-        </Button>
-      </div>
-    </form>
+        </div>
+      </form>
+      
+      {/* 認証ダイアログ */}
+      <AuthDialog open={open} onOpenChange={setOpen} />
+    </>
   )
 } 

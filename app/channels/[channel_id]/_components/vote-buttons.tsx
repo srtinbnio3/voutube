@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast"
 import { formatNumber } from "../../../lib/format"
 import useSWR from 'swr'
 import { fetcher } from '../../../lib/fetcher'
+import { useAuthDialog } from "@/hooks/use-auth-dialog"
+import { AuthDialog } from "@/components/ui/auth-dialog"
 
 // このファイルは、投稿に対する「いいね」と「よくないね」のボタンを作るプログラムです
 
@@ -29,6 +31,7 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
   const [loadingType, setLoadingType] = useState<'upvote' | 'downvote' | null>(null) // どちらのボタンが処理中か
   const router = useRouter()
   const { toast } = useToast()
+  const { open, setOpen, checkAuthAndShowDialog } = useAuthDialog()
   
   // デバッグ用
   console.log('VoteButtons rendering:', { postId, initialScore, initialVote })
@@ -78,12 +81,19 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
   }, [voteData, userId])
   
   // 投票ボタンが押されたときの動作
-  const handleVote = useCallback(async (isUpvote: boolean) => {
-    if (isLoading) return
-    setIsLoading(true)
-    setLoadingType(isUpvote ? 'upvote' : 'downvote')
-    
+  const handleVote = useCallback(async (voteType: boolean) => {
     try {
+      // 投票処理中は追加操作を受け付けない
+      if (isLoading) return
+      
+      // ログイン確認 - 未ログインならダイアログを表示して処理中断
+      const isAuthenticated = await checkAuthAndShowDialog()
+      if (!isAuthenticated) return
+      
+      // ここから先は認証済みユーザーの処理
+      setIsLoading(true)
+      setLoadingType(voteType ? 'upvote' : 'downvote')
+      
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         setIsLoading(false)
@@ -96,20 +106,20 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
       const userId = session.user.id
       
       // 楽観的更新のための新しい投票状態
-      const newVoteState = currentVote === isUpvote ? null : isUpvote
+      const newVoteState = currentVote === voteType ? null : voteType
       
       // スコアの楽観的更新計算
       let scoreChange = 0;
       
       if (currentVote === null) {
         // 未投票→投票: +1/-1
-        scoreChange = isUpvote ? 1 : -1;
+        scoreChange = voteType ? 1 : -1;
       } else if (newVoteState === null) {
         // 投票→取り消し: いいね取消し-1/よくないね取消し+1
         scoreChange = currentVote ? -1 : 1;
       } else {
         // 投票切り替え: いいね→よくないね:-2/よくないね→いいね:+2
-        scoreChange = isUpvote ? 2 : -2;
+        scoreChange = voteType ? 2 : -2;
       }
       
       // 状態を更新（setStateの順序をスコア→投票状態に変更）
@@ -152,7 +162,7 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
       setIsLoading(false)
       setLoadingType(null)
     }
-  }, [isLoading, currentVote, postId, supabase, router, toast, mutate, isTestMode])
+  }, [isLoading, currentVote, postId, supabase, router, toast, mutate, isTestMode, checkAuthAndShowDialog])
 
   // ボタンの見た目を決める関数
   const getButtonStyle = useCallback((isUpvote: boolean) => {
@@ -165,64 +175,69 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
 
   // 投票ボタンのデザインを作ります
   return (
-    <div className="flex flex-col items-center gap-1">
-      {/* 上向き矢印（いいね）ボタン */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className={getButtonStyle(true)}
-        onClick={() => {
-          // すでに処理中なら何もしない
-          if (!isLoading) {
-            console.log("いいねボタンがクリックされました");
-            handleVote(true);
-          }
-        }}
-        disabled={isLoading}
-        aria-label="upvote"
-        data-state={currentVote === true ? "active" : "inactive"}
-      >
-        {isLoading && loadingType === 'upvote' ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <ArrowBigUp className={`h-4 w-4 transition-transform duration-200 ${currentVote === true ? 'scale-125' : ''}`} />
-        )}
-      </Button>
+    <>
+      <div className="flex flex-col items-center gap-1">
+        {/* 上向き矢印（いいね）ボタン */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className={getButtonStyle(true)}
+          onClick={() => {
+            // すでに処理中なら何もしない
+            if (!isLoading) {
+              console.log("いいねボタンがクリックされました");
+              handleVote(true);
+            }
+          }}
+          disabled={isLoading}
+          aria-label="upvote"
+          data-state={currentVote === true ? "active" : "inactive"}
+        >
+          {isLoading && loadingType === 'upvote' ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ArrowBigUp className={`h-4 w-4 transition-transform duration-200 ${currentVote === true ? 'scale-125' : ''}`} />
+          )}
+        </Button>
 
-      {/* 投票スコアの表示 */}
-      <span 
-        data-testid="vote-score"
-        className={`text-xs font-bold transition-colors duration-200 ${
-          currentVote === true ? 'text-orange-500' : 
-          currentVote === false ? 'text-blue-500' : ''
-        }`}
-      >
-        {formatNumber(score)}
-      </span>
+        {/* 投票スコアの表示 */}
+        <span 
+          data-testid="vote-score"
+          className={`text-xs font-bold transition-colors duration-200 ${
+            currentVote === true ? 'text-orange-500' : 
+            currentVote === false ? 'text-blue-500' : ''
+          }`}
+        >
+          {formatNumber(score)}
+        </span>
 
-      {/* 下向き矢印（よくないね）ボタン */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className={getButtonStyle(false)}
-        onClick={() => {
-          // すでに処理中なら何もしない
-          if (!isLoading) {
-            console.log("よくないねボタンがクリックされました");
-            handleVote(false);
-          }
-        }}
-        disabled={isLoading}
-        aria-label="downvote"
-        data-state={currentVote === false ? "active" : "inactive"}
-      >
-        {isLoading && loadingType === 'downvote' ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <ArrowBigDown className={`h-4 w-4 transition-transform duration-200 ${currentVote === false ? 'scale-125' : ''}`} />
-        )}
-      </Button>
-    </div>
+        {/* 下向き矢印（よくないね）ボタン */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className={getButtonStyle(false)}
+          onClick={() => {
+            // すでに処理中なら何もしない
+            if (!isLoading) {
+              console.log("よくないねボタンがクリックされました");
+              handleVote(false);
+            }
+          }}
+          disabled={isLoading}
+          aria-label="downvote"
+          data-state={currentVote === false ? "active" : "inactive"}
+        >
+          {isLoading && loadingType === 'downvote' ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ArrowBigDown className={`h-4 w-4 transition-transform duration-200 ${currentVote === false ? 'scale-125' : ''}`} />
+          )}
+        </Button>
+      </div>
+      
+      {/* 認証ダイアログ */}
+      <AuthDialog open={open} onOpenChange={setOpen} />
+    </>
   )
 })
 

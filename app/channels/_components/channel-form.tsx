@@ -18,6 +18,8 @@ import Image from "next/image"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import useSWR from 'swr'
 import { fetcher } from '../../lib/fetcher'
+import { useAuthDialog } from "@/hooks/use-auth-dialog"
+import { AuthDialog } from "@/components/ui/auth-dialog"
 
 /**
  * YouTubeチャンネルの型定義
@@ -48,6 +50,7 @@ export function ChannelForm() {
 
   const router = useRouter()
   const { toast } = useToast()
+  const { open, setOpen, checkAuthAndShowDialog } = useAuthDialog()
 
   const { data: channels, error } = useSWR(
     searchQuery ? `/api/youtube/search?q=${encodeURIComponent(searchQuery)}` : null,
@@ -83,14 +86,10 @@ export function ChannelForm() {
 
   // 新規チャンネルボタンクリック時の処理
   const handleNewChannelClick = async () => {
-    // ログイン確認
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      // 未ログインの場合、現在のURLを保持してログインページへリダイレクト
-      const currentPath = window.location.pathname
-      router.push(`/sign-in?redirect_to=${encodeURIComponent(currentPath)}`)
-      return
-    }
+    // ログイン確認と未ログイン時のダイアログ表示
+    const isAuthenticated = await checkAuthAndShowDialog()
+    if (!isAuthenticated) return
+    
     // ログイン済みの場合、ダイアログを開く
     setIsOpen(true)
   }
@@ -190,109 +189,118 @@ export function ChannelForm() {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open)
-      if (!open) {
-        resetSelection()
-      }
-    }}>
-      <DialogTrigger asChild>
-        <Button onClick={handleNewChannelClick}>新規チャンネル</Button>
-      </DialogTrigger>
-      <DialogContent className="p-3 sm:p-4 w-[95vw] max-w-[400px] max-h-[90vh] overflow-hidden">
-        <DialogHeader className="mb-2">
-          <DialogTitle>新規チャンネル</DialogTitle>
-        </DialogHeader>
-        
-        {/* YouTube検索フォーム */}
-        {!selectedChannel && (
-          <div className="space-y-3">
-            <form onSubmit={searchYouTubeChannels} className="flex gap-2">
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="YouTubeチャンネル名で検索"
-                className="flex-1"
-              />
-              <Button type="submit" disabled={!searchQuery.trim()}>
-                <Search className="h-4 w-4 mr-2" />
-                検索
-              </Button>
-            </form>
-            
-            {/* 検索結果の表示 - より最適化された高さとシンプルな表示 */}
-            {searchResults.length > 0 && (
-              <div className="max-h-[40vh] overflow-y-auto border rounded-md">
-                <div className="p-1">
-                  {searchResults.map((channel) => (
-                    <div
-                      key={channel.youtube_channel_id}
-                      className="flex items-center gap-2 p-1.5 hover:bg-secondary rounded-md cursor-pointer"
-                      onClick={() => selectChannel(channel)}
-                    >
-                      <div className="w-8 h-8 flex-shrink-0">
-                        {channel.icon_url && (
-                          <Image
-                            src={channel.icon_url}
-                            alt={channel.name}
-                            width={32}
-                            height={32}
-                            className="rounded-full w-full h-full object-cover"
-                            unoptimized={true}
-                          />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm truncate">{channel.name}</p>
-                        {/* 説明文は非表示 */}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* 選択済みチャンネル表示 - シンプル化 */}
-        {selectedChannel && (
-          <div className="grid grid-cols-[auto,1fr,auto] gap-2 items-center p-2 border rounded-md mb-3">
-            <div className="w-8 h-8 flex-shrink-0">
-              {selectedChannel.icon_url && (
-                <Image
-                  src={selectedChannel.icon_url}
-                  alt={selectedChannel.name}
-                  width={32}
-                  height={32}
-                  className="rounded-full w-full h-full object-cover"
-                  loading="lazy"
-                  quality={90}
+    <>
+      {/* 新規チャンネル追加ボタン */}
+      <div className="mb-4">
+        <Button
+          onClick={handleNewChannelClick}
+          className="w-full"
+          disabled={isLoading}
+        >
+          新規チャンネル追加
+        </Button>
+      </div>
+
+      {/* チャンネル追加ダイアログ */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="p-3 sm:p-4 w-[95vw] max-w-[400px] max-h-[90vh] overflow-hidden">
+          <DialogHeader className="mb-2">
+            <DialogTitle>新規チャンネル</DialogTitle>
+          </DialogHeader>
+          
+          {/* YouTube検索フォーム */}
+          {!selectedChannel && (
+            <div className="space-y-3">
+              <form onSubmit={searchYouTubeChannels} className="flex gap-2">
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="YouTubeチャンネル名で検索"
+                  className="flex-1"
                 />
+                <Button type="submit" disabled={!searchQuery.trim()}>
+                  <Search className="h-4 w-4 mr-2" />
+                  検索
+                </Button>
+              </form>
+              
+              {/* 検索結果の表示 - より最適化された高さとシンプルな表示 */}
+              {searchResults.length > 0 && (
+                <div className="max-h-[40vh] overflow-y-auto border rounded-md">
+                  <div className="p-1">
+                    {searchResults.map((channel) => (
+                      <div
+                        key={channel.youtube_channel_id}
+                        className="flex items-center gap-2 p-1.5 hover:bg-secondary rounded-md cursor-pointer"
+                        onClick={() => selectChannel(channel)}
+                      >
+                        <div className="w-8 h-8 flex-shrink-0">
+                          {channel.icon_url && (
+                            <Image
+                              src={channel.icon_url}
+                              alt={channel.name}
+                              width={32}
+                              height={32}
+                              className="rounded-full w-full h-full object-cover"
+                              unoptimized={true}
+                            />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm truncate">{channel.name}</p>
+                          {/* 説明文は非表示 */}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-            <div className="min-w-0">
-              <p className="font-medium text-sm truncate">{selectedChannel.name}</p>
+          )}
+          
+          {/* 選択済みチャンネル表示 - シンプル化 */}
+          {selectedChannel && (
+            <div className="grid grid-cols-[auto,1fr,auto] gap-2 items-center p-2 border rounded-md mb-3">
+              <div className="w-8 h-8 flex-shrink-0">
+                {selectedChannel.icon_url && (
+                  <Image
+                    src={selectedChannel.icon_url}
+                    alt={selectedChannel.name}
+                    width={32}
+                    height={32}
+                    className="rounded-full w-full h-full object-cover"
+                    loading="lazy"
+                    quality={90}
+                  />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium text-sm truncate">{selectedChannel.name}</p>
+              </div>
+              <Button variant="ghost" size="sm" className="flex-shrink-0 h-7 px-2 py-0" onClick={resetSelection}>
+                変更
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" className="flex-shrink-0 h-7 px-2 py-0" onClick={resetSelection}>
-              変更
-            </Button>
-          </div>
-        )}
-        
-        {/* チャンネル作成フォーム */}
-        <form onSubmit={handleSubmit}>
-          <div className="flex justify-end mt-3">
-            <Button type="submit" disabled={isLoading || !selectedChannel}>
-              {isLoading ? (
-                <>
-                  <LoadingSpinner size="sm" className="mr-2" />
-                  作成中...
-                </>
-              ) : "作成"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          )}
+          
+          {/* チャンネル作成フォーム */}
+          <form onSubmit={handleSubmit}>
+            <div className="flex justify-end mt-3">
+              <Button type="submit" disabled={isLoading || !selectedChannel}>
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    作成中...
+                  </>
+                ) : "作成"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* 認証ダイアログ */}
+      <AuthDialog open={open} onOpenChange={setOpen} />
+    </>
   )
 } 
