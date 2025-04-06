@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { CommentList } from "@/components/comments/comment-list"
+import { PostShareButton } from "./_components/post-share-button"
 
 export default async function PostDetailPage(
   props: {
@@ -73,27 +74,36 @@ export default async function PostDetailPage(
       <div className="bg-card rounded-lg shadow-sm">
         <div className="p-6">
           {/* 投稿者情報 */}
-          <div className="flex items-center gap-3 mb-4">
-            <Link href={`/profile/${post.profiles.id}`} className="hover:opacity-80">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={post.profiles.avatar_url || undefined}
-                  alt={post.profiles.username}
-                />
-                <AvatarFallback>{getInitials(post.profiles.username)}</AvatarFallback>
-              </Avatar>
-            </Link>
-            <div>
-              <Link
-                href={`/profile/${post.profiles.id}`}
-                className="font-medium hover:underline"
-              >
-                {post.profiles.username}
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <Link href={`/profile/${post.profiles.id}`} className="hover:opacity-80">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src={post.profiles.avatar_url || undefined}
+                    alt={post.profiles.username}
+                  />
+                  <AvatarFallback>{getInitials(post.profiles.username)}</AvatarFallback>
+                </Avatar>
               </Link>
-              <p className="text-sm text-muted-foreground">
-                {new Date(post.created_at).toLocaleDateString("ja-JP")}
-              </p>
+              <div>
+                <Link
+                  href={`/profile/${post.profiles.id}`}
+                  className="font-medium hover:underline"
+                >
+                  {post.profiles.username}
+                </Link>
+                <p className="text-sm text-muted-foreground">
+                  {new Date(post.created_at).toLocaleDateString("ja-JP")}
+                </p>
+              </div>
             </div>
+            
+            {/* シェアボタン */}
+            <PostShareButton 
+              postId={params.post_id} 
+              channelId={params.channel_id} 
+              title={post.title} 
+            />
           </div>
 
           {/* 投稿内容 */}
