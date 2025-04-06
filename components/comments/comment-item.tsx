@@ -82,6 +82,27 @@ export function CommentItem({
 
   // コメント内容の表示（@メンション対応）
   const renderContent = () => {
+    // URLを検出してリンク化する関数
+    const linkifyText = (text: string) => {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.split(urlRegex).map((part, index) => {
+        if (part.match(urlRegex)) {
+          return (
+            <a
+              key={index}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              {part}
+            </a>
+          );
+        }
+        return part;
+      });
+    };
+
     if (comment.mentioned_username) {
       // @メンションが含まれる場合のレンダリング
       const mentionPattern = new RegExp(`@${comment.mentioned_username}\\s?`);
@@ -95,14 +116,14 @@ export function CommentItem({
           >
             @{comment.mentioned_username}
           </Link>
-          {' '}{contentWithoutMention}
+          {' '}{linkifyText(contentWithoutMention)}
         </p>
       )
     }
     
     return (
       <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-        {comment.content}
+        {linkifyText(comment.content)}
       </p>
     )
   }
