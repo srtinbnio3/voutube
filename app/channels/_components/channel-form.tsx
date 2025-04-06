@@ -16,8 +16,6 @@ import { useState, useEffect } from "react"
 import { Search, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import useSWR from 'swr'
-import { fetcher } from '../../lib/fetcher'
 import { useAuthDialog } from "@/hooks/use-auth-dialog"
 import { AuthDialog } from "@/components/ui/auth-dialog"
 
@@ -44,6 +42,7 @@ type YouTubeChannel = {
 export function ChannelForm() {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedChannel, setSelectedChannel] = useState<YouTubeChannel | null>(null)
   const [searchResults, setSearchResults] = useState<YouTubeChannel[]>([])
@@ -51,32 +50,6 @@ export function ChannelForm() {
   const router = useRouter()
   const { toast } = useToast()
   const { open, setOpen, checkAuthAndShowDialog } = useAuthDialog()
-
-  const { data: channels, error } = useSWR(
-    searchQuery ? `/api/youtube/search?q=${encodeURIComponent(searchQuery)}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-    }
-  )
-
-  // 検索結果が更新されたら状態を更新
-  useEffect(() => {
-    if (channels) {
-      setSearchResults(channels)
-    }
-  }, [channels])
-
-  // エラーが発生したら通知
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "検索エラー",
-        description: "YouTubeチャンネルの検索中にエラーが発生しました",
-        variant: "destructive",
-      })
-    }
-  }, [error])
 
   // Supabaseクライアント初期化
   const supabase = createBrowserClient(
@@ -101,6 +74,25 @@ export function ChannelForm() {
   async function searchYouTubeChannels(e: React.FormEvent) {
     e.preventDefault()
     if (!searchQuery.trim()) return
+
+    setIsSearching(true)
+    try {
+      const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(searchQuery)}`)
+      if (!response.ok) {
+        throw new Error('検索リクエストに失敗しました')
+      }
+      const channels = await response.json()
+      setSearchResults(channels)
+    } catch (error) {
+      console.error('検索エラー:', error)
+      toast({
+        title: "検索エラー",
+        description: "YouTubeチャンネルの検索中にエラーが発生しました",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   /**
@@ -218,13 +210,17 @@ export function ChannelForm() {
                   placeholder="YouTubeチャンネル名で検索"
                   className="flex-1"
                 />
-                <Button type="submit" disabled={!searchQuery.trim()}>
-                  <Search className="h-4 w-4 mr-2" />
+                <Button type="submit" disabled={!searchQuery.trim() || isSearching}>
+                  {isSearching ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4 mr-2" />
+                  )}
                   検索
                 </Button>
               </form>
               
-              {/* 検索結果の表示 - より最適化された高さとシンプルな表示 */}
+              {/* 検索結果の表示 */}
               {searchResults.length > 0 && (
                 <div className="max-h-[40vh] overflow-y-auto border rounded-md">
                   <div className="p-1">
@@ -248,7 +244,6 @@ export function ChannelForm() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-sm truncate">{channel.name}</p>
-                          {/* 説明文は非表示 */}
                         </div>
                       </div>
                     ))}
