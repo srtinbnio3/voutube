@@ -18,7 +18,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   metadataBase: new URL('https://voutube.vercel.app'),
   title: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
-  description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。動画企画の提案、投票、フィードバックを通じて、クリエイターと視聴者が一緒に面白いコンテンツを作り出せます。",
+  description: "あなたのアイデアが、次のバズる動画を創ります。推しYoutuberに企画を提案しましょう！",
   keywords: "YouTube, YouTuber, ユーチューバー, ユーチューブ, 企画, 動画企画, アイデア, 企画案, 企画提案, クリエイター, 動画クリエイター, 視聴者, コミュニティ, プラットフォーム, バズる, バズ動画, 動画作成, 動画制作, 動画編集, 面白い動画, 人気動画, 企画募集, アイデア募集, 視聴者参加型, コラボ企画, 視聴者投票, エンタメ, エンターテインメント",
   authors: [{ name: "IdeaTube Team" }],
   creator: "IdeaTube Team",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     url: "https://ideatube.net",
     siteName: "IdeaTube",
     title: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
-    description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。動画企画の提案、投票、フィードバックを通じて、クリエイターと視聴者が一緒に面白いコンテンツを作り出せます。",
+    description: "あなたのアイデアが、次のバズる動画を創ります。推しYoutuberに企画を提案しましょう！",
     images: [
       {
         url: "/og-image.png",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
-    description: "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。動画企画の提案、投票、フィードバックを通じて、クリエイターと視聴者が一緒に面白いコンテンツを作り出せます。",
+    description: "あなたのアイデアが、次のバズる動画を創ります。推しYoutuberに企画を提案しましょう！",
     images: ["/og-image.png"],
     creator: "@kmrmsys",
   },
@@ -88,7 +88,7 @@ export default function RootLayout({
               "@type": "WebSite",
               "name": "IdeaTube",
               "url": "https://ideatube.net",
-              "description": "YouTuberと視聴者を繋ぐ、新しい企画プラットフォーム。あなたのアイデアが、次のバズる動画を創ります。動画企画の提案、投票、フィードバックを通じて、クリエイターと視聴者が一緒に面白いコンテンツを作り出せます。",
+              "description": "あなたのアイデアが、次のバズる動画を創ります。推しYoutuberに企画を提案しましょう！",
               "potentialAction": {
                 "@type": "SearchAction",
                 "target": "https://ideatube.net/channels?q={search_term_string}",

@@ -96,7 +96,7 @@ export default function LandingPage() {
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FF0000] via-[#FF4444] to-[#FF6666]">次のバズる動画</span>を創ろう
             </h2>
             <p className="text-xl mb-12 text-muted-foreground">
-              今すぐ、アイデアの共有を始めましょう
+              今すぐ、推しYoutuberに企画を提案しましょう！
             </p>
             <Button asChild size="lg" className="text-lg group">
               <Link href="/channels" className="flex items-center gap-2">
