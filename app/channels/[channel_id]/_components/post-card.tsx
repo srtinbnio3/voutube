@@ -27,6 +27,8 @@ import {
 import { useCallback, useEffect, useState, memo } from "react"
 import useSWR from 'swr'
 import { fetcher } from '../../../lib/fetcher'
+import { ShareButton } from "@/components/share-button"
+import { useShare } from "@/hooks/use-share"
 
 // 投稿の情報（タイトル、内容、投票、投稿者など）の形を決めます
 type PostWithVotesAndProfile = Database["public"]["Tables"]["posts"]["Row"] & {
@@ -131,6 +133,11 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
   // 投稿を見ている人が、投稿した本人かどうかを確認します
   const isAuthor = userId === post.user_id
 
+  const { handleShare } = useShare({
+    url: `${window.location.origin}/channels/${post.channel_id}/posts/${post.id}`,
+    text: post.title
+  })
+
   // 投稿カードのデザインを作ります
   return (
     <Card className="mb-3 hover:bg-accent transition-colors group">
@@ -171,32 +178,39 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
                   </div>
                 </div>
 
-                {/* 投稿した本人なら、削除ボタンを表示します */}
-                {isAuthor && (
+                <div className="flex items-center gap-2">
+                  {/* シェアボタン */}
                   <div onClick={(e) => e.stopPropagation()} className="relative z-10">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <button className="text-destructive hover:text-destructive/80" aria-label="投稿を削除">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>投稿を削除しますか？</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            この操作は取り消せません。投稿は完全に削除されます。
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            削除する
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <ShareButton onShare={handleShare} className="text-muted-foreground hover:text-foreground" />
                   </div>
-                )}
+
+                  {/* 投稿した本人なら、削除ボタンを表示します */}
+                  {isAuthor && (
+                    <div onClick={(e) => e.stopPropagation()} className="relative z-10">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button className="text-destructive hover:text-destructive/80" aria-label="投稿を削除">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>投稿を削除しますか？</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              この操作は取り消せません。投稿は完全に削除されます。
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              削除する
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* 投稿のタイトルを表示します */}

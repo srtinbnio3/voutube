@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
+import { ShareButton } from "@/components/share-button"
+import { useShare } from "@/hooks/use-share"
 
 // チャンネルデータの型定義
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
@@ -44,21 +46,10 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
     .join('')
     .toUpperCase()
 
-  const handleShare = async (type: 'x' | 'copy') => {
-    const url = `${window.location.origin}/channels/${channel.id}`
-    
-    if (type === 'x') {
-      const text = `${channel.name}の投稿企画一覧`
-      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
-      window.open(shareUrl, '_blank')
-    } else {
-      await navigator.clipboard.writeText(url)
-      toast({
-        title: "リンクをコピーしました",
-        description: "チャンネルのURLがクリップボードにコピーされました",
-      })
-    }
-  }
+  const { handleShare } = useShare({
+    url: `${window.location.origin}/channels/${channel.id}`,
+    text: `${channel.name}の投稿企画一覧`
+  })
 
   return (
     <div 
@@ -92,29 +83,7 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
             <p className="text-muted-foreground">{channel.description ?? '説明はありません'}</p>
           </div>
           <div className="flex-shrink-0">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleShare('x')}>
-                  <svg
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    className="mr-2 h-4 w-4 fill-current"
-                  >
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                  Xでシェア
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleShare('copy')}>
-                  <LinkIcon className="mr-2 h-4 w-4" />
-                  リンクをコピー
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ShareButton onShare={handleShare} />
           </div>
         </div>
         <div className="flex gap-4">
