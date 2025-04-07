@@ -50,34 +50,37 @@ export default async function ChannelPage(props: {
   }
 
   // チャンネルの投稿一覧を取得
-  const query = supabase
+  const { data: posts, error: postsError } = await supabase
     .from("posts")
     .select(`
       *,
-      votes (
-        is_upvote,
-        user_id
-      ),
-      profiles!user_id (
+      profiles (
         id,
         username,
         avatar_url
+      ),
+      votes (
+        is_upvote,
+        user_id
       )
-    `)  // 投票情報とプロフィール情報も一緒に取得
+    `)
     .eq("channel_id", params.channel_id)
+    .order(sort === "popular" ? "score" : "created_at", { ascending: false })
 
-  // ソート順の適用
-  if (sort === 'popular') {
-    query
-      .order('score', { ascending: false })  // スコアが高い順
-      .order('created_at', { ascending: false })  // 同じスコアの場合は新しい順
-  } else {
-    query
-      .order('created_at', { ascending: false })  // 新しい順
-      .order('score', { ascending: false })  // 同じ日付の場合はスコアが高い順
-  }
-
-  const { data: posts } = await query.limit(10)
+  // 各投稿のコメント数を取得
+  const postsWithCommentCount = await Promise.all(
+    posts?.map(async (post) => {
+      const { count } = await supabase
+        .from("comments")
+        .select("*", { count: "exact", head: true })
+        .eq("post_id", post.id)
+      
+      return {
+        ...post,
+        comment_count: count || 0
+      }
+    }) || []
+  )
 
   // ログイン中のユーザーIDを取得
   const { data: { session } } = await supabase.auth.getSession()
@@ -108,10 +111,10 @@ export default async function ChannelPage(props: {
           <PostSort currentSort={sort} />
         </div>
         <div className="grid gap-4">
-          {posts?.map((post) => (
+          {postsWithCommentCount?.map((post) => (
             <PostCard key={post.id} post={post} userId={userId} />
           ))}
-          {!posts?.length && (
+          {!postsWithCommentCount?.length && (
             <p className="text-center text-muted-foreground">投稿がありません</p>
           )}
         </div>

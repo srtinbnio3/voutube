@@ -29,6 +29,7 @@ import useSWR from 'swr'
 import { fetcher } from '../../../lib/fetcher'
 import { ShareButton } from "@/components/share-button"
 import { useShare } from "@/hooks/use-share"
+import { MessageCircle } from "lucide-react"
 
 // 投稿の情報（タイトル、内容、投票、投稿者など）の形を決めます
 type PostWithVotesAndProfile = Database["public"]["Tables"]["posts"]["Row"] & {
@@ -40,7 +41,8 @@ type PostWithVotesAndProfile = Database["public"]["Tables"]["posts"]["Row"] & {
     id: string
     username: string
     avatar_url: string | null
-  }
+  },
+  comment_count: number
 }
 
 // このコンポーネントが受け取る情報の形を決めます
@@ -184,12 +186,18 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
                     <ShareButton onShare={handleShare} className="text-muted-foreground hover:text-foreground" />
                   </div>
 
+                  {/* コメント数 */}
+                  <Link href={`/channels/${post.channel_id}/posts/${post.id}`} className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="text-sm">{post.comment_count || 0}</span>
+                  </Link>
+
                   {/* 投稿した本人なら、削除ボタンを表示します */}
                   {isAuthor && (
                     <div onClick={(e) => e.stopPropagation()} className="relative z-10">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <button className="text-destructive hover:text-destructive/80" aria-label="投稿を削除">
+                          <button className="flex items-center text-destructive hover:text-destructive/80" aria-label="投稿を削除">
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </AlertDialogTrigger>
