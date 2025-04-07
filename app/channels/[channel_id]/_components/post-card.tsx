@@ -181,17 +181,6 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {/* シェアボタン */}
-                  <div onClick={(e) => e.stopPropagation()} className="relative z-10">
-                    <ShareButton onShare={handleShare} className="text-muted-foreground hover:text-foreground" />
-                  </div>
-
-                  {/* コメント数 */}
-                  <Link href={`/channels/${post.channel_id}/posts/${post.id}`} className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
-                    <MessageCircle className="h-4 w-4" />
-                    <span className="text-sm">{post.comment_count || 0}</span>
-                  </Link>
-
                   {/* 投稿した本人なら、削除ボタンを表示します */}
                   {isAuthor && (
                     <div onClick={(e) => e.stopPropagation()} className="relative z-10">
@@ -218,6 +207,17 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
                       </AlertDialog>
                     </div>
                   )}
+
+                  {/* シェアボタン */}
+                  <div onClick={(e) => e.stopPropagation()} className="relative z-10">
+                    <ShareButton onShare={handleShare} className="text-muted-foreground hover:text-foreground" />
+                  </div>
+
+                  {/* コメント数 */}
+                  <Link href={`/channels/${post.channel_id}/posts/${post.id}`} className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="text-sm">{post.comment_count || 0}</span>
+                  </Link>
                 </div>
               </div>
               
