@@ -10,6 +10,12 @@ const FREE_TIER_LIMITS = {
   WARNING_THRESHOLD: 80, // 警告を出す閾値（%）
 };
 
+// APIエンドポイントごとのquotaコスト
+const QUOTA_COSTS = {
+  CHANNELS_LIST: 1, // channels.listのコスト
+  SEARCH: 100,      // search.listのコスト
+};
+
 /**
  * YouTube Data APIの使用量を監視する
  */
@@ -20,52 +26,39 @@ async function monitorYouTubeApiUsage() {
   }
 
   try {
-    // YouTube APIの使用量を確認するためのテストリクエスト
+    // YouTube APIのテストリクエスト（channels.list = 1 unit）
     const response = await fetch(
       `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=UC_x5XG1OV2P6uZZ5FSM9Ttw&key=${YOUTUBE_API_KEY}`
     );
 
     if (!response.ok) {
+      const error = await response.json();
+      if (error.error.errors[0].reason === 'quotaExceeded') {
+        // Quotaを超過している場合
+        await sendSlackAlert('YouTube API使用量警告', [{
+          resource: 'YouTube Data API',
+          usage: FREE_TIER_LIMITS.DAILY_QUOTA,
+          limit: FREE_TIER_LIMITS.DAILY_QUOTA,
+          percentage: '100'
+        }]);
+        console.log('Quota超過を検出しました');
+        return;
+      }
       throw new Error(`YouTube API request failed: ${response.statusText}`);
     }
 
-    // APIの使用量をレスポンスヘッダーから取得
-    const quotaUsed = parseInt(response.headers.get('x-quota-used') || '0', 10);
-    const quotaPercentage = (quotaUsed / FREE_TIER_LIMITS.DAILY_QUOTA) * 100;
-
-    // 警告メッセージを作成
-    const warnings = [];
-    if (quotaPercentage > FREE_TIER_LIMITS.WARNING_THRESHOLD) {
-      warnings.push({
-        resource: 'YouTube Data API',
-        usage: quotaUsed,
+    // APIリクエストが成功した場合は、まだquotaが残っている
+    console.log('YouTube APIの使用量は正常です');
+    if (SLACK_WEBHOOK_URL) {
+      await sendSlackAlert('YouTube API使用量 正常', [{
+        resource: 'ステータス',
+        usage: '正常',
         limit: FREE_TIER_LIMITS.DAILY_QUOTA,
-        percentage: quotaPercentage.toFixed(1)
-      });
+        percentage: '0.0'
+      }]);
     }
 
-    // 警告があれば通知
-    if (warnings.length > 0) {
-      if (SLACK_WEBHOOK_URL) {
-        await sendSlackAlert('YouTube API使用量警告', warnings);
-        console.log('Slackに警告を送信しました');
-      } else {
-        console.log('警告：');
-        console.table(warnings);
-      }
-    } else {
-      console.log('YouTube APIの使用量は正常です');
-      if (SLACK_WEBHOOK_URL) {
-        await sendSlackAlert('YouTube API使用量 正常', [{
-          resource: 'ステータス',
-          usage: quotaUsed,
-          limit: FREE_TIER_LIMITS.DAILY_QUOTA,
-          percentage: quotaPercentage.toFixed(1)
-        }]);
-      }
-    }
-
-    return warnings;
+    return [];
   } catch (error) {
     console.error('監視中にエラーが発生:', error);
     
