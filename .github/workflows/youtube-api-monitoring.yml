@@ -27,14 +27,25 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci
-          npm install --no-save node-fetch
+          npm install --no-save node-fetch googleapis
       
       - name: Run monitoring script
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GOOGLE_CLOUD_CREDENTIALS: ${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}
+          GOOGLE_CLOUD_PROJECT_ID: ${{ secrets.GOOGLE_CLOUD_PROJECT_ID }}
           ENVIRONMENT: "production"
         run: node scripts/monitoring/youtube-api-usage.js
+      
+      - name: Commit usage log
+        if: success()
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add logs/youtube-api-usage.json
+          git commit -m "Update YouTube API usage log [skip ci]" || echo "No changes to commit"
+          git push
       
       - name: Output status on error
         if: failure()
@@ -43,4 +54,6 @@ jobs:
           echo "環境: production"
           echo "GitHub ActionsのSecretsに以下の値が設定されていることを確認してください："
           echo "- YOUTUBE_API_KEY"
-          echo "- SLACK_WEBHOOK_URL（オプション）" 
+          echo "- SLACK_WEBHOOK_URL（オプション）"
+          echo "- GOOGLE_CLOUD_CREDENTIALS（オプション）"
+          echo "- GOOGLE_CLOUD_PROJECT_ID（オプション）" 
