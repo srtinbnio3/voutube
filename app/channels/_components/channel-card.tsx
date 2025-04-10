@@ -7,7 +7,7 @@ import { formatDistanceToNow } from "date-fns"
 import { ja } from "date-fns/locale"
 import Link from "next/link"
 import { formatNumber } from "../../lib/format"
-import { memo, useMemo } from "react"
+import { memo, useMemo, useEffect, useState } from "react"
 import { Share2, Link as LinkIcon } from "lucide-react"
 import {
   DropdownMenu,
@@ -30,7 +30,12 @@ interface ChannelCardProps {
 
 const ChannelCard = memo(function ChannelCard({ channel }: ChannelCardProps) {
   const { toast } = useToast()
+  const [shareUrl, setShareUrl] = useState<string>("")
   
+  useEffect(() => {
+    setShareUrl(`${window.location.origin}/channels/${channel.id}`)
+  }, [channel.id])
+
   // 登録者数を取得
   const { data: channelData, error, isLoading } = useSWR(
     `/api/channels/${channel.id}/subscriber-count`,
@@ -58,7 +63,7 @@ const ChannelCard = memo(function ChannelCard({ channel }: ChannelCardProps) {
   }, [channel.latest_post_at])
 
   const { handleShare } = useShare({
-    url: `${window.location.origin}/channels/${channel.id}`,
+    url: shareUrl,
     text: `${channel.name}の投稿企画一覧`
   })
 
