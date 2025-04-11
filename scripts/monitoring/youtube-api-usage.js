@@ -1,16 +1,11 @@
 import fetch from 'node-fetch';
 import { google } from 'googleapis';
-import fs from 'fs';
-import path from 'path';
 
 // 設定
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 const GOOGLE_CLOUD_CREDENTIALS = process.env.GOOGLE_CLOUD_CREDENTIALS;
 const GOOGLE_CLOUD_PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID || 'ideatube';
-
-// 使用量ログのファイルパス
-const USAGE_LOG_FILE = path.join(process.cwd(), 'logs', 'youtube-api-usage.json');
 
 // YouTube APIの無料枠の制限
 const FREE_TIER_LIMITS = {
@@ -23,88 +18,6 @@ const QUOTA_COSTS = {
   CHANNELS_LIST: 1, // channels.listのコスト
   SEARCH: 100,      // search.listのコスト
 };
-
-/**
- * 過去の使用量ログを読み込む
- */
-async function loadUsageLog() {
-  try {
-    // logsディレクトリが存在しない場合は作成
-    const logsDir = path.join(process.cwd(), 'logs');
-    if (!fs.existsSync(logsDir)) {
-      fs.mkdirSync(logsDir, { recursive: true });
-    }
-    
-    // ファイルが存在しない場合は空のログを返す
-    if (!fs.existsSync(USAGE_LOG_FILE)) {
-      return { lastUpdated: null, dailyUsage: [] };
-    }
-    
-    // ファイルを読み込む
-    const data = fs.readFileSync(USAGE_LOG_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('使用量ログの読み込みに失敗:', error);
-    return { lastUpdated: null, dailyUsage: [] };
-  }
-}
-
-/**
- * 使用量ログを保存
- */
-async function saveUsageLog(usageData) {
-  try {
-    const logsDir = path.join(process.cwd(), 'logs');
-    if (!fs.existsSync(logsDir)) {
-      fs.mkdirSync(logsDir, { recursive: true });
-    }
-    
-    fs.writeFileSync(USAGE_LOG_FILE, JSON.stringify(usageData, null, 2), 'utf8');
-  } catch (error) {
-    console.error('使用量ログの保存に失敗:', error);
-  }
-}
-
-/**
- * 今日の使用量を更新
- */
-async function updateDailyUsage(additionalUsage) {
-  // 現在の日付を取得（YYYY-MM-DD形式）
-  const today = new Date().toISOString().split('T')[0];
-  
-  // 過去のログを読み込む
-  const usageLog = await loadUsageLog();
-  
-  // 今日のエントリを探す
-  let todayEntry = usageLog.dailyUsage.find(entry => entry.date === today);
-  
-  if (todayEntry) {
-    // 今日のエントリが存在する場合は更新
-    // 直接の加算ではなく、最大値を更新（報告される使用量は累積値のため）
-    todayEntry.usage = Math.max(todayEntry.usage, additionalUsage);
-  } else {
-    // 今日のエントリが存在しない場合は新規作成
-    usageLog.dailyUsage.push({
-      date: today,
-      usage: additionalUsage
-    });
-  }
-  
-  // 最新の更新日時を記録
-  usageLog.lastUpdated = new Date().toISOString();
-  
-  // 30日以上前のデータを削除（ログの肥大化防止）
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const cutoffDate = thirtyDaysAgo.toISOString().split('T')[0];
-  
-  usageLog.dailyUsage = usageLog.dailyUsage.filter(entry => entry.date >= cutoffDate);
-  
-  // 更新したログを保存
-  await saveUsageLog(usageLog);
-  
-  return usageLog;
-}
 
 /**
  * Google Cloud Monitoring APIを使ってYouTube Data APIの使用量を取得する
@@ -186,20 +99,8 @@ async function getYouTubeQuotaUsage() {
  */
 async function checkYouTubeApiStatus() {
   try {
-    // 過去のログを読み込む
-    const usageLog = await loadUsageLog();
-    
-    // 今日の日付を取得
-    const today = new Date().toISOString().split('T')[0];
-    
-    // 今日のエントリを探す
-    const todayEntry = usageLog.dailyUsage.find(entry => entry.date === today);
-    
-    // 既知の使用量（今日の記録がなければ0）
-    let knownUsage = todayEntry ? todayEntry.usage : 0;
-    
     // YouTube APIのリクエスト回数をCounterとして取得するための変数
-    let estimatedQuotaCost = knownUsage;
+    let estimatedQuotaCost = 0;
     
     // channels.listリクエスト（コスト: 1ユニット）
     const channelsResponse = await fetch(
@@ -220,18 +121,73 @@ async function checkYouTubeApiStatus() {
     // リクエストが成功したら、コストを加算
     estimatedQuotaCost += QUOTA_COSTS.CHANNELS_LIST;
     
-    // 使用量ログを更新
-    await updateDailyUsage(estimatedQuotaCost);
-    
-    // これまでの推定使用量を元に、実際の使用量を推定
     return { 
       status: 'ok', 
-      usage: estimatedQuotaCost,
-      note: '推定累積値'
+      usage: estimatedQuotaCost
     };
   } catch (error) {
     console.error('YouTube API状態確認中にエラーが発生:', error);
     return { status: 'error', usage: 0 };
+  }
+}
+
+/**
+ * Slack通知を送信
+ */
+async function sendSlackAlert(title, warnings) {
+  if (!SLACK_WEBHOOK_URL) {
+    console.error('SLACK_WEBHOOK_URL が設定されていません');
+    return;
+  }
+  
+  try {
+    const blocks = [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: `🎥 ${title}`,
+          emoji: true
+        }
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: warnings[0].resource === 'ステータス' 
+            ? `現在の使用状況：\n${warnings.map(w => `• *${w.resource}*: ${w.usage}/${w.limit} (${w.percentage}%)`).join('\n')}`
+            : `YouTube Data APIの使用量が警告閾値（${FREE_TIER_LIMITS.WARNING_THRESHOLD}%）を超えています：\n${warnings.map(w => `• *${w.resource}*: ${w.usage}/${w.limit} (${w.percentage}%)`).join('\n')}`
+        }
+      },
+      {
+        type: 'divider'
+      },
+      {
+        type: 'context',
+        elements: [
+          {
+            type: 'mrkdwn',
+            text: `実行時刻: ${new Date().toLocaleString('ja-JP')}`
+          }
+        ]
+      }
+    ];
+    
+    const payload = {
+      blocks: blocks
+    };
+    
+    const response = await fetch(SLACK_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Slack通知の送信に失敗: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Slack通知の送信中にエラーが発生:', error);
   }
 }
 
@@ -303,8 +259,6 @@ async function monitorYouTubeApiUsage() {
       }
     }
     
-    return warnings;
-    
   } catch (error) {
     console.error('監視中にエラーが発生:', error);
     
@@ -318,116 +272,6 @@ async function monitorYouTubeApiUsage() {
     }
     
     throw error;
-  }
-}
-
-/**
- * Slack通知を送信
- */
-async function sendSlackAlert(title, warnings) {
-  if (!SLACK_WEBHOOK_URL) {
-    console.error('SLACK_WEBHOOK_URL が設定されていません');
-    return;
-  }
-  
-  try {
-    // 過去7日間の使用量を取得
-    const usageLog = await loadUsageLog();
-    const today = new Date().toISOString().split('T')[0];
-    
-    // 7日前の日付を計算
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
-    
-    // 直近7日間のデータをフィルタリング
-    const recentUsage = usageLog.dailyUsage
-      .filter(entry => entry.date >= sevenDaysAgoStr && entry.date <= today)
-      .sort((a, b) => a.date.localeCompare(b.date));
-    
-    // 使用量の推移テキストを作成
-    let usageTrendText = '';
-    if (recentUsage.length > 0) {
-      usageTrendText = '📊 *直近の使用量推移*:\n';
-      
-      for (const entry of recentUsage) {
-        const percentage = ((entry.usage / FREE_TIER_LIMITS.DAILY_QUOTA) * 100).toFixed(1);
-        const date = entry.date.replace(/^\d{4}-/, ''); // YYYY-MM-DD → MM-DD
-        usageTrendText += `• ${date}: ${entry.usage} units (${percentage}%)\n`;
-      }
-    }
-    
-    const warningsText = warnings.map(w => 
-      `• *${w.resource}*: ${w.usage}/${w.limit} (${w.percentage}%)`
-    ).join('\n');
-    
-    const blocks = [
-      {
-        type: 'header',
-        text: {
-          type: 'plain_text',
-          text: `🎥 ${title}`,
-          emoji: true
-        }
-      },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: warnings[0].resource === 'ステータス' 
-            ? `現在の使用状況：\n${warningsText}`
-            : `YouTube Data APIの使用量が警告閾値（${FREE_TIER_LIMITS.WARNING_THRESHOLD}%）を超えています：\n${warningsText}`
-        }
-      }
-    ];
-    
-    // 使用量推移があれば追加
-    if (usageTrendText) {
-      blocks.push(
-        {
-          type: 'divider'
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: usageTrendText
-          }
-        }
-      );
-    }
-    
-    // フッターを追加
-    blocks.push(
-      {
-        type: 'divider'
-      },
-      {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: `実行時刻: ${new Date().toLocaleString('ja-JP')}`
-          }
-        ]
-      }
-    );
-    
-    const payload = {
-      blocks: blocks
-    };
-    
-    const response = await fetch(SLACK_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Slack通知の送信に失敗: ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error('Slack通知の送信中にエラーが発生:', error);
   }
 }
 
