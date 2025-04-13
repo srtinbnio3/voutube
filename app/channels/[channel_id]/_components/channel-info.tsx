@@ -55,37 +55,37 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
     <div 
       role="group" 
       aria-label="チャンネル情報" 
-      className="flex items-center gap-4 flex-1"
+      className="flex flex-col gap-4"
     >
-      <span 
-        role="img" 
-        aria-label={`${channel.name}のアバター`}
-        className="relative flex shrink-0 overflow-hidden rounded-full h-12 w-12"
-      >
-        <Avatar>
-          {channel.icon_url ? (
-            <AvatarImage
-              src={channel.icon_url}
-              alt={channel.name}
-              referrerPolicy="no-referrer"
-              crossOrigin="anonymous"
-            />
-          ) : null}
-          <AvatarFallback delayMs={600}>
-            {initials || 'CH'}
-          </AvatarFallback>
-        </Avatar>
-      </span>
-      <div role="group" aria-label="チャンネル詳細" className="space-y-2 flex-1">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">{channel.name}</h1>
-            <p className="text-muted-foreground">{channel.description ?? '説明はありません'}</p>
-          </div>
+      <div className="flex items-center gap-4">
+        <span 
+          role="img" 
+          aria-label={`${channel.name}のアバター`}
+          className="relative flex shrink-0 overflow-hidden rounded-full h-12 w-12"
+        >
+          <Avatar>
+            {channel.icon_url ? (
+              <AvatarImage
+                src={channel.icon_url}
+                alt={channel.name}
+                referrerPolicy="no-referrer"
+                crossOrigin="anonymous"
+              />
+            ) : null}
+            <AvatarFallback delayMs={600}>
+              {initials || 'CH'}
+            </AvatarFallback>
+          </Avatar>
+        </span>
+        <div className="flex items-center justify-between gap-4 flex-1">
+          <h1 className="text-2xl font-bold">{channel.name}</h1>
           <div className="flex-shrink-0">
             <ShareButton onShare={handleShare} />
           </div>
         </div>
+      </div>
+      <div className="space-y-4">
+        <p className="text-muted-foreground">{channel.description ?? '説明はありません'}</p>
         <div className="flex gap-4">
           <p className="text-sm text-muted-foreground">
             投稿数: {channel.post_count || 0}
