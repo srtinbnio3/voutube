@@ -47,7 +47,7 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
     .toUpperCase()
 
   const { handleShare } = useShare({
-    url: `${window.location.origin}/channels/${channel.id}`,
+    url: typeof window !== 'undefined' ? `${window.location.origin}/channels/${channel.id}` : '',
     text: `${channel.name}の投稿企画一覧`
   })
 

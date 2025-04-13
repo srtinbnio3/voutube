@@ -136,7 +136,7 @@ const PostCard = memo(function PostCard({ post, userId }: PostCardProps) {
   const isAuthor = userId === post.user_id
 
   const { handleShare } = useShare({
-    url: `${window.location.origin}/channels/${post.channel_id}/posts/${post.id}`,
+    url: typeof window !== 'undefined' ? `${window.location.origin}/channels/${post.channel_id}/posts/${post.id}` : '',
     text: post.title
   })
 
