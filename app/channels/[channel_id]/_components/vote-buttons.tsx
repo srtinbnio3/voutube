@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, memo } from "react"
 import { createBrowserClient } from "@supabase/ssr"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowBigUp, ArrowBigDown, Loader2 } from "lucide-react"
+import { ThumbsUp, ThumbsDown, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { formatNumber } from "../../../lib/format"
 import useSWR from 'swr'
@@ -166,7 +166,7 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
 
   // ボタンの見た目を決める関数
   const getButtonStyle = useCallback((isUpvote: boolean) => {
-    const baseStyle = 'h-6 w-6 rounded-full p-0 transition-all duration-200'
+    const baseStyle = 'h-8 w-8 rounded-full p-0 transition-all duration-200'
     if (currentVote === isUpvote) {
       return `${baseStyle} ${isUpvote ? 'text-orange-500' : 'text-blue-500'} active:scale-110`
     }
@@ -177,13 +177,12 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
   return (
     <>
       <div className="flex flex-col items-center gap-1">
-        {/* 上向き矢印（いいね）ボタン */}
+        {/* いいねボタン */}
         <Button
           variant="ghost"
           size="sm"
           className={getButtonStyle(true)}
           onClick={() => {
-            // すでに処理中なら何もしない
             if (!isLoading) {
               console.log("いいねボタンがクリックされました");
               handleVote(true);
@@ -194,16 +193,16 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
           data-state={currentVote === true ? "active" : "inactive"}
         >
           {isLoading && loadingType === 'upvote' ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
-            <ArrowBigUp className={`h-4 w-4 transition-transform duration-200 ${currentVote === true ? 'scale-125' : ''}`} />
+            <ThumbsUp className={`h-5 w-5 transition-transform duration-200 ${currentVote === true ? 'scale-125' : ''}`} />
           )}
         </Button>
 
         {/* 投票スコアの表示 */}
         <span 
           data-testid="vote-score"
-          className={`text-xs font-bold transition-colors duration-200 ${
+          className={`text-sm font-bold transition-colors duration-200 ${
             currentVote === true ? 'text-orange-500' : 
             currentVote === false ? 'text-blue-500' : ''
           }`}
@@ -211,13 +210,12 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
           {formatNumber(score)}
         </span>
 
-        {/* 下向き矢印（よくないね）ボタン */}
+        {/* よくないねボタン */}
         <Button
           variant="ghost"
           size="sm"
           className={getButtonStyle(false)}
           onClick={() => {
-            // すでに処理中なら何もしない
             if (!isLoading) {
               console.log("よくないねボタンがクリックされました");
               handleVote(false);
@@ -228,9 +226,9 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
           data-state={currentVote === false ? "active" : "inactive"}
         >
           {isLoading && loadingType === 'downvote' ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
-            <ArrowBigDown className={`h-4 w-4 transition-transform duration-200 ${currentVote === false ? 'scale-125' : ''}`} />
+            <ThumbsDown className={`h-5 w-5 transition-transform duration-200 ${currentVote === false ? 'scale-125' : ''}`} />
           )}
         </Button>
       </div>

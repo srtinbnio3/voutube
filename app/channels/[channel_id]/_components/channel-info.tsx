@@ -88,7 +88,7 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
         <p className="text-muted-foreground">{channel.description ?? '説明はありません'}</p>
         <div className="flex gap-4">
           <p className="text-sm text-muted-foreground">
-            投稿数: {channel.post_count || 0}
+            企画数: {channel.post_count || 0}
           </p>
           <p className="text-sm text-muted-foreground">
             登録者数: {isLoading ? '読み込み中...' : formatNumber(channelData?.subscriber_count || 0)}
