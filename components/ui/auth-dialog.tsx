@@ -27,7 +27,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
           
           <div className="relative h-60 w-full">
             <Image
-              src="/images/SignUpGif.gif"
+              src="/images/SignUpGif-DoIt.gif"
               alt="ログイン"
               fill
               className="object-contain"
