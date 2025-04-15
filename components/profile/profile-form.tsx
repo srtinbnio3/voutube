@@ -57,8 +57,8 @@ export function ProfileForm({ initialData, message }: ProfileFormProps) {
               id="username"
               name="username"
               defaultValue={defaultUsername}
-              placeholder="ユーザー名を入力（3文字以上）"
-              minLength={3}
+              placeholder="ユーザー名を入力（1文字以上）"
+              minLength={1}
               required
             />
           </div>

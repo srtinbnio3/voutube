@@ -55,8 +55,8 @@ export async function updateProfileAction(formData: FormData) {
   const avatarUrl = formData.get("avatar_url") as string;
   
   // バリデーション
-  if (!username || username.length < 3) {
-    return encodedRedirect("error", "/profile/edit", "ユーザー名は3文字以上必要です");
+  if (!username || username.length < 1) {
+    return encodedRedirect("error", "/profile/edit", "ユーザー名は1文字以上必要です");
   }
   
   // プロフィールが存在するか確認
