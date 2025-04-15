@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import Image from "next/image"
-import { PlayCircle, Sparkles, Users, Video, Lightbulb, Vote, ArrowRight } from "lucide-react"
+import { PlayCircle, Sparkles, Users, Video, Lightbulb, Vote, ArrowRight, Coins } from "lucide-react"
 
 /**
  * ランディングページコンポーネント
@@ -53,7 +53,7 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
               IdeaTubeの特徴
             </h2>
-            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
               <Card className="p-8 text-center group hover:shadow-lg transition-all">
                 <div className="relative">
                   <div className="absolute inset-0 bg-[#FF0000]/10 rounded-full scale-0 group-hover:scale-100 transition-transform" />
@@ -82,6 +82,19 @@ export default function LandingPage() {
                 <h3 className="text-xl font-semibold mb-4">コミュニティ</h3>
                 <p className="text-muted-foreground">
                   同じチャンネルのファン同士でアイデアを磨き上げることができます。
+                </p>
+              </Card>
+              <Card className="p-8 text-center group hover:shadow-lg transition-all relative overflow-hidden">
+                <div className="absolute -right-16 top-6 rotate-45 bg-[#FF0000] text-white px-16 py-1 text-sm font-semibold shadow-lg">
+                  Coming Soon
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[#FF0000]/10 rounded-full scale-0 group-hover:scale-100 transition-transform" />
+                  <Coins className="w-12 h-12 mx-auto mb-4 text-[#FF0000] relative" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">クラウドファンディング</h3>
+                <p className="text-muted-foreground">
+                  良いアイデアに資金を提供し、企画実現を直接サポートすることができます。
                 </p>
               </Card>
             </div>
