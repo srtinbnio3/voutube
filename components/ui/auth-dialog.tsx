@@ -14,7 +14,7 @@ interface AuthDialogProps {
 export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-bold">
             ログインしてね😉
@@ -25,9 +25,9 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
             その操作にはログインが必要です😎
           </p>
           
-          <div className="relative h-60 w-full">
+          <div className="relative h-60 w-full border border-muted rounded-lg overflow-hidden bg-[#6cb67c]">
             <Image
-              src="/images/SignUpGif-DoIt.gif"
+              src="/images/SignUpGif-JustDoIt.gif"
               alt="ログイン"
               fill
               className="object-contain"
@@ -35,7 +35,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
             />
           </div>
           
-          <div className="flex w-full flex-col gap-2 sm:flex-row">
+          <div className="flex w-full flex-col gap-2">
             <Button asChild className="flex-1" variant="default">
               <Link href="/sign-in">ログイン</Link>
             </Button>
