@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
-import Image from "next/image"
-import { PlayCircle, Sparkles, Users, Video, Lightbulb, Vote, ArrowRight, Coins } from "lucide-react"
+import { PlayCircle, Users, Lightbulb, Vote, HandCoins } from "lucide-react"
 
 /**
  * ランディングページコンポーネント
@@ -90,7 +89,7 @@ export default function LandingPage() {
                 </div>
                 <div className="relative">
                   <div className="absolute inset-0 bg-[#FF0000]/10 rounded-full scale-0 group-hover:scale-100 transition-transform" />
-                  <Coins className="w-12 h-12 mx-auto mb-4 text-[#FF0000] relative" />
+                  <HandCoins className="w-12 h-12 mx-auto mb-4 text-[#FF0000] relative" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4">クラウドファンディング</h3>
                 <p className="text-muted-foreground">
