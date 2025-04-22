@@ -133,7 +133,7 @@ export default function RootLayout({
                     height={24}
                     className="sm:w-8 sm:h-8"
                   />
-                  <span className="hidden sm:inline text-lg">IdeaTube</span>
+                  <span className="text-lg">IdeaTube</span>
                 </Link>
               </div>
               {/* 右側：認証関連 */}
