@@ -39,9 +39,6 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
             <Button asChild className="flex-1" variant="default">
               <Link href="/sign-in">ログイン</Link>
             </Button>
-            <Button asChild className="flex-1" variant="outline">
-              <Link href="/sign-up">新規登録</Link>
-            </Button>
           </div>
         </div>
       </DialogContent>
