@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://voutube.vercel.app'),
   title: "IdeaTube - YouTuberと視聴者を繋ぐ企画プラットフォーム",
   description: "あなたのアイデアが、次のバズる動画を創ります。推しYoutuberに企画を提案しましょう！",
-  keywords: "YouTube, YouTuber, ユーチューバー, ユーチューブ, 企画, 動画企画, アイデア, 企画案, 企画提案, クリエイター, 動画クリエイター, 視聴者, コミュニティ, プラットフォーム, バズる, バズ動画, 動画作成, 動画制作, 動画編集, 面白い動画, 人気動画, 企画募集, アイデア募集, 視聴者参加型, コラボ企画, 視聴者投票, エンタメ, エンターテインメント",
+  keywords: "アイデアチューブ, YouTube, YouTuber, ユーチューバー, ユーチューブ, 企画, 動画企画, アイデア, 企画案, 企画提案, クリエイター, 動画クリエイター, 視聴者, コミュニティ, プラットフォーム, バズる, バズ動画, 動画作成, 動画制作, 動画編集, 面白い動画, 人気動画, 企画募集, アイデア募集, 視聴者参加型, コラボ企画, 視聴者投票, エンタメ, エンターテインメント",
   authors: [{ name: "IdeaTube Team" }],
   creator: "IdeaTube Team",
   publisher: "IdeaTube",
