@@ -175,20 +175,16 @@ COMMENT ON FUNCTION "public"."get_slow_queries"() IS '遅いクエリのリス�
 CREATE OR REPLACE FUNCTION "public"."get_table_row_counts"() RETURNS TABLE("table_name" "text", "row_count" bigint)
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
+DECLARE
+  r RECORD;
 BEGIN
-  RETURN QUERY
-  SELECT 
-    relname::text, 
-    CASE 
-      WHEN reltuples < 1000 THEN (SELECT count(*) FROM pg_catalog.pg_class c WHERE c.relname = relname)::bigint
-      ELSE reltuples::bigint
-    END as row_count
-  FROM pg_class
-  WHERE relkind = 'r' 
-    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
-    AND relname NOT LIKE 'pg_%'
-    AND relname NOT LIKE '_%;'
-  ORDER BY row_count DESC;
+  FOR r IN 
+    SELECT tablename::text
+    FROM pg_tables
+    WHERE schemaname = 'public'
+  LOOP
+    RETURN QUERY EXECUTE format('SELECT %L::text, count(*)::bigint FROM %I', r.tablename, r.tablename);
+  END LOOP;
 END;
 $$;
 
@@ -281,15 +277,14 @@ ALTER TABLE "public"."channels" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."comments" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "post_id" "uuid" NOT NULL,
     "user_id" "uuid" NOT NULL,
     "content" "text" NOT NULL,
-    "parent_id" "uuid",
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
     "mentioned_username" "text",
-    CONSTRAINT "content_length" CHECK ((("char_length"("content") >= 1) AND ("char_length"("content") <= 1000)))
+    "parent_id" "uuid"
 );
 
 
@@ -395,10 +390,6 @@ CREATE INDEX "comments_parent_id_idx" ON "public"."comments" USING "btree" ("par
 
 
 
-CREATE INDEX "comments_post_id_idx" ON "public"."comments" USING "btree" ("post_id");
-
-
-
 CREATE INDEX "posts_channel_created_idx" ON "public"."posts" USING "btree" ("channel_id", "created_at" DESC);
 
 
@@ -467,10 +458,6 @@ CREATE POLICY "Authenticated users can create channels" ON "public"."channels" F
 
 
 
-CREATE POLICY "Authenticated users can create comments" ON "public"."comments" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
-
-
-
 CREATE POLICY "Authenticated users can create posts" ON "public"."posts" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
 
@@ -480,10 +467,6 @@ CREATE POLICY "Authenticated users can vote" ON "public"."votes" FOR INSERT WITH
 
 
 CREATE POLICY "Channels are viewable by everyone" ON "public"."channels" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Comments are viewable by everyone" ON "public"."comments" FOR SELECT USING (true);
 
 
 
@@ -499,10 +482,6 @@ CREATE POLICY "Users can create their own profile" ON "public"."profiles" FOR IN
 
 
 
-CREATE POLICY "Users can delete their own comments" ON "public"."comments" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-
-
 CREATE POLICY "Users can delete their own posts" ON "public"."posts" FOR DELETE USING (("auth"."uid"() = "user_id"));
 
 
@@ -512,10 +491,6 @@ CREATE POLICY "Users can delete their own votes" ON "public"."votes" FOR DELETE 
 
 
 CREATE POLICY "Users can update channels" ON "public"."channels" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
-
-
-
-CREATE POLICY "Users can update their own comments" ON "public"."comments" FOR UPDATE USING (("auth"."uid"() = "user_id"));
 
 
 
@@ -548,6 +523,22 @@ ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."votes" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "コメントは全ユーザーが閲覧可能" ON "public"."comments" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "自分のコメントのみ削除可能" ON "public"."comments" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "自分のコメントのみ更新可能" ON "public"."comments" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "認証済みユーザーのみコメントを作成可能" ON "public"."comments" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
 
 
 
@@ -802,15 +793,6 @@ GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
 
 
 
-
-
-
-
-
-
-
-
-
 GRANT ALL ON TABLE "public"."channels" TO "anon";
 GRANT ALL ON TABLE "public"."channels" TO "authenticated";
 GRANT ALL ON TABLE "public"."channels" TO "service_role";
@@ -838,12 +820,6 @@ GRANT ALL ON TABLE "public"."profiles" TO "service_role";
 GRANT ALL ON TABLE "public"."votes" TO "anon";
 GRANT ALL ON TABLE "public"."votes" TO "authenticated";
 GRANT ALL ON TABLE "public"."votes" TO "service_role";
-
-
-
-
-
-
 
 
 
