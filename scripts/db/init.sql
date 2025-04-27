@@ -24,7 +24,7 @@ create table profiles (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   
-  constraint username_length check (char_length(username) >= 3)
+  constraint username_length check (char_length(username) >= 1)
 );
 
 -- 3. posts table
