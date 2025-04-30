@@ -243,7 +243,7 @@ export function ChannelForm() {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm truncate">{channel.name}</p>
+                          <p className="font-medium text-sm truncate max-w-[200px]">{channel.name}</p>
                         </div>
                       </div>
                     ))}
