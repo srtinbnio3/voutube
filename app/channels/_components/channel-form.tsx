@@ -99,8 +99,29 @@ export function ChannelForm() {
    * チャンネルを選択する関数
    * 検索結果から選択されたチャンネルを状態に保存します
    */
-  function selectChannel(channel: YouTubeChannel) {
-    setSelectedChannel(channel)
+  async function selectChannel(channel: YouTubeChannel) {
+    try {
+      setIsLoading(true)
+      // 選択したチャンネルの詳細情報（登録者数含む）を取得
+      const response = await fetch(`/api/youtube/channel?id=${channel.youtube_channel_id}`)
+      if (!response.ok) {
+        throw new Error('チャンネル情報の取得に失敗しました')
+      }
+      const channelDetail = await response.json()
+      // 詳細情報で更新
+      setSelectedChannel(channelDetail)
+    } catch (error) {
+      console.error('チャンネル情報取得エラー:', error)
+      toast({
+        title: "エラー",
+        description: "チャンネル情報の取得に失敗しました",
+        variant: "destructive",
+      })
+      // エラー時は検索結果のデータをそのまま使用
+      setSelectedChannel(channel)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // チャンネル選択をリセットする関数
@@ -132,8 +153,9 @@ export function ChannelForm() {
         name: selectedChannel.name,
         description: selectedChannel.description || "",
         youtube_channel_id: selectedChannel.youtube_channel_id,
-        subscriber_count: selectedChannel.subscriber_count,
+        subscriber_count: selectedChannel.subscriber_count || 0, // デフォルト値を設定
         icon_url: selectedChannel.icon_url,
+        updated_at: new Date().toISOString(), // 更新日時を明示的に設定
       }
 
       // チャンネル作成

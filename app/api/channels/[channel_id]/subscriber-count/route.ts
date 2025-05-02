@@ -31,7 +31,7 @@ export async function GET(
     // チャンネル情報を取得
     const { data: channel } = await supabase
       .from('channels')
-      .select('youtube_channel_id, subscriber_count, updated_at')
+      .select('youtube_channel_id, subscriber_count, updated_at, created_at')
       .eq('id', channel_id)
       .single()
 
@@ -45,11 +45,22 @@ export async function GET(
     // 最後の更新から1時間以内の場合はキャッシュされた値を返す
     const lastUpdate = new Date(channel.updated_at).getTime()
     const now = new Date().getTime()
-    if (now - lastUpdate < UPDATE_INTERVAL) {
-      return NextResponse.json({ subscriber_count: channel.subscriber_count || 0 })
+    
+    // 次の条件のいずれかに当てはまる場合は、YouTube APIから最新情報を取得
+    // 1. 新規チャンネル（updated_atとcreated_atが同じ）
+    // 2. 登録者数が未設定または0
+    // 3. 前回の更新から1時間以上経過
+    const isNewChannel = channel.updated_at === channel.created_at
+    const hasNoSubscribers = !channel.subscriber_count || channel.subscriber_count === 0
+    const isStale = now - lastUpdate >= UPDATE_INTERVAL
+    
+    if (!isNewChannel && !hasNoSubscribers && !isStale) {
+      console.log(`キャッシュされた登録者数を返します: ${channel.subscriber_count}`)
+      return NextResponse.json({ subscriber_count: channel.subscriber_count })
     }
 
     // YouTube APIから最新の登録者数を取得
+    console.log(`YouTube APIから登録者数を取得します: ${channel.youtube_channel_id}`)
     const channelInfo = await getChannelInfo(channel.youtube_channel_id)
     
     if (!channelInfo) {

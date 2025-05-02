@@ -43,6 +43,9 @@ const ChannelCard = memo(function ChannelCard({ channel }: ChannelCardProps) {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      revalidateIfStale: true,
+      dedupingInterval: 10000,
+      errorRetryCount: 2
     }
   )
 
@@ -88,7 +91,7 @@ const ChannelCard = memo(function ChannelCard({ channel }: ChannelCardProps) {
             <div className="flex flex-col">
               <h3 className="font-semibold">{channel.name}</h3>
               <p className="text-sm text-muted-foreground">
-                企画数: {channel.post_count || 0} · 登録者数: {isLoading ? '読み込み中...' : formatNumber(channelData?.subscriber_count || 0)}
+                企画数: {channel.post_count || 0} · 登録者数: {isLoading ? '読み込み中...' : formatNumber(channelData?.subscriber_count || channel.subscriber_count || 0)}
               </p>
             </div>
           </div>
