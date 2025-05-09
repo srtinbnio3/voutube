@@ -16,100 +16,100 @@ erDiagram
     crowdfunding_supporters ||--o{ crowdfunding_payments : "has"
 
     users {
-        uuid id PK
-        string email
-        boolean email_verified
-        timestamp created_at
+        uuid id PK "ユーザーID"
+        string email "メールアドレス"
+        boolean email_verified "メール認証済み"
+        timestamp created_at "作成日時"
     }
 
     profiles {
-        uuid id PK "users reference"
-        text username "unique"
-        text avatar_url "nullable"
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "users参照"
+        text username "一意・1文字以上"
+        text avatar_url "任意・アイコンURL"
+        timestamp created_at "作成日時"
+        timestamp updated_at "更新日時"
     }
 
     channels {
-        uuid id PK
-        text youtube_channel_id "unique"
-        text name
-        text description "nullable"
-        integer subscriber_count "nullable"
-        text icon_url "nullable"
-        integer post_count "default 0"
-        timestamp latest_post_at "nullable"
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "チャンネルID"
+        text youtube_channel_id "一意・YouTubeチャンネルID"
+        text name "チャンネル名"
+        text description "任意・説明"
+        integer subscriber_count "任意・登録者数"
+        text icon_url "任意・アイコンURL"
+        integer post_count "デフォルト0・0以上"
+        timestamp latest_post_at "任意・最新投稿日時"
+        timestamp created_at "作成日時"
+        timestamp updated_at "更新日時"
     }
 
     posts {
-        uuid id PK
-        uuid user_id FK "profiles reference"
-        uuid channel_id FK "channels reference"
-        text title "3-100 chars"
-        text description "10-1000 chars"
-        integer score "default 0, nullable"
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "投稿ID"
+        uuid user_id FK "profiles参照"
+        uuid channel_id FK "channels参照"
+        text title "3-100文字"
+        text description "10-1000文字"
+        integer score "デフォルト0・任意"
+        timestamp created_at "作成日時"
+        timestamp updated_at "更新日時"
     }
 
     votes {
-        uuid id PK
-        uuid user_id FK "profiles reference"
-        uuid post_id FK "posts reference"
-        boolean is_upvote
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "投票ID"
+        uuid user_id FK "profiles参照"
+        uuid post_id FK "posts参照"
+        boolean is_upvote "いいね/よくないね"
+        timestamp created_at "作成日時"
+        timestamp updated_at "更新日時"
     }
 
     crowdfunding_campaigns {
-        uuid id PK
-        uuid post_id FK "posts reference"
-        uuid channel_id FK "channels reference"
-        text title "3-100 chars"
-        text description "10-1000 chars"
-        integer target_amount "> 0"
-        integer current_amount ">= 0"
-        timestamp start_date
-        timestamp end_date
+        uuid id PK "キャンペーンID"
+        uuid post_id FK "posts参照"
+        uuid channel_id FK "channels参照"
+        text title "3-100文字"
+        text description "10-1000文字"
+        integer target_amount "0より大きい整数（NOT NULL）"
+        integer current_amount "0以上の整数（デフォルト: 0）"
+        timestamp start_date "開始日時"
+        timestamp end_date "終了日時"
         text status "draft/active/completed/cancelled"
-        timestamp created_at
-        timestamp updated_at
+        timestamp created_at "作成日時"
+        timestamp updated_at "更新日時"
     }
 
     crowdfunding_rewards {
-        uuid id PK
-        uuid campaign_id FK "crowdfunding_campaigns reference"
-        text title "3-100 chars"
-        text description "10-1000 chars"
-        integer amount "> 0"
-        integer quantity "> 0"
-        integer remaining_quantity ">= 0"
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "特典ID"
+        uuid campaign_id FK "crowdfunding_campaigns参照"
+        text title "3-100文字"
+        text description "10-1000文字"
+        integer amount "0より大きい整数"
+        integer quantity "0より大きい整数"
+        integer remaining_quantity "0以上・quantity以下"
+        timestamp created_at "作成日時"
+        timestamp updated_at "更新日時"
     }
 
     crowdfunding_supporters {
-        uuid id PK
-        uuid campaign_id FK "crowdfunding_campaigns reference"
-        uuid user_id FK "profiles reference"
-        uuid reward_id FK "crowdfunding_rewards reference"
-        integer amount "> 0"
+        uuid id PK "支援ID"
+        uuid campaign_id FK "crowdfunding_campaigns参照"
+        uuid user_id FK "profiles参照"
+        uuid reward_id FK "crowdfunding_rewards参照"
+        integer amount "0より大きい整数・特典金額以上"
         text status "pending/completed/failed/refunded"
-        timestamp created_at
-        timestamp updated_at
+        timestamp created_at "作成日時"
+        timestamp updated_at "更新日時"
     }
 
     crowdfunding_payments {
-        uuid id PK
-        uuid supporter_id FK "crowdfunding_supporters reference"
-        text stripe_payment_intent_id
-        text stripe_customer_id
-        integer amount "> 0"
+        uuid id PK "支払いID"
+        uuid supporter_id FK "crowdfunding_supporters参照"
+        text stripe_payment_intent_id "Stripe決済ID"
+        text stripe_customer_id "Stripe顧客ID"
+        integer amount "0より大きい整数"
         text status "pending/succeeded/failed/refunded"
-        timestamp created_at
-        timestamp updated_at
+        timestamp created_at "作成日時"
+        timestamp updated_at "更新日時"
     }
 ```
 
