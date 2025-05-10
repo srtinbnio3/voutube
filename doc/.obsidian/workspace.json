@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "c7ac40f91eb9f99d",
+        "id": "66612ac245057fe2",
         "type": "tabs",
         "children": [
           {
-            "id": "a9d6a0f3798abcde",
+            "id": "ecf7c1b396ce9e7a",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -168,8 +168,21 @@
       "command-palette:コマンドパレットを開く": false
     }
   },
-  "active": "a9d6a0f3798abcde",
+  "active": "ecf7c1b396ce9e7a",
   "lastOpenFiles": [
+    "system-architecture.png",
+    "screens/flow.png",
+    "dataflow.png",
+    "concept.png",
+    "function-list.md",
+    "scribble-note.md",
+    "2025-05-10.md",
+    "screens/flow.md",
+    "crowdfunding-wbs.md",
+    "concept.md",
+    "requirements.md",
+    "system-architecture.md",
+    "database/er-diagram.md",
     "function_list.md",
     "test/unit-test/vote-test-spec.md",
     "test/unit-test/ui-security-test-spec.md",
@@ -177,14 +190,8 @@
     "test/unit-test/post-test-spec.md",
     "test/unit-test/channel-test-spec.md",
     "test/unit-test/auth-test-spec.md",
-    "system-architecture.png",
-    "system-architecture.md",
-    "scribble-note.md",
-    "function-list.md",
     "database/er-diagram.png",
-    "database/er-diagram.md",
     "data-flow.md",
-    "crowdfunding-wbs.md",
     "test/unit-test/vote_test_spec.md",
     "test/unit-test/ui_security_test_spec.md",
     "test/unit-test/profile_test_spec.md",
@@ -194,9 +201,6 @@
     "dataflow.md",
     "database/er_diagram.png",
     "database/er_diagram.md",
-    "crowdfunding_wbs.md",
-    "SystemArchitecture.png",
-    "SystemArchitecture.md",
-    "requirements.md"
+    "SystemArchitecture.png"
   ]
 }
