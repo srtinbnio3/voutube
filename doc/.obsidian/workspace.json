@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "scribble-note.md",
+                "file": "screens/flow.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "scribble-note"
+              "title": "flow"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "scribble-note.md",
+                "file": "screens/flow.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "scribble-noteへのバックリンク"
+              "title": "flowへのバックリンク"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "scribble-note.md",
+                "file": "screens/flow.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "scribble-noteからのアウトゴーイングリンク"
+              "title": "flowからのアウトゴーイングリンク"
             }
           },
           {
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "scribble-note.md",
+                "file": "screens/flow.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "scribble-noteのアウトライン"
+              "title": "flowのアウトライン"
             }
           }
         ]
@@ -170,21 +170,35 @@
   },
   "active": "a9d6a0f3798abcde",
   "lastOpenFiles": [
-    "test/unit-test/channel-test-spec.md",
-    "test/unit-test/ui-security-test-spec.md",
-    "test/unit-test/profile-test-spec.md",
-    "test/unit-test/vote-test-spec.md",
-    "test/unit-test/auth-test-spec.md",
-    "test/unit-test/post-test-spec.md",
-    "database/er-diagram.png",
+    "screens/flow.png",
+    "screens/flow.md",
+    "scribble-note.md",
+    "requirements.md",
     "database/er-diagram.md",
-    "system-architecture.png",
-    "system-architecture.md",
-    "data-flow.md",
-    "crowdfunding-wbs.md",
     "function-list.md",
     "function_list.md",
-    "scribble-note.md",
-    "requirements.md"
+    "test/unit-test/vote-test-spec.md",
+    "test/unit-test/ui-security-test-spec.md",
+    "test/unit-test/profile-test-spec.md",
+    "test/unit-test/post-test-spec.md",
+    "test/unit-test/channel-test-spec.md",
+    "test/unit-test/auth-test-spec.md",
+    "system-architecture.png",
+    "system-architecture.md",
+    "database/er-diagram.png",
+    "data-flow.md",
+    "crowdfunding-wbs.md",
+    "test/unit-test/vote_test_spec.md",
+    "test/unit-test/ui_security_test_spec.md",
+    "test/unit-test/profile_test_spec.md",
+    "test/unit-test/post_test_spec.md",
+    "test/unit-test/channel_test_spec.md",
+    "test/unit-test/auth_test_spec.md",
+    "dataflow.md",
+    "database/er_diagram.png",
+    "database/er_diagram.md",
+    "crowdfunding_wbs.md",
+    "SystemArchitecture.png",
+    "SystemArchitecture.md"
   ]
 }
