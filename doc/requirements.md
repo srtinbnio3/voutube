@@ -77,6 +77,10 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - プロジェクト更新情報の投稿
 - 支援者への通知
 - 管理者による審査プロセス
+- 企画者への報酬還元（集まった資金の5%）
+- 報酬受け取りの意思確認と振込先情報の登録
+- 月次報酬支払い（毎月15日、前月末までの確定分）
+- 最低報酬還元額の設定（5万円以上）
 
 ### 3.7 プロジェクト管理機能
 - プロジェクトの作成と編集
@@ -186,6 +190,8 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - start_date: TIMESTAMP (開始日時)
 - end_date: TIMESTAMP (終了日時)
 - status: TEXT (draft, active, completed, cancelled)
+- reward_enabled: BOOLEAN (報酬受け取りの意思)
+- bank_account_info: JSONB (振込先情報)
 - created_at: TIMESTAMP (作成日時)
 - updated_at: TIMESTAMP (更新日時)
 
@@ -208,6 +214,15 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - amount: INTEGER (支援金額)
 - payment_status: TEXT (pending, completed, failed)
 - stripe_payment_id: TEXT (Stripe決済ID)
+- created_at: TIMESTAMP (作成日時)
+- updated_at: TIMESTAMP (更新日時)
+
+### 6.8 creator_rewards（企画者報酬）テーブル
+- id: UUID (プライマリキー)
+- campaign_id: UUID (crowdfunding_campaignsテーブルへの参照)
+- amount: INTEGER (報酬金額)
+- payment_status: TEXT (pending, paid)
+- payment_date: TIMESTAMP (支払日)
 - created_at: TIMESTAMP (作成日時)
 - updated_at: TIMESTAMP (更新日時)
 
@@ -234,6 +249,12 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 ### 7.5 update_campaign_amount関数とトリガー
 - 支援が完了した際にキャンペーンの現在の支援金額を更新
 - 支援特典の残り数量を更新
+
+### 7.6 calculate_creator_reward関数とトリガー
+- クラウドファンディング終了時に報酬を計算
+- 最低報酬還元額（5万円）をチェック
+- 報酬金額（支援金額の5%）を計算
+- creator_rewardsテーブルに報酬情報を登録
 
 ## 8. インデックス
 - channels_post_count_idx: 投稿数降順のインデックス
@@ -262,6 +283,12 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - Stripeのセキュアな決済システムの利用
 - 決済情報の暗号化
 - 不正アクセス防止のための認証強化
+
+### 9.4 報酬管理セキュリティ
+- 振込先情報の暗号化保存
+- 報酬計算の自動化と監査ログ
+- 不正な報酬支払いの防止
+- 報酬支払い履歴の管理
 
 ## 10. パフォーマンス要件
 - ページロード時間の最適化（Web Vitals指標の向上）
