@@ -317,7 +317,7 @@ create trigger update_comments_updated_at
   for each row
   execute function update_updated_at_column();
 
-ALTER TABLE comments ADD COLUMN mentioned_username text;
+ALTER TABLE comments ADD COLUMN mentioned_username text; 
 
 -- Create indexes
 create index crowdfunding_campaigns_channel_id_idx on crowdfunding_campaigns (channel_id);
