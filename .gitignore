@@ -95,3 +95,6 @@ coverage/
 
 # New directories
 .cursor/
+
+# Database backups
+/supabase/backup/

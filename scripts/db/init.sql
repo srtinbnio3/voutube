@@ -76,6 +76,8 @@ create table crowdfunding_campaigns (
   start_date timestamp with time zone not null,
   end_date timestamp with time zone not null,
   status text not null check (status in ('draft', 'active', 'completed', 'cancelled')),
+  reward_enabled boolean default false,
+  bank_account_info jsonb,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   
@@ -108,7 +110,7 @@ create table crowdfunding_supporters (
   user_id uuid references profiles(id) on delete cascade not null,
   reward_id uuid references crowdfunding_rewards(id) on delete cascade not null,
   amount integer not null check (amount > 0),
-  status text not null check (status in ('pending', 'completed', 'failed', 'refunded')),
+  payment_status text not null check (payment_status in ('pending', 'completed', 'failed', 'refunded')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   
@@ -378,4 +380,37 @@ $$ language plpgsql security definer;
 create trigger on_supporter_update_reward_quantity
   after insert or update on crowdfunding_supporters
   for each row
-  execute function update_reward_quantity(); 
+  execute function update_reward_quantity();
+
+-- creator_rewardsテーブルの作成
+create table creator_rewards (
+  id uuid default uuid_generate_v4() primary key,
+  campaign_id uuid references crowdfunding_campaigns(id) on delete cascade not null,
+  amount integer not null check (amount > 0),
+  payment_status text not null check (payment_status in ('pending', 'paid')),
+  payment_date timestamp with time zone,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- creator_rewardsのインデックス作成
+create index creator_rewards_campaign_id_idx on creator_rewards (campaign_id);
+create index creator_rewards_payment_status_idx on creator_rewards (payment_status);
+
+-- creator_rewardsのRLSポリシー
+alter table creator_rewards enable row level security;
+
+create policy "Creator rewards are viewable by everyone" on creator_rewards
+  for select using (true);
+
+create policy "Authenticated users can create creator rewards" on creator_rewards
+  for insert with check (auth.role() = 'authenticated');
+
+create policy "Users can update their own creator rewards" on creator_rewards
+  for update using (auth.role() = 'authenticated');
+
+-- creator_rewardsの更新日時トリガー
+create trigger update_creator_rewards_updated_at
+  before update on creator_rewards
+  for each row
+  execute function update_updated_at_column(); 
