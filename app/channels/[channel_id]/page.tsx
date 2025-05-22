@@ -83,9 +83,9 @@ export default async function ChannelPage(props: {
   )
 
   // ログイン中のユーザーIDを取得
-  const { data: { session } } = await supabase.auth.getSession()
-  const userId = session?.user?.id
-  const isLoggedIn = !!session
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
+  const isLoggedIn = !!user
 
   // ページのレイアウトを返す
   return (

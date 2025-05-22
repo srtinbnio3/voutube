@@ -31,8 +31,8 @@ export default async function ChannelsPage() {
     .order("post_count", { ascending: false })  // 投稿数の多い順に並び替え
 
   // ログイン中のユーザーIDを取得（ログインしていない場合はnull）
-  const { data: { session } } = await supabase.auth.getSession()
-  const isLoggedIn = !!session
+  const { data: { user } } = await supabase.auth.getUser()
+  const isLoggedIn = !!user
 
   return (
     <div className="container max-w-4xl py-4 sm:py-6 px-4 sm:px-6">
