@@ -64,7 +64,7 @@ export function CommentList({ postId }: CommentListProps) {
 
   const handleCommentAdded = (newComment: CommentWithReplies) => {
     // APIからの返信で親コメントIDが変更されている場合があるため、その状態を確認
-    const originalParentId = newComment.parent_id;
+    const originalParentId = (newComment as any).parentId;
     
     // 親コメントの場合は先頭に追加
     if (!originalParentId) {
@@ -129,7 +129,7 @@ export function CommentList({ postId }: CommentListProps) {
 
   const handleCommentUpdated = (updatedComment: CommentWithReplies) => {
     // フラグで更新か追加かを判断
-    const isNewReply = updatedComment.replies && updatedComment.replies.length === 0 && updatedComment.parent_id;
+    const isNewReply = updatedComment.replies && updatedComment.replies.length === 0 && (updatedComment as any).parentId;
     
     if (isNewReply) {
       // 新しい返信の場合はhandleCommentAddedを利用
