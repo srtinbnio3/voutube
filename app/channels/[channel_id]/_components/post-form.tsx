@@ -75,8 +75,8 @@ export function PostForm({ channelId }: PostFormProps) {
     setIsLoading(true)
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
         // 未ログインの場合、現在のURLを保持してログインページへリダイレクト
         const currentPath = window.location.pathname
         setIsOpen(false)
@@ -88,14 +88,14 @@ export function PostForm({ channelId }: PostFormProps) {
         channel_id: channelId,
         title,
         description,
-        user_id: session.user.id
+        user_id: user.id
       })
 
       const { data, error } = await supabase
         .from("posts")
         .insert({
           channel_id: channelId,
-          user_id: session.user.id,
+          user_id: user.id,
           title,
           description,
         })

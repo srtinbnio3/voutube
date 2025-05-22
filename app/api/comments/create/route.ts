@@ -7,8 +7,8 @@ export async function POST(request: Request) {
     const supabase = await createClient()
 
     // 認証チェック
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError || !session) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
         post_id: postId,
         content,
         parent_id: finalParentId,
-        user_id: session.user.id,
+        user_id: user.id,
         mentioned_username: finalMentionedUsername
       })
       .select(`

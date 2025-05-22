@@ -60,9 +60,9 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
   // ユーザーIDを取得
   useEffect(() => {
     const getUserId = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        setUserId(session.user.id)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUserId(user.id)
       }
     }
     getUserId()
@@ -94,8 +94,8 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
       setIsLoading(true)
       setLoadingType(voteType ? 'upvote' : 'downvote')
       
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
         setIsLoading(false)
         setLoadingType(null)
         const currentPath = window.location.pathname
@@ -103,7 +103,7 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
         return
       }
       
-      const userId = session.user.id
+      const userId = user.id
       
       // 楽観的更新のための新しい投票状態
       const newVoteState = currentVote === voteType ? null : voteType
