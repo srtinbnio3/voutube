@@ -94,3 +94,7 @@ coverage/
 
 # New directories
 .cursor/
+
+# Obsidian
+.obsidian/
+doc/.obsidian/
