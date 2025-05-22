@@ -14,9 +14,9 @@ export async function DELETE(request: NextRequest) {
   
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
         { status: 401 }
@@ -37,7 +37,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    if (comment.user_id !== session.user.id) {
+    if (comment.user_id !== user.id) {
       return NextResponse.json(
         { error: 'このコメントを削除する権限がありません' },
         { status: 403 }
@@ -77,9 +77,9 @@ export async function PUT(request: NextRequest) {
   
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
         { status: 401 }
@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    if (comment.user_id !== session.user.id) {
+    if (comment.user_id !== user.id) {
       return NextResponse.json(
         { error: 'このコメントを編集する権限がありません' },
         { status: 403 }

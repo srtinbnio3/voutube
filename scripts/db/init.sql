@@ -64,6 +64,71 @@ create table comments (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- 5. crowdfunding_campaigns table
+create table crowdfunding_campaigns (
+  id uuid default uuid_generate_v4() primary key,
+  post_id uuid references posts(id) on delete cascade not null,
+  channel_id uuid references channels(id) on delete cascade not null,
+  title text not null,
+  description text not null,
+  target_amount integer not null check (target_amount > 0),
+  current_amount integer default 0 check (current_amount >= 0),
+  start_date timestamp with time zone not null,
+  end_date timestamp with time zone not null,
+  status text not null check (status in ('draft', 'active', 'completed', 'cancelled')),
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  
+  constraint end_date_after_start_date check (end_date > start_date),
+  constraint title_length check (char_length(title) >= 3 and char_length(title) <= 100),
+  constraint description_length check (char_length(description) >= 10 and char_length(description) <= 1000)
+);
+
+-- 6. crowdfunding_rewards table
+create table crowdfunding_rewards (
+  id uuid default uuid_generate_v4() primary key,
+  campaign_id uuid references crowdfunding_campaigns(id) on delete cascade not null,
+  title text not null,
+  description text not null,
+  amount integer not null check (amount > 0),
+  quantity integer not null check (quantity > 0),
+  remaining_quantity integer not null check (remaining_quantity >= 0),
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  
+  constraint title_length check (char_length(title) >= 3 and char_length(title) <= 100),
+  constraint description_length check (char_length(description) >= 10 and char_length(description) <= 1000),
+  constraint remaining_quantity_less_than_quantity check (remaining_quantity <= quantity)
+);
+
+-- 7. crowdfunding_supporters table
+create table crowdfunding_supporters (
+  id uuid default uuid_generate_v4() primary key,
+  campaign_id uuid references crowdfunding_campaigns(id) on delete cascade not null,
+  user_id uuid references profiles(id) on delete cascade not null,
+  reward_id uuid references crowdfunding_rewards(id) on delete cascade not null,
+  amount integer not null check (amount > 0),
+  status text not null check (status in ('pending', 'completed', 'failed', 'refunded')),
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  
+  constraint unique_support check (amount >= (
+    select amount from crowdfunding_rewards where id = reward_id
+  ))
+);
+
+-- 8. crowdfunding_payments table
+create table crowdfunding_payments (
+  id uuid default uuid_generate_v4() primary key,
+  supporter_id uuid references crowdfunding_supporters(id) on delete cascade not null,
+  stripe_payment_intent_id text not null,
+  stripe_customer_id text not null,
+  amount integer not null check (amount > 0),
+  status text not null check (status in ('pending', 'succeeded', 'failed', 'refunded')),
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Enable RLS
 alter table channels enable row level security;
 alter table profiles enable row level security;
@@ -253,3 +318,64 @@ create trigger update_comments_updated_at
   execute function update_updated_at_column();
 
 ALTER TABLE comments ADD COLUMN mentioned_username text; 
+
+-- Create indexes
+create index crowdfunding_campaigns_channel_id_idx on crowdfunding_campaigns (channel_id);
+create index crowdfunding_campaigns_status_idx on crowdfunding_campaigns (status);
+create index crowdfunding_campaigns_dates_idx on crowdfunding_campaigns (start_date, end_date);
+create index crowdfunding_rewards_campaign_id_idx on crowdfunding_rewards (campaign_id);
+create index crowdfunding_supporters_campaign_id_idx on crowdfunding_supporters (campaign_id);
+create index crowdfunding_supporters_user_id_idx on crowdfunding_supporters (user_id);
+create index crowdfunding_payments_supporter_id_idx on crowdfunding_payments (supporter_id);
+create index crowdfunding_payments_stripe_payment_intent_id_idx on crowdfunding_payments (stripe_payment_intent_id);
+
+-- Create triggers
+create or replace function update_campaign_amount()
+returns trigger as $$
+begin
+  if (TG_OP = 'INSERT' and new.status = 'completed') then
+    update crowdfunding_campaigns
+    set current_amount = current_amount + new.amount
+    where id = new.campaign_id;
+  elsif (TG_OP = 'UPDATE' and old.status != 'completed' and new.status = 'completed') then
+    update crowdfunding_campaigns
+    set current_amount = current_amount + new.amount
+    where id = new.campaign_id;
+  elsif (TG_OP = 'UPDATE' and old.status = 'completed' and new.status != 'completed') then
+    update crowdfunding_campaigns
+    set current_amount = current_amount - old.amount
+    where id = old.campaign_id;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_supporter_update_campaign_amount
+  after insert or update on crowdfunding_supporters
+  for each row
+  execute function update_campaign_amount();
+
+create or replace function update_reward_quantity()
+returns trigger as $$
+begin
+  if (TG_OP = 'INSERT' and new.status = 'completed') then
+    update crowdfunding_rewards
+    set remaining_quantity = remaining_quantity - 1
+    where id = new.reward_id;
+  elsif (TG_OP = 'UPDATE' and old.status != 'completed' and new.status = 'completed') then
+    update crowdfunding_rewards
+    set remaining_quantity = remaining_quantity - 1
+    where id = new.reward_id;
+  elsif (TG_OP = 'UPDATE' and old.status = 'completed' and new.status != 'completed') then
+    update crowdfunding_rewards
+    set remaining_quantity = remaining_quantity + 1
+    where id = old.reward_id;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_supporter_update_reward_quantity
+  after insert or update on crowdfunding_supporters
+  for each row
+  execute function update_reward_quantity(); 

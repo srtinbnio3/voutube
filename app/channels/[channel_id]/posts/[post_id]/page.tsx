@@ -48,9 +48,9 @@ export default async function PostDetailPage(
     notFound()
   }
 
-  // セッションの取得
-  const { data: { session } } = await supabase.auth.getSession()
-  const userId = session?.user?.id
+  // ユーザー情報の取得
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
 
   // ユーザー名の頭文字を取得（アバターのフォールバック用）
   const getInitials = (name: string) => {

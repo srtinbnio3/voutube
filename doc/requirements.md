@@ -19,6 +19,22 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - 投稿への投票（いいね/よくないね）
 - パスワードのリセット
 - プロフィール情報の閲覧
+- クラウドファンディングへの支援
+- 支援履歴の閲覧
+
+### 2.3 チャンネルオーナー
+- ログインユーザーのすべての機能
+- クラウドファンディングの作成
+- 支援者管理
+- 特典管理
+- プロジェクト更新情報の投稿
+
+### 2.4 管理者
+- チャンネルオーナーのすべての機能
+- プロジェクトの審査
+- ユーザー管理
+- 決済管理
+- サイト統計の確認
 
 ## 3. 機能要件
 
@@ -50,6 +66,46 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - ユーザープロフィールの自動作成（ユーザー登録時）
 - ユーザー名とアバター画像の表示
 
+### 3.6 クラウドファンディング機能
+- チャンネルオーナーによる企画のクラウドファンディング開始
+- 目標金額の設定（All in型：目標金額の達成に関わらず、集まった支援金を受け取る方式）
+- 支援期間の設定
+- 支援者への特典設定
+- 支援金の受け取り（Stripe決済）
+- 支援状況の表示
+- 支援履歴の管理
+- プロジェクト更新情報の投稿
+- 支援者への通知
+- 管理者による審査プロセス
+- 企画者への報酬還元（集まった資金の5%）
+- 報酬受け取りの意思確認と振込先情報の登録
+- 月次報酬支払い（毎月15日、前月末までの確定分）
+- 最低報酬還元額の設定（5万円以上）
+
+### 3.7 プロジェクト管理機能
+- プロジェクトの作成と編集
+- プロジェクト画像・動画アップロード機能
+- プロジェクトの審査と公開
+- 支援状況のリアルタイム表示
+- 支援者情報の管理
+- プロジェクト更新情報の管理
+- 支援者へのメッセージ配信（将来実装予定）
+- FAQ管理（将来実装予定）
+
+### 3.8 支援管理機能
+- 支援履歴の確認
+- 特典の配送状況確認
+- プロジェクト更新通知の受信
+- 発案者への質問機能（将来実装予定）
+- お気に入りプロジェクトの管理（将来実装予定）
+
+### 3.9 コミュニケーション機能
+- プロジェクト更新情報の通知
+- 支援完了通知
+- 特典発送通知
+- システムお知らせ
+- SNS連携による共有機能
+
 ## 4. 技術仕様
 
 ### 4.1 フロントエンド
@@ -64,6 +120,7 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - **データベース**: PostgreSQL (Supabase)
 - **認証**: Supabase Auth
 - **API**: Supabase API, Server Actions
+- **決済**: Stripe API
 
 ### 4.3 外部連携
 - **YouTube Data API**: チャンネル情報の取得
@@ -122,6 +179,53 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - created_at: TIMESTAMP (作成日時)
 - updated_at: TIMESTAMP (更新日時)
 
+### 6.5 crowdfunding_campaigns（クラウドファンディング）テーブル
+- id: UUID (プライマリキー)
+- post_id: UUID (postsテーブルへの参照)
+- channel_id: UUID (channelsテーブルへの参照)
+- title: TEXT (キャンペーンタイトル)
+- description: TEXT (キャンペーン説明)
+- target_amount: INTEGER (目標金額)
+- current_amount: INTEGER (現在の支援金額)
+- start_date: TIMESTAMP (開始日時)
+- end_date: TIMESTAMP (終了日時)
+- status: TEXT (draft, active, completed, cancelled)
+- reward_enabled: BOOLEAN (報酬受け取りの意思)
+- bank_account_info: JSONB (振込先情報)
+- created_at: TIMESTAMP (作成日時)
+- updated_at: TIMESTAMP (更新日時)
+
+### 6.6 crowdfunding_rewards（支援特典）テーブル
+- id: UUID (プライマリキー)
+- campaign_id: UUID (crowdfunding_campaignsテーブルへの参照)
+- title: TEXT (特典タイトル)
+- description: TEXT (特典説明)
+- amount: INTEGER (支援金額)
+- quantity: INTEGER (特典数量)
+- remaining_quantity: INTEGER (残り数量)
+- created_at: TIMESTAMP (作成日時)
+- updated_at: TIMESTAMP (更新日時)
+
+### 6.7 crowdfunding_supporters（支援者）テーブル
+- id: UUID (プライマリキー)
+- campaign_id: UUID (crowdfunding_campaignsテーブルへの参照)
+- user_id: UUID (profilesテーブルへの参照)
+- reward_id: UUID (crowdfunding_rewardsテーブルへの参照)
+- amount: INTEGER (支援金額)
+- payment_status: TEXT (pending, completed, failed)
+- stripe_payment_id: TEXT (Stripe決済ID)
+- created_at: TIMESTAMP (作成日時)
+- updated_at: TIMESTAMP (更新日時)
+
+### 6.8 creator_rewards（企画者報酬）テーブル
+- id: UUID (プライマリキー)
+- campaign_id: UUID (crowdfunding_campaignsテーブルへの参照)
+- amount: INTEGER (報酬金額)
+- payment_status: TEXT (pending, paid)
+- payment_date: TIMESTAMP (支払日)
+- created_at: TIMESTAMP (作成日時)
+- updated_at: TIMESTAMP (更新日時)
+
 ## 7. データベーストリガーと関数
 
 ### 7.1 create_profile_for_new_user関数とトリガー
@@ -137,6 +241,21 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - 投票の作成・更新・削除時に投稿のスコアを更新
 - いいね数からよくないね数を引いた値をスコアとして計算
 
+### 7.4 update_campaign_status関数とトリガー
+- キャンペーンのステータスを自動更新
+- 終了日時到達時にステータスをcompletedに更新
+- 目標金額達成時にステータスをcompletedに更新
+
+### 7.5 update_campaign_amount関数とトリガー
+- 支援が完了した際にキャンペーンの現在の支援金額を更新
+- 支援特典の残り数量を更新
+
+### 7.6 calculate_creator_reward関数とトリガー
+- クラウドファンディング終了時に報酬を計算
+- 最低報酬還元額（5万円）をチェック
+- 報酬金額（支援金額の5%）を計算
+- creator_rewardsテーブルに報酬情報を登録
+
 ## 8. インデックス
 - channels_post_count_idx: 投稿数降順のインデックス
 - channels_latest_post_at_idx: 最新投稿日時降順のインデックス
@@ -144,6 +263,10 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - posts_channel_score_idx: チャンネルID + スコア降順の複合インデックス
 - posts_channel_created_idx: チャンネルID + 作成日時降順の複合インデックス
 - votes_post_id_idx: 投稿IDのインデックス
+- crowdfunding_campaigns_status_idx: ステータスのインデックス
+- crowdfunding_campaigns_channel_idx: チャンネルIDのインデックス
+- crowdfunding_supporters_campaign_idx: キャンペーンIDのインデックス
+- crowdfunding_rewards_campaign_idx: キャンペーンIDのインデックス
 
 ## 9. セキュリティ要件
 
@@ -155,6 +278,17 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 ### 9.2 データバリデーション
 - サーバーサイドでのデータ検証
 - クライアントサイドでのフォームバリデーション
+
+### 9.3 決済セキュリティ
+- Stripeのセキュアな決済システムの利用
+- 決済情報の暗号化
+- 不正アクセス防止のための認証強化
+
+### 9.4 報酬管理セキュリティ
+- 振込先情報の暗号化保存
+- 報酬計算の自動化と監査ログ
+- 不正な報酬支払いの防止
+- 報酬支払い履歴の管理
 
 ## 10. パフォーマンス要件
 - ページロード時間の最適化（Web Vitals指標の向上）
@@ -169,6 +303,20 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - 通知システム
 - ソーシャルシェア機能
 - モデレーション機能
+- クラウドファンディングの進捗レポート機能
+- 支援者向けの特典管理システム
+- 自動課金システム
+- 支援者限定コンテンツ配信
+- プロジェクトカテゴリ機能
+- プロジェクトタグ機能
+- 支援者へのメッセージ配信機能
+- FAQ管理機能
+- プロジェクト検索・フィルタリング機能
+- おすすめプロジェクト表示機能
+- 売上レポート機能
+- ユーザー統計機能
+- カテゴリ別人気分析機能
+- 不正検知機能
 
 ## 12. MVP（最小実行製品）の範囲
 - 基本的な認証機能（登録、ログイン、ログアウト）
@@ -176,6 +324,10 @@ IdeaTubeは、YouTuberと視聴者をつなぐラットフォームです。視�
 - 投稿の作成と表示
 - 投票機能
 - モバイル対応UIの基本実装
+- 基本的なクラウドファンディング機能
+- Stripe決済の統合
+- 支援特典の管理
+- 支援状況の表示
 
 ## 13. テスト要件
 - ユニットテスト

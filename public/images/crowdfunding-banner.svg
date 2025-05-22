@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2048" height="1365" viewBox="0 0 2048 1365" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景グラデーション -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF0000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF4444;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="2048" height="1365" fill="url(#grad1)"/>
+  
+  <!-- 装飾的な幾何学模様 -->
+  <path d="M0 682.5 L2048 682.5" stroke="rgba(255,255,255,0.1)" stroke-width="200"/>
+  <circle cx="1024" cy="682.5" r="400" fill="rgba(255,255,255,0.1)"/>
+  
+  <!-- アプリ名 -->
+  <text x="1024" y="632.5" font-family="Arial Black" font-size="180" fill="white" text-anchor="middle" dominant-baseline="middle">
+    IdeaTube
+  </text>
+
+  <!-- サブタイトル -->
+  <text x="1024" y="782.5" font-family="Arial" font-size="120" fill="white" text-anchor="middle" dominant-baseline="middle">
+    Youtuber向けクラファンサービス
+  </text>
+</svg> 
