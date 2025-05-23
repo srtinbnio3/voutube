@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { CommentList } from "@/components/comments/comment-list"
 import { PostShareButton } from "./_components/post-share-button"
+import { StartCrowdfundingButton } from "./_components/start-crowdfunding-button"
 
 export default async function PostDetailPage(
   props: {
@@ -98,12 +99,22 @@ export default async function PostDetailPage(
               </div>
             </div>
             
-            {/* シェアボタン */}
-            <PostShareButton 
-              postId={params.post_id} 
-              channelId={params.channel_id} 
-              title={post.title} 
-            />
+            <div className="flex gap-2">
+              {/* クラウドファンディング開始ボタン（すべてのユーザーに表示） */}
+              <StartCrowdfundingButton 
+                postId={params.post_id} 
+                channelId={params.channel_id} 
+                postTitle={post.title}
+                ownerUserId={channel.owner_id}
+              />
+              
+              {/* シェアボタン */}
+              <PostShareButton 
+                postId={params.post_id} 
+                channelId={params.channel_id} 
+                title={post.title} 
+              />
+            </div>
           </div>
 
           {/* 投稿内容 */}

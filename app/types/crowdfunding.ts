@@ -84,6 +84,8 @@ export interface CampaignFormData {
   start_date: Date;
   end_date: Date;
   reward_enabled: boolean;
+  post_id?: string;
+  channel_id?: string;
   bank_account_info?: {
     bank_name: string;
     branch_name: string;

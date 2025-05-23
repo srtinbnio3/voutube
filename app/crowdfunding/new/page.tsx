@@ -7,7 +7,21 @@ export const metadata: Metadata = {
   description: "YouTuber企画のクラウドファンディングを作成します。",
 };
 
-export default function NewCampaignPage() {
+interface PageProps {
+  params: Promise<any>;
+  searchParams: Promise<{
+    post_id?: string;
+    channel_id?: string;
+    title?: string;
+    [key: string]: string | string[] | undefined;
+  }>;
+}
+
+export default async function NewCampaignPage({
+  searchParams
+}: PageProps) {
+  const resolvedSearchParams = await searchParams;
+  
   return (
     <div className="container py-6 md:py-10">
       <div className="mb-8">
@@ -25,7 +39,7 @@ export default function NewCampaignPage() {
       </div>
       
       <div className="max-w-3xl mx-auto">
-        <CampaignForm />
+        <CampaignForm searchParams={resolvedSearchParams} />
       </div>
     </div>
   );
