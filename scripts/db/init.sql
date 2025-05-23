@@ -60,6 +60,8 @@ create table comments (
   post_id uuid references posts(id) on delete cascade not null,
   user_id uuid references profiles(id) on delete cascade not null,
   content text not null,
+  parent_id uuid,
+  mentioned_username text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -317,8 +319,6 @@ create trigger update_comments_updated_at
   for each row
   execute function update_updated_at_column();
 
-ALTER TABLE comments ADD COLUMN mentioned_username text; 
-
 -- Create indexes
 create index crowdfunding_campaigns_channel_id_idx on crowdfunding_campaigns (channel_id);
 create index crowdfunding_campaigns_status_idx on crowdfunding_campaigns (status);
@@ -328,6 +328,7 @@ create index crowdfunding_supporters_campaign_id_idx on crowdfunding_supporters 
 create index crowdfunding_supporters_user_id_idx on crowdfunding_supporters (user_id);
 create index crowdfunding_payments_supporter_id_idx on crowdfunding_payments (supporter_id);
 create index crowdfunding_payments_stripe_payment_intent_id_idx on crowdfunding_payments (stripe_payment_intent_id);
+create index comments_parent_id_idx on comments (parent_id);
 
 -- Create triggers
 create or replace function update_campaign_amount()
@@ -378,4 +379,8 @@ $$ language plpgsql security definer;
 create trigger on_supporter_update_reward_quantity
   after insert or update on crowdfunding_supporters
   for each row
-  execute function update_reward_quantity(); 
+  execute function update_reward_quantity();
+
+-- Comments table foreign key constraints
+alter table comments add constraint comments_parent_id_fkey 
+  foreign key (parent_id) references comments(id) on delete cascade; 
