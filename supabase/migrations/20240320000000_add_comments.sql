@@ -1,6 +1,25 @@
 -- Enable necessary extensions (既に有効な場合はスキップ)
 create extension if not exists "uuid-ossp";
 
+-- Create profiles table if not exists
+create table if not exists profiles (
+  id uuid references auth.users on delete cascade primary key,
+  username text unique not null,
+  avatar_url text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Create posts table if not exists
+create table if not exists posts (
+  id uuid default uuid_generate_v4() primary key,
+  title text not null,
+  content text not null,
+  user_id uuid references profiles(id) on delete cascade not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Create comments table
 create table comments (
   id uuid default uuid_generate_v4() primary key,

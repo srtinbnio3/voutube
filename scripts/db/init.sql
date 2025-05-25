@@ -60,6 +60,8 @@ create table comments (
   post_id uuid references posts(id) on delete cascade not null,
   user_id uuid references profiles(id) on delete cascade not null,
   content text not null,
+  parent_id uuid references comments(id) on delete cascade,
+  mentioned_username text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -338,8 +340,6 @@ create trigger update_comments_updated_at
   for each row
   execute function update_updated_at_column();
 
-ALTER TABLE comments ADD COLUMN mentioned_username text; 
-
 -- Create indexes
 create index crowdfunding_campaigns_channel_id_idx on crowdfunding_campaigns (channel_id);
 create index crowdfunding_campaigns_status_idx on crowdfunding_campaigns (status);
@@ -349,6 +349,7 @@ create index crowdfunding_supporters_campaign_id_idx on crowdfunding_supporters 
 create index crowdfunding_supporters_user_id_idx on crowdfunding_supporters (user_id);
 create index crowdfunding_payments_supporter_id_idx on crowdfunding_payments (supporter_id);
 create index crowdfunding_payments_stripe_payment_intent_id_idx on crowdfunding_payments (stripe_payment_intent_id);
+create index comments_parent_id_idx on comments (parent_id);
 
 -- Create triggers
 -- クラウドファンディングの支援金額を更新するトリガー
@@ -415,37 +416,6 @@ create trigger on_supporter_update_reward_quantity
   for each row
   execute function update_reward_quantity();
 
--- creator_rewardsテーブルの作成
-create table creator_rewards (
-  id uuid default uuid_generate_v4() primary key,
-  campaign_id uuid references crowdfunding_campaigns(id) on delete cascade not null,
-  amount integer not null check (amount > 0),
-  payment_status text not null check (payment_status in ('pending', 'paid')),
-  payment_date timestamp with time zone,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- creator_rewardsのインデックス作成
-create index creator_rewards_campaign_id_idx on creator_rewards (campaign_id);
-create index creator_rewards_payment_status_idx on creator_rewards (payment_status);
-
--- creator_rewardsのRLSポリシー
-alter table creator_rewards enable row level security;
-
-create policy "Creator rewards are viewable by everyone" on creator_rewards
-  for select using (true);
-
-create policy "Authenticated users can create creator rewards" on creator_rewards
-  for insert with check (auth.role() = 'authenticated');
-
-create policy "Users can update their own creator rewards" on creator_rewards
-  for update using (auth.role() = 'authenticated');
-
--- creator_rewardsの更新日時を自動更新するトリガー
-drop trigger if exists update_creator_rewards_updated_at on creator_rewards;
-
-create trigger update_creator_rewards_updated_at
-  before update on creator_rewards
-  for each row
-  execute function update_updated_at_column(); 
+-- Comments table foreign key constraints
+alter table comments add constraint comments_parent_id_fkey 
+  foreign key (parent_id) references comments(id) on delete cascade;
