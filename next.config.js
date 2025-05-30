@@ -43,7 +43,6 @@ const nextConfig = {
   /**
    * キャッシュ戦略の設定
    */
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
