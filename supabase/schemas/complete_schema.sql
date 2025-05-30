@@ -260,6 +260,17 @@ SET default_tablespace = '';
 
 SET default_table_access_method = "heap";
 
+CREATE TABLE IF NOT EXISTS "public"."profiles" (
+    "id" "uuid" NOT NULL,
+    "username" "text" NOT NULL,
+    "avatar_url" "text",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    CONSTRAINT "username_length" CHECK (("char_length"("username") >= 1))
+);
+
+ALTER TABLE "public"."profiles" OWNER TO "postgres";
+
 CREATE TABLE IF NOT EXISTS "public"."channels" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "youtube_channel_id" "text" NOT NULL,
@@ -391,17 +402,6 @@ CREATE TABLE IF NOT EXISTS "public"."posts" (
 );
 
 ALTER TABLE "public"."posts" OWNER TO "postgres";
-
-CREATE TABLE IF NOT EXISTS "public"."profiles" (
-    "id" "uuid" NOT NULL,
-    "username" "text" NOT NULL,
-    "avatar_url" "text",
-    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    CONSTRAINT "username_length" CHECK (("char_length"("username") >= 1))
-);
-
-ALTER TABLE "public"."profiles" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."votes" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
@@ -549,13 +549,15 @@ ALTER TABLE ONLY "public"."votes"
 
 CREATE POLICY "Authenticated users can create channels" ON "public"."channels" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
+CREATE POLICY "Channels are viewable by everyone" ON "public"."channels" FOR SELECT USING (true);
+
+CREATE POLICY "Users can update channels" ON "public"."channels" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
+
 CREATE POLICY "Authenticated users can create creator rewards" ON "public"."creator_rewards" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
 CREATE POLICY "Authenticated users can create posts" ON "public"."posts" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
 CREATE POLICY "Authenticated users can vote" ON "public"."votes" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
-
-CREATE POLICY "Channels are viewable by everyone" ON "public"."channels" FOR SELECT USING (true);
 
 CREATE POLICY "Creator rewards are viewable by everyone" ON "public"."creator_rewards" FOR SELECT USING (true);
 
@@ -568,8 +570,6 @@ CREATE POLICY "Users can create their own profile" ON "public"."profiles" FOR IN
 CREATE POLICY "Users can delete their own posts" ON "public"."posts" FOR DELETE USING (("auth"."uid"() = "user_id"));
 
 CREATE POLICY "Users can delete their own votes" ON "public"."votes" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-CREATE POLICY "Users can update channels" ON "public"."channels" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
 
 CREATE POLICY "Users can update their own creator rewards" ON "public"."creator_rewards" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
 

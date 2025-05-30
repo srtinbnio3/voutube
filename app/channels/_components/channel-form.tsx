@@ -148,7 +148,14 @@ export function ChannelForm() {
     setIsLoading(true)
 
     try {
-      // 登録するチャンネルデータ
+      // 現在のユーザー情報を取得（認証確認のため）
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error("ユーザー認証が必要です")
+      }
+
+      // 登録するチャンネルデータ（owner_idは設定しない）
       const channelData = {
         name: selectedChannel.name,
         description: selectedChannel.description || "",
@@ -178,8 +185,8 @@ export function ChannelForm() {
       // 成功処理
       console.log('作成成功:', data)
       toast({
-        title: "チャンネルを作成しました",
-        description: "チャンネルが正常に作成されました",
+        title: "チャンネルを登録しました",
+        description: `「${selectedChannel.name}」が正常に登録されました`,
       })
       
       // フォームをリセット

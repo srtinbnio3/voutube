@@ -31,24 +31,42 @@ export function StartCrowdfundingButton({
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [dialogError, setDialogError] = useState<string | null>(null)
   
   // クラウドファンディング作成ページへ遷移
   const handleStartCrowdfunding = async () => {
+    console.log("クラウドファンディング開始処理を開始:", { postId, channelId, postTitle });
     setIsLoading(true)
+    setDialogError(null) // エラー状態をリセット
     
     try {
       // 現在のユーザー情報を取得
+      console.log("ユーザー情報を取得中...");
       const supabase = createClient()
       const { data: { user }, error } = await supabase.auth.getUser()
       
       if (error || !user) {
-        toast.error("クラウドファンディングを開始するにはログインが必要です")
+        console.error("ユーザー認証エラー:", error);
+        toast.error("クラウドファンディングを開始するにはログインが必要です", {
+          duration: 10000
+        })
+        setIsLoading(false)
         setDialogOpen(false)
         router.push("/sign-in")
         return
       }
       
+      console.log("認証成功、ユーザー:", user.id);
+      
       // YouTube APIでチャンネル所有権を確認
+      console.log("チャンネル所有権を確認中...", { 
+        channelId, 
+        postId,
+        postTitle,
+        ownerUserId,
+        userAgent: navigator.userAgent,
+        currentURL: window.location.href
+      });
       const response = await fetch("/api/youtube/verify-ownership", {
         method: "POST",
         headers: {
@@ -59,28 +77,52 @@ export function StartCrowdfundingButton({
         })
       });
       
+      console.log("所有権確認レスポンス:", {
+        status: response.status, 
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
       const data = await response.json();
+      console.log("所有権確認データ:", data);
       
       if (!response.ok) {
-        toast.error(data.error || "所有権の確認中にエラーが発生しました");
-        setDialogOpen(false);
-        return;
+        console.error("所有権確認エラー:", data);
+        const errorMessage = data.error || "所有権の確認中にエラーが発生しました";
+        toast.error(errorMessage, {
+          duration: 10000
+        });
+        setDialogError(errorMessage);
+        setIsLoading(false);
+        return; // ダイアログは開いたままにする
       }
       
       if (!data.isOwner) {
-        toast.error("自分のチャンネルでのみクラウドファンディングを開始できます");
-        setDialogOpen(false);
-        return;
+        console.warn("チャンネル所有権なし:", data);
+        const errorMessage = "自分のチャンネルでのみクラウドファンディングを開始できます";
+        toast.error(errorMessage, {
+          duration: 10000
+        });
+        setDialogError(errorMessage);
+        setIsLoading(false);
+        return; // ダイアログは開いたままにする
       }
       
-      // 投稿情報をURLパラメータとして渡す
-      router.push(`/crowdfunding/new?post_id=${postId}&channel_id=${channelId}&title=${encodeURIComponent(postTitle)}`)
-    } catch (error) {
-      console.error("エラーが発生しました:", error)
-      toast.error("エラーが発生しました。しばらく経ってからお試しください。")
-    } finally {
-      setIsLoading(false)
+      // 成功時のみダイアログを閉じて遷移
+      console.log("所有権確認成功、ページ遷移中...");
       setDialogOpen(false)
+      // 投稿情報をURLパラメータとして渡す
+      const targetUrl = `/crowdfunding/new?post_id=${postId}&channel_id=${channelId}&title=${encodeURIComponent(postTitle)}`;
+      console.log("遷移先URL:", targetUrl);
+      router.push(targetUrl)
+    } catch (error) {
+      console.error("予期しないエラーが発生しました:", error)
+      const errorMessage = "エラーが発生しました。しばらく経ってからお試しください。";
+      toast.error(errorMessage, {
+        duration: 10000
+      })
+      setDialogError(errorMessage);
+      setIsLoading(false)
+      // エラー時はダイアログを開いたままにする
     }
   }
   
@@ -89,14 +131,20 @@ export function StartCrowdfundingButton({
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setDialogOpen(true)}
+        onClick={() => {
+          setDialogError(null);
+          setDialogOpen(true);
+        }}
         className="flex items-center gap-1"
       >
         <Sparkles className="h-4 w-4" />
         <span>クラウドファンディング</span>
       </Button>
       
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) setDialogError(null);
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>クラウドファンディングを開始</DialogTitle>
@@ -109,10 +157,19 @@ export function StartCrowdfundingButton({
           <div className="py-4">
             <h4 className="font-medium">投稿タイトル</h4>
             <p className="text-sm text-muted-foreground mt-1">{postTitle}</p>
+            
+            {dialogError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mt-4">
+                <strong>エラー:</strong> {dialogError}
+              </div>
+            )}
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isLoading}>
+            <Button variant="outline" onClick={() => {
+              setDialogError(null);
+              setDialogOpen(false);
+            }} disabled={isLoading}>
               キャンセル
             </Button>
             <Button onClick={handleStartCrowdfunding} disabled={isLoading}>
