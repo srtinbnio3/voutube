@@ -245,11 +245,11 @@ export const signInWithGoogleAction = async (formData?: FormData) => {
     provider: "google",  // Google認証を使用することを指定
     options: {
       redirectTo: redirectUrl.toString(),  // 認証後の戻り先URLを設定
-      // YouTube APIアクセスに必要なスコープとrefresh token取得のための設定
-      scopes: "openid profile email https://www.googleapis.com/auth/youtubepartner",
+      // Google認証でprovider_tokenを確実に取得するための設定
+      scopes: "openid profile email https://www.googleapis.com/auth/youtube.readonly",
       queryParams: {
         access_type: 'offline',  // refresh tokenを取得するために必要
-        prompt: 'consent',       // 毎回同意画面を表示してrefresh tokenを確実に取得
+        prompt: 'consent',       // 毎回同意画面を表示してtokenを確実に取得
       },
     },
   });

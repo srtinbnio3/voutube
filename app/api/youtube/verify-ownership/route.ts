@@ -82,7 +82,7 @@ export async function POST(req: Request) {
     // YouTube APIで認証されたユーザーのチャンネル一覧を取得
     console.log("YouTube API呼び出し開始...");
     const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/channels?part=id,snippet&mine=true`,
+      `https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true`,
       {
         headers: {
           'Authorization': `Bearer ${googleAccessToken}`,

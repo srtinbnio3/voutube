@@ -28,17 +28,42 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 CREATE OR REPLACE FUNCTION "public"."create_profile_for_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
+DECLARE
+  base_username text;
+  generated_handle text;
+  counter integer := 1;
 begin
-  insert into public.profiles (id, username, avatar_url)
+  -- 基本となるusernameを取得
+  base_username := coalesce(
+    (new.raw_user_meta_data->>'name')::text,
+    split_part(new.email, '@', 1)
+  );
+  
+  -- 基本usernameが空の場合は'user'を使用
+  if base_username is null or trim(base_username) = '' then
+    base_username := 'user';
+  end if;
+  
+  -- user_handleを自動生成（user_ + ランダムな8桁の英数字）
+  generated_handle := 'user_' || lower(substring(md5(random()::text), 1, 8));
+  
+  -- user_handleがユニークになるまでループ（念のため）
+  while exists (select 1 from public.profiles where user_handle = generated_handle) loop
+    generated_handle := 'user_' || lower(substring(md5(random()::text), 1, 8));
+    counter := counter + 1;
+    
+    -- 無限ループ防止（最大100回試行）
+    if counter > 100 then
+      generated_handle := 'user_' || extract(epoch from now())::bigint;
+      exit;
+    end if;
+  end loop;
+  
+  insert into public.profiles (id, user_handle, username, avatar_url)
   values (
     new.id,
-    -- OAuth認証の場合はraw_user_meta_dataからusernameを取得、
-    -- なければメールアドレスのローカル部分を使用
-    coalesce(
-      (new.raw_user_meta_data->>'name')::text,
-      split_part(new.email, '@', 1)
-    ),
-    -- OAuth認証の場合はavatarを使用
+    generated_handle,
+    base_username,
     (new.raw_user_meta_data->>'avatar_url')::text
   );
   return new;
@@ -262,11 +287,13 @@ SET default_table_access_method = "heap";
 
 CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "id" "uuid" NOT NULL,
+    "user_handle" "text" NOT NULL,
     "username" "text" NOT NULL,
     "avatar_url" "text",
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    CONSTRAINT "username_length" CHECK (("char_length"("username") >= 1))
+    CONSTRAINT "username_length" CHECK (("char_length"("username") >= 1)),
+    CONSTRAINT "user_handle_length" CHECK (("char_length"("user_handle") >= 1))
 );
 
 ALTER TABLE "public"."profiles" OWNER TO "postgres";
@@ -445,7 +472,7 @@ ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."profiles"
-    ADD CONSTRAINT "profiles_username_key" UNIQUE ("username");
+    ADD CONSTRAINT "profiles_user_handle_key" UNIQUE ("user_handle");
 
 ALTER TABLE ONLY "public"."votes"
     ADD CONSTRAINT "unique_user_post" UNIQUE ("user_id", "post_id");

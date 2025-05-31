@@ -16,17 +16,41 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE OR REPLACE FUNCTION "public"."create_profile_for_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
+DECLARE
+  base_username text;
+  final_username text;
+  counter integer := 1;
 begin
+  -- 基本となるusernameを取得
+  base_username := coalesce(
+    (new.raw_user_meta_data->>'name')::text,
+    split_part(new.email, '@', 1)
+  );
+  
+  -- 基本usernameが空の場合は'user'を使用
+  if base_username is null or trim(base_username) = '' then
+    base_username := 'user';
+  end if;
+  
+  -- 最初は基本usernameをそのまま使用
+  final_username := base_username;
+  
+  -- usernameがユニークになるまでループ
+  while exists (select 1 from public.profiles where username = final_username) loop
+    final_username := base_username || '_' || counter;
+    counter := counter + 1;
+    
+    -- 無限ループ防止（最大100回試行）
+    if counter > 100 then
+      final_username := base_username || '_' || extract(epoch from now())::bigint;
+      exit;
+    end if;
+  end loop;
+  
   insert into public.profiles (id, username, avatar_url)
   values (
     new.id,
-    -- OAuth認証の場合はraw_user_meta_dataからusernameを取得、
-    -- なければメールアドレスのローカル部分を使用
-    coalesce(
-      (new.raw_user_meta_data->>'name')::text,
-      split_part(new.email, '@', 1)
-    ),
-    -- OAuth認証の場合はavatarを使用
+    final_username,
     (new.raw_user_meta_data->>'avatar_url')::text
   );
   return new;
