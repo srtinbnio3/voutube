@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, AlertTriangle } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
 
@@ -87,6 +87,19 @@ export function StartCrowdfundingButton({
       
       if (!response.ok) {
         console.error("所有権確認エラー:", data);
+        
+        // 403エラー（権限なし）の場合は特別なメッセージを表示
+        if (response.status === 403) {
+          const friendlyMessage = "自分のチャンネルでのみクラウドファンディングを開始できます";
+          toast.error(friendlyMessage, {
+            duration: 10000
+          });
+          setDialogError(friendlyMessage);
+          setIsLoading(false);
+          return;
+        }
+        
+        // その他のエラーの場合
         const errorMessage = data.error || "所有権の確認中にエラーが発生しました";
         toast.error(errorMessage, {
           duration: 10000
@@ -151,6 +164,10 @@ export function StartCrowdfundingButton({
             <DialogDescription>
               この投稿内容に基づいてクラウドファンディングを開始します。
               支援者を募り、プロジェクトを実現しましょう。
+              <br /><br />
+              <span className="text-muted-foreground text-xs">
+                ※ クラウドファンディングを開始できるのは、チャンネルの所有者のみです。
+              </span>
             </DialogDescription>
           </DialogHeader>
           
@@ -159,8 +176,14 @@ export function StartCrowdfundingButton({
             <p className="text-sm text-muted-foreground mt-1">{postTitle}</p>
             
             {dialogError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mt-4">
-                <strong>エラー:</strong> {dialogError}
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-lg mt-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium mb-1">アクセス権限がありません</p>
+                    <p className="text-sm whitespace-pre-line">{dialogError}</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
