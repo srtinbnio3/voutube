@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { 
   Dialog, 
@@ -30,15 +30,42 @@ export function StartCrowdfundingButton({
   ownerUserId
 }: StartCrowdfundingButtonProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [dialogError, setDialogError] = useState<string | null>(null)
+  const [isReauthenticating, setIsReauthenticating] = useState(false)
   
-  // クラウドファンディング作成ページへ遷移
-  const handleStartCrowdfunding = async () => {
-    console.log("クラウドファンディング開始処理を開始:", { postId, channelId, postTitle });
+  // 再認証から戻った際の自動復元処理
+  useEffect(() => {
+    const showCrowdfunding = searchParams.get('show_crowdfunding')
+    const reauth = searchParams.get('reauth')
+    
+    if (showCrowdfunding === 'true') {
+      setDialogOpen(true)
+      
+      // 再認証から戻った場合は自動的に所有権確認を実行
+      if (reauth === 'youtube') {
+        console.log("再認証から戻りました。所有権確認を再実行中...")
+        setIsReauthenticating(true)
+        // 非同期処理を適切に処理
+        handleOwnershipVerification()
+          .catch(console.error)
+          .finally(() => setIsReauthenticating(false))
+      }
+      
+      // URLパラメータをクリア
+      const url = new URL(window.location.href)
+      url.searchParams.delete('show_crowdfunding')
+      url.searchParams.delete('reauth')
+      router.replace(url.pathname + url.search, { scroll: false })
+    }
+  }, [searchParams.toString()]) // searchParamsの文字列化した値を監視
+  
+  // 所有権確認処理を独立した関数として分離
+  const handleOwnershipVerification = async () => {
     setIsLoading(true)
-    setDialogError(null) // エラー状態をリセット
+    setDialogError(null)
     
     try {
       // 現在のユーザー情報を取得
@@ -54,12 +81,12 @@ export function StartCrowdfundingButton({
         setIsLoading(false)
         setDialogOpen(false)
         router.push("/sign-in")
-        return
+        return false
       }
       
       console.log("認証成功、ユーザー:", user.id);
       
-      // まず所有権確認APIを呼び出してYouTube権限をテスト
+      // 所有権確認APIを呼び出し
       console.log("YouTube権限確認のため所有権チェックを実行...", { 
         channelId, 
         postId,
@@ -94,8 +121,6 @@ export function StartCrowdfundingButton({
             errorMessage.includes("insufficient_scope") || errorMessage.includes("認証が必要")) {
           console.log("YouTube権限が不足、自動的に再認証を促す");
           
-          // ダイアログ内容を権限確認用に更新
-          setDialogError(null); // エラー表示をクリア
           setIsLoading(false);
           
           // 確認ダイアログを表示
@@ -110,26 +135,33 @@ export function StartCrowdfundingButton({
           
           if (userConfirm) {
             setIsLoading(true);
+            
+            // 現在のURLに状態保持用のパラメータを追加
+            const currentUrl = new URL(window.location.href)
+            currentUrl.searchParams.set('show_crowdfunding', 'true')
+            currentUrl.searchParams.set('reauth', 'youtube')
+            
             // YouTube権限付きでGoogleに再認証
             const formData = new FormData();
-            formData.append("redirect_to", window.location.pathname);
+            formData.append("redirect_to", currentUrl.pathname + currentUrl.search);
             await signInWithGoogleForYouTubeAction(formData);
-            return;
+            return false
           } else {
             // ユーザーが拒否した場合のメッセージ
             setDialogError("YouTube権限なしではクラウドファンディングを開始できません。");
             setIsLoading(false);
-            return;
+            return false
           }
         }
         
         // その他の認証エラー
-        toast.error(errorMessage, {
+        const errorMessage2 = data.error || "権限確認中にエラーが発生しました"
+        toast.error(errorMessage2, {
           duration: 10000
         });
-        setDialogError(errorMessage);
+        setDialogError(errorMessage2);
         setIsLoading(false);
-        return;
+        return false
       }
       
       if (!response.ok) {
@@ -143,7 +175,7 @@ export function StartCrowdfundingButton({
           });
           setDialogError(friendlyMessage);
           setIsLoading(false);
-          return;
+          return false
         }
         
         // その他のエラーの場合
@@ -153,7 +185,7 @@ export function StartCrowdfundingButton({
         });
         setDialogError(errorMessage);
         setIsLoading(false);
-        return; // ダイアログは開いたままにする
+        return false
       }
       
       if (!data.isOwner) {
@@ -164,16 +196,19 @@ export function StartCrowdfundingButton({
         });
         setDialogError(errorMessage);
         setIsLoading(false);
-        return; // ダイアログは開いたままにする
+        return false
       }
       
       // 成功時のみダイアログを閉じて遷移
       console.log("所有権確認成功、ページ遷移中...");
+      setIsLoading(false);
       setDialogOpen(false)
       // 投稿情報をURLパラメータとして渡す
       const targetUrl = `/crowdfunding/new?post_id=${postId}&channel_id=${channelId}&title=${encodeURIComponent(postTitle)}`;
       console.log("遷移先URL:", targetUrl);
       router.push(targetUrl)
+      return true
+      
     } catch (error) {
       console.error("予期しないエラーが発生しました:", error)
       const errorMessage = "エラーが発生しました。しばらく経ってからお試しください。";
@@ -182,8 +217,14 @@ export function StartCrowdfundingButton({
       })
       setDialogError(errorMessage);
       setIsLoading(false)
-      // エラー時はダイアログを開いたままにする
+      return false
     }
+  }
+  
+  // クラウドファンディング作成ページへ遷移
+  const handleStartCrowdfunding = async () => {
+    console.log("クラウドファンディング開始処理を開始:", { postId, channelId, postTitle });
+    await handleOwnershipVerification()
   }
   
   return (
@@ -223,7 +264,19 @@ export function StartCrowdfundingButton({
             <h4 className="font-medium">投稿タイトル</h4>
             <p className="text-sm text-muted-foreground mt-1">{postTitle}</p>
             
-            {dialogError && (
+            {isReauthenticating && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-4 rounded-lg mt-4">
+                <div className="flex items-start gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mt-0.5"></div>
+                  <div>
+                    <p className="font-medium mb-1">YouTubeとの連携を確認中...</p>
+                    <p className="text-sm">チャンネルの所有権を確認しています。しばらくお待ちください。</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {dialogError && !isReauthenticating && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-lg mt-4">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
@@ -258,11 +311,11 @@ export function StartCrowdfundingButton({
             <Button variant="outline" onClick={() => {
               setDialogError(null);
               setDialogOpen(false);
-            }} disabled={isLoading}>
+            }} disabled={isLoading || isReauthenticating}>
               キャンセル
             </Button>
-            <Button onClick={handleStartCrowdfunding} disabled={isLoading}>
-              {isLoading ? "確認中..." : "作成ページへ進む"}
+            <Button onClick={handleStartCrowdfunding} disabled={isLoading || isReauthenticating}>
+              {isLoading || isReauthenticating ? "確認中..." : "作成ページへ進む"}
             </Button>
           </DialogFooter>
         </DialogContent>
