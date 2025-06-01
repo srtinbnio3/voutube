@@ -296,7 +296,7 @@ export const signInWithGoogleForYouTubeAction = async (formData?: FormData) => {
     provider: "google",  // Google認証を使用することを指定
     options: {
       redirectTo: redirectUrl.toString(),  // 認証後の戻り先URLを設定
-      // YouTube API権限も含めたスコープ
+      // YouTube API権限も含めたスコープ - チャンネル一覧取得に必要な最小限の権限
       scopes: "openid profile email https://www.googleapis.com/auth/youtube.readonly",
       queryParams: {
         access_type: 'offline',  // refresh tokenを取得するために必要
