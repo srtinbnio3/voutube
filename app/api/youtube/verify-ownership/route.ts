@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         provider_refresh_token: !!session.provider_refresh_token
       });
       return NextResponse.json({ 
-        error: "Google認証情報が見つかりません。再度ログインしてください。",
+        error: "YouTube権限が不足しています。YouTubeチャンネルへのアクセス権限付きで再度ログインしてください。",
         details: "provider_tokenが存在しません。Googleアカウントで再ログインが必要です。"
       }, { status: 401 });
     }
@@ -98,21 +98,22 @@ export async function POST(req: Request) {
     });
     
     if (!response.ok) {
-      console.error("YouTube API エラー:", response.status, response.statusText);
-      let errorData;
-      try {
-        errorData = await response.json();
-        console.error("YouTube API エラー詳細:", errorData);
-      } catch (e) {
-        console.error("YouTube APIエラーレスポンスのパースに失敗:", e);
-        errorData = { error: "レスポンスの解析に失敗" };
+      console.error(`YouTube API エラー: ${response.status} ${response.statusText}`);
+      const errorData = await response.json();
+      console.error("YouTube API エラー詳細:", errorData);
+      
+      // YouTube API権限不足エラーの場合
+      if (response.status === 403) {
+        return NextResponse.json({ 
+          error: "YouTube権限が不足しています。YouTubeチャンネルへのアクセス権限付きで再度ログインしてください。",
+          details: "insufficient_scope - YouTube APIアクセス権限が不足しています"
+        }, { status: 401 });
       }
       
       return NextResponse.json({ 
-        error: "YouTube APIへのアクセスに失敗しました",
-        details: `Status: ${response.status} - ${response.statusText}`,
-        youtubeError: errorData
-      }, { status: 400 });
+        error: `YouTube APIエラー: ${errorData.error?.message || response.statusText}`,
+        details: errorData 
+      }, { status: response.status });
     }
     
     const data = await response.json();

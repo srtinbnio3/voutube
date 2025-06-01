@@ -14,6 +14,7 @@ import {
 import { Sparkles, AlertTriangle } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
+import { signInWithGoogleForYouTubeAction } from '@/app/actions'
 
 interface StartCrowdfundingButtonProps {
   postId: string
@@ -58,15 +59,14 @@ export function StartCrowdfundingButton({
       
       console.log("認証成功、ユーザー:", user.id);
       
-      // YouTube APIでチャンネル所有権を確認
-      console.log("チャンネル所有権を確認中...", { 
+      // まず所有権確認APIを呼び出してYouTube権限をテスト
+      console.log("YouTube権限確認のため所有権チェックを実行...", { 
         channelId, 
         postId,
         postTitle,
-        ownerUserId,
-        userAgent: navigator.userAgent,
-        currentURL: window.location.href
+        ownerUserId
       });
+      
       const response = await fetch("/api/youtube/verify-ownership", {
         method: "POST",
         headers: {
@@ -84,6 +84,53 @@ export function StartCrowdfundingButton({
       });
       const data = await response.json();
       console.log("所有権確認データ:", data);
+      
+      // 401エラー（権限不足）の場合はYouTube権限付きで再認証
+      if (response.status === 401 || response.status === 400) {
+        const errorMessage = data.error || "権限確認中にエラーが発生しました";
+        
+        // YouTube権限が不足している場合の自動処理
+        if (errorMessage.includes("YouTube権限") || errorMessage.includes("provider_token") || 
+            errorMessage.includes("insufficient_scope") || errorMessage.includes("認証が必要")) {
+          console.log("YouTube権限が不足、自動的に再認証を促す");
+          
+          // ダイアログ内容を権限確認用に更新
+          setDialogError(null); // エラー表示をクリア
+          setIsLoading(false);
+          
+          // 確認ダイアログを表示
+          const userConfirm = window.confirm(
+            "🎬 YouTube権限の追加が必要です\n\n" +
+            "クラウドファンディングを開始するには、あなたのYouTubeチャンネルへのアクセス権限が必要です。\n\n" +
+            "✅ チャンネル所有権の確認\n" +
+            "✅ 安全な認証プロセス\n" +
+            "✅ 必要最小限の権限のみ\n\n" +
+            "追加の権限を許可してYouTubeとの連携を有効にしますか？"
+          );
+          
+          if (userConfirm) {
+            setIsLoading(true);
+            // YouTube権限付きでGoogleに再認証
+            const formData = new FormData();
+            formData.append("redirect_to", window.location.pathname);
+            await signInWithGoogleForYouTubeAction(formData);
+            return;
+          } else {
+            // ユーザーが拒否した場合のメッセージ
+            setDialogError("YouTube権限なしではクラウドファンディングを開始できません。");
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        // その他の認証エラー
+        toast.error(errorMessage, {
+          duration: 10000
+        });
+        setDialogError(errorMessage);
+        setIsLoading(false);
+        return;
+      }
       
       if (!response.ok) {
         console.error("所有権確認エラー:", data);
@@ -167,6 +214,7 @@ export function StartCrowdfundingButton({
               <br /><br />
               <span className="text-muted-foreground text-xs">
                 ※ クラウドファンディングを開始できるのは、チャンネルの所有者のみです。
+                チャンネル所有権の確認のため、YouTubeとの連携が必要な場合があります。
               </span>
             </DialogDescription>
           </DialogHeader>
@@ -182,6 +230,24 @@ export function StartCrowdfundingButton({
                   <div>
                     <p className="font-medium mb-1">アクセス権限がありません</p>
                     <p className="text-sm whitespace-pre-line">{dialogError}</p>
+                    
+                    {dialogError.includes("YouTube権限") && (
+                      <div className="mt-3">
+                        <Button 
+                          size="sm" 
+                          onClick={async () => {
+                            setIsLoading(true);
+                            const formData = new FormData();
+                            formData.append("redirect_to", window.location.pathname);
+                            await signInWithGoogleForYouTubeAction(formData);
+                          }}
+                          disabled={isLoading}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          {isLoading ? "処理中..." : "YouTube権限を追加"}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
