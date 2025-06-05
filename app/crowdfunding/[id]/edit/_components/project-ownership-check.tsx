@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
-// import { ProjectEditLayout } from "./project-edit-layout"
+import { ProjectEditLayout } from "./project-edit-layout"
 
 interface Campaign {
   id: string
@@ -161,56 +161,11 @@ export function ProjectOwnershipCheck({ campaign, section }: ProjectOwnershipChe
     )
   }
 
-  // 権限がある場合 - 編集画面を表示
+  // 権限がある場合 - 実際の編集画面を表示
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <div className="container mx-auto py-8">
-        <div className="bg-green-100 border-2 border-green-500 text-green-800 px-6 py-4 rounded-lg mb-6 shadow-lg">
-          <h2 className="text-2xl font-bold mb-2">🎉 アクセス権限確認完了！</h2>
-          <p className="text-lg">YouTube API所有権確認が正常に動作し、編集権限が確認されました。</p>
-          <p className="text-sm mt-2">確認時刻: {new Date().toLocaleString('ja-JP')}</p>
-        </div>
-        
-        <div className="bg-white border-2 border-gray-200 rounded-lg p-8 shadow-lg">
-          <h1 className="text-4xl font-bold mb-6 text-gray-800">🛠️ プロジェクト編集</h1>
-          <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-bold text-xl mb-3 text-gray-700">📋 プロジェクト情報</h3>
-              <div className="space-y-2 text-lg">
-                <p><strong>ID:</strong> <code className="bg-gray-200 px-2 py-1 rounded">{campaign.id}</code></p>
-                <p><strong>タイトル:</strong> {campaign.title}</p>
-                <p><strong>チャンネル:</strong> {campaign.channel.name}</p>
-                <p><strong>投稿:</strong> {campaign.post.title}</p>
-                <p><strong>ステータス:</strong> <span className="bg-yellow-100 px-2 py-1 rounded">{campaign.status}</span></p>
-                <p><strong>作成日時:</strong> {new Date(campaign.created_at).toLocaleString('ja-JP')}</p>
-                <p><strong>投稿者ID:</strong> <code className="bg-blue-100 px-2 py-1 rounded">{campaign.post.user_id}</code></p>
-                {user && <p><strong>現在のユーザーID:</strong> <code className="bg-green-100 px-2 py-1 rounded">{user.id}</code></p>}
-                <p><strong>現在のセクション:</strong> <span className="bg-blue-100 px-2 py-1 rounded">{section}</span></p>
-              </div>
-            </div>
-            
-            <div className="border-t-2 pt-6">
-              <h3 className="font-bold text-xl mb-3 text-gray-700">🚀 次のステップ</h3>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-gray-700 text-lg">
-                  権限確認が完了しました。ProjectEditLayoutコンポーネントを有効化できます。
-                </p>
-                <p className="text-sm text-green-600 mt-2 font-medium">
-                  ✅ クライアントサイドでのYouTube API所有権確認が正常に動作しました
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ProjectEditLayout 
+      campaign={campaign} 
+      currentSection={section} 
+    />
   )
-  
-  // 実際の編集画面を表示する場合（一時的にコメントアウト）
-  // return (
-  //   <ProjectEditLayout 
-  //     campaign={campaign} 
-  //     currentSection={section} 
-  //   />
-  // )
 } 

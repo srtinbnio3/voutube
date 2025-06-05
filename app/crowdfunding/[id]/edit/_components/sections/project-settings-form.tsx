@@ -47,7 +47,7 @@ export function ProjectSettingsForm({ campaign }: ProjectSettingsFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">募集設定をする</h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">募集設定をする</h2>
         <p className="text-muted-foreground">
           目標金額や募集期間などの基本的な設定を行います。
         </p>

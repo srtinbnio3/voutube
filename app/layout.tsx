@@ -7,7 +7,6 @@ import HeaderAuth from "@/components/header-auth"
 import { Twitter } from "lucide-react"
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { reportWebVitals as reportWebVitalsMetric } from './lib/analytics'
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -66,10 +65,7 @@ export const metadata: Metadata = {
   },
 }
 
-// Web Vitalsの計測を有効化
-export function reportWebVitals(metric: any) {
-  reportWebVitalsMetric(metric);
-}
+
 
 export default function RootLayout({
   children,

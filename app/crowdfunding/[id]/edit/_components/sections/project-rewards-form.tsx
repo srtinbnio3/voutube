@@ -15,7 +15,7 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">支援のお返し（リターン）</h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">支援のお返し（リターン）</h2>
         <p className="text-muted-foreground">
           支援者への感謝の気持ちとして、リターンを設定しましょう。魅力的なリターンがプロジェクトの成功につながります。
         </p>

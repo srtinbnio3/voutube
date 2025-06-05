@@ -15,7 +15,7 @@ export function ProjectImageForm({ campaign }: ProjectImageFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">メイン画像を設定する</h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">メイン画像を設定する</h2>
         <p className="text-muted-foreground">
           プロジェクトのメイン画像を設定します。魅力的な画像がプロジェクトの印象を大きく左右します。
         </p>
@@ -31,7 +31,7 @@ export function ProjectImageForm({ campaign }: ProjectImageFormProps) {
         <CardContent>
           <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center">
             <ImageIcon className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">画像をアップロード</h3>
+            <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100">画像をアップロード</h3>
             <p className="text-muted-foreground mb-4">
               推奨サイズ: 1280×720px (16:9) / JPEGまたはPNG形式
             </p>

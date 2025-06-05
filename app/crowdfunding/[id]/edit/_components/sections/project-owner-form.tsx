@@ -51,7 +51,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">オーナー情報を設定する</h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">オーナー情報を設定する</h2>
         <p className="text-muted-foreground">
           振込先口座情報や本人確認など、必要な情報を設定します。
         </p>
@@ -122,7 +122,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                   id="bank_account_type"
                   value={formData.bank_account_type}
                   onChange={(e) => setFormData({ ...formData, bank_account_type: e.target.value })}
-                  className="w-full p-2 border border-border rounded-md"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   required
                 >
                   <option value="普通">普通</option>

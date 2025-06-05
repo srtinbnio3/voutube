@@ -48,7 +48,7 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">ページ作成</h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">ページ作成</h2>
         <p className="text-muted-foreground">
           プロジェクトの基本情報を設定します。タイトルや説明文を魅力的に作成しましょう。
         </p>
