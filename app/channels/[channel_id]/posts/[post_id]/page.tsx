@@ -105,7 +105,6 @@ export default async function PostDetailPage(
                 postId={params.post_id} 
                 channelId={params.channel_id} 
                 postTitle={post.title}
-                ownerUserId={channel.owner_id}
               />
               
               {/* シェアボタン */}

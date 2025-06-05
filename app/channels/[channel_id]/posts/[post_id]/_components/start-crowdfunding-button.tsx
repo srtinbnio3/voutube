@@ -20,14 +20,12 @@ interface StartCrowdfundingButtonProps {
   postId: string
   channelId: string
   postTitle: string
-  ownerUserId: string
 }
 
 export function StartCrowdfundingButton({ 
   postId, 
   channelId, 
-  postTitle,
-  ownerUserId
+  postTitle
 }: StartCrowdfundingButtonProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -90,8 +88,7 @@ export function StartCrowdfundingButton({
       console.log("YouTube権限確認のため所有権チェックを実行...", { 
         channelId, 
         postId,
-        postTitle,
-        ownerUserId
+        postTitle
       });
       
       const response = await fetch("/api/youtube/verify-ownership", {
@@ -203,11 +200,63 @@ export function StartCrowdfundingButton({
       console.log("所有権確認成功、ページ遷移中...");
       setIsLoading(false);
       setDialogOpen(false)
-      // 投稿情報をURLパラメータとして渡す
-      const targetUrl = `/crowdfunding/new?post_id=${postId}&channel_id=${channelId}&title=${encodeURIComponent(postTitle)}`;
-      console.log("遷移先URL:", targetUrl);
-      router.push(targetUrl)
-      return true
+      
+      // まずクラウドファンディングプロジェクトを作成
+      try {
+        console.log("プロジェクト作成開始...");
+        const createResponse = await fetch("/api/crowdfunding", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: postTitle,
+            description: "このプロジェクトの詳細説明は後で編集できます。", // 空文字ではなく最小限の説明を設定
+            target_amount: 100000, // デフォルト値
+            start_date: new Date().toISOString(), // ISO文字列形式に変換
+            end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // ISO文字列形式に変換
+            reward_enabled: false,
+            post_id: postId,
+            channel_id: channelId
+          }),
+        });
+
+        if (!createResponse.ok) {
+          const errorData = await createResponse.json();
+          console.error("プロジェクト作成APIエラー:", errorData);
+          throw new Error(errorData.error || "プロジェクトの作成に失敗しました");
+        }
+
+        const createData = await createResponse.json();
+        console.log("プロジェクト作成成功:", createData);
+        
+        // レスポンスの検証
+        if (!createData.campaign || !createData.campaign.id) {
+          console.error("不正なレスポンス:", createData);
+          throw new Error("プロジェクトの作成に失敗しました（無効なレスポンス）");
+        }
+        
+        // データベースのコミットを待つため少し待機
+        console.log("データベースのコミットを待機中...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // プロジェクト編集ページに遷移
+        const targetUrl = `/crowdfunding/${createData.campaign.id}/edit`;
+        console.log("遷移先URL:", targetUrl);
+        
+        // 成功メッセージを表示
+        toast.success("プロジェクトを作成しました！編集ページに移動します。", {
+          duration: 3000
+        });
+        
+        router.push(targetUrl);
+        return true;
+      } catch (createError) {
+        console.error("プロジェクト作成エラー:", createError);
+        toast.error(createError instanceof Error ? createError.message : "プロジェクトの作成に失敗しました");
+        setIsLoading(false);
+        return false;
+      }
       
     } catch (error) {
       console.error("予期しないエラーが発生しました:", error)

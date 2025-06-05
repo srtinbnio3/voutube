@@ -39,16 +39,23 @@ export async function GET(req: NextRequest) {
 
 // 新しいクラウドファンディングを作成
 export async function POST(req: NextRequest) {
+  console.log("🚀 クラウドファンディング作成API開始");
+  
   const supabase = await createClient();
   
   // セッションを取得
   const { data: { session } } = await supabase.auth.getSession();
+  console.log("🚀 セッション確認:", { hasSession: !!session, userId: session?.user?.id });
+  
   if (!session) {
+    console.log("🚀 認証エラー: セッションなし");
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }
   
   try {
     const body = await req.json();
+    console.log("🚀 リクエストボディ:", body);
+    
     const { 
       post_id, 
       channel_id, 
@@ -63,13 +70,19 @@ export async function POST(req: NextRequest) {
     
     // 必須項目の検証
     if (!post_id || !channel_id || !title || !description || !target_amount || !start_date || !end_date) {
+      console.log("🚀 バリデーションエラー: 必須項目不足", {
+        post_id: !!post_id,
+        channel_id: !!channel_id,
+        title: !!title,
+        description: !!description,
+        target_amount: !!target_amount,
+        start_date: !!start_date,
+        end_date: !!end_date
+      });
       return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
     }
     
-    // 新しいクラウドファンディングを作成
-    const { data, error } = await supabase
-      .from("crowdfunding_campaigns")
-      .insert({
+    const insertData = {
         post_id,
         channel_id,
         title,
@@ -81,16 +94,33 @@ export async function POST(req: NextRequest) {
         status: "draft",
         reward_enabled: reward_enabled || false,
         bank_account_info: bank_account_info || null
-      })
+    };
+    
+    console.log("🚀 データベース挿入データ:", insertData);
+    
+    // 新しいクラウドファンディングを作成
+    const { data, error } = await supabase
+      .from("crowdfunding_campaigns")
+      .insert(insertData)
       .select()
       .single();
     
+    console.log("🚀 データベース挿入結果:", { 
+      success: !!data, 
+      error: error?.message,
+      campaignId: data?.id,
+      campaignTitle: data?.title
+    });
+    
     if (error) {
+      console.log("🚀 データベースエラー:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     
+    console.log("🚀 クラウドファンディング作成成功:", data.id);
     return NextResponse.json({ campaign: data });
   } catch (error) {
+    console.error("🚀 予期しないエラー:", error);
     return NextResponse.json({ error: "リクエストの処理中にエラーが発生しました" }, { status: 500 });
   }
 } 
