@@ -120,14 +120,15 @@ export function WorkflowStatus({ campaign, onStatusChange }: WorkflowStatusProps
       <CardContent>
         <div className="space-y-6">
           {/* ワークフロー進捗表示 */}
-          <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
-            {workflowSteps.map((step, index) => {
-              const status = getStepStatus(index)
-              const Icon = step.icon
-              
-              return (
-                <div key={step.id} className="flex-1">
-                  <div className="flex items-start gap-3 lg:flex-col lg:items-center lg:text-center">
+          <div className="flex flex-col space-y-4 lg:space-y-0">
+            {/* モバイル用の垂直レイアウト */}
+            <div className="lg:hidden space-y-4">
+              {workflowSteps.map((step, index) => {
+                const status = getStepStatus(index)
+                const Icon = step.icon
+                
+                return (
+                  <div key={step.id} className="flex items-start gap-3">
                     {/* アイコンとライン */}
                     <div className="flex flex-col items-center">
                       <div className={`
@@ -143,14 +144,14 @@ export function WorkflowStatus({ campaign, onStatusChange }: WorkflowStatusProps
                       </div>
                       {index < workflowSteps.length - 1 && (
                         <div className={`
-                          hidden lg:block w-0.5 h-8 mt-2 transition-colors
+                          w-0.5 h-8 mt-2 transition-colors
                           ${status === 'completed' ? 'bg-green-600' : 'bg-muted-foreground/30'}
                         `} />
                       )}
                     </div>
                     
                     {/* コンテンツ */}
-                    <div className="flex-1 lg:mt-3">
+                    <div className="flex-1">
                       <h3 className={`
                         font-medium text-sm
                         ${status === 'current' ? 'text-primary' : status === 'completed' ? 'text-green-600' : 'text-muted-foreground'}
@@ -162,9 +163,58 @@ export function WorkflowStatus({ campaign, onStatusChange }: WorkflowStatusProps
                       </p>
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
+
+            {/* デスクトップ用の水平レイアウト */}
+            <div className="hidden lg:flex lg:items-center lg:justify-center">
+              {workflowSteps.map((step, index) => {
+                const status = getStepStatus(index)
+                const Icon = step.icon
+                
+                return (
+                  <div key={step.id} className="flex items-center">
+                    {/* ステップコンテナ */}
+                    <div className="flex flex-col items-center text-center">
+                      {/* アイコン */}
+                      <div className={`
+                        flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors
+                        ${status === 'completed' 
+                          ? 'bg-green-600 border-green-600 text-white' 
+                          : status === 'current'
+                          ? 'bg-primary border-primary text-primary-foreground'
+                          : 'bg-muted border-muted-foreground/30 text-muted-foreground'
+                        }
+                      `}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      
+                      {/* コンテンツ */}
+                      <div className="mt-3 min-w-[120px]">
+                        <h3 className={`
+                          font-medium text-sm
+                          ${status === 'current' ? 'text-primary' : status === 'completed' ? 'text-green-600' : 'text-muted-foreground'}
+                        `}>
+                          {step.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 水平線（アイコン間を繋ぐ） */}
+                    {index < workflowSteps.length - 1 && (
+                      <div className={`
+                        w-16 h-0.5 mx-4 transition-colors
+                        ${status === 'completed' ? 'bg-green-600' : 'bg-muted-foreground/30'}
+                      `} />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           {/* 状態別の詳細情報とアクション */}
