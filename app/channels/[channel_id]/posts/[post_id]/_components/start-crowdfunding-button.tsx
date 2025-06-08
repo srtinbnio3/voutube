@@ -287,7 +287,7 @@ export function StartCrowdfundingButton({
         className="flex items-center gap-1"
       >
         <Sparkles className="h-4 w-4" />
-        <span>クラウドファンディング</span>
+        <span>クラウドファンディング開始</span>
       </Button>
       
       <Dialog open={dialogOpen} onOpenChange={(open) => {
