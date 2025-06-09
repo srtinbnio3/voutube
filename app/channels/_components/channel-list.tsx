@@ -12,38 +12,71 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { getChannels, searchChannels } from "../_actions/channel-actions"
+import { Loader2 } from "lucide-react"
 
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
 
 interface ChannelListProps {
   initialChannels: Channel[]
+  totalChannels?: number
+  hasMore?: boolean
 }
 
-export function ChannelList({ initialChannels }: ChannelListProps) {
+export function ChannelList({ initialChannels, totalChannels = 0, hasMore = false }: ChannelListProps) {
   const [channels, setChannels] = useState<Channel[]>(initialChannels)
   const [sortBy, setSortBy] = useState("post_count")
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 8
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [hasMoreData, setHasMoreData] = useState(hasMore)
+  const [totalCount, setTotalCount] = useState(totalChannels)
 
   useEffect(() => {
     setChannels(initialChannels)
-    setCurrentPage(1) // 新しいチャンネルリストが来たら1ページ目に戻る
-  }, [initialChannels])
+    setCurrentPage(1)
+    setHasMoreData(hasMore)
+    setTotalCount(totalChannels)
+  }, [initialChannels, hasMore, totalChannels])
 
   useEffect(() => {
-    setCurrentPage(1) // 検索やソートが変更されたら1ページ目に戻る
+    setCurrentPage(1)
+    // 検索やソートが変更されたらデータをリセット
+    const resetData = async () => {
+      setIsLoadingMore(true)
+      try {
+        const response = search 
+          ? await searchChannels(search, 0, 16, sortBy)
+          : await getChannels(0, 16, sortBy)
+        
+        setChannels(response.channels)
+        setHasMoreData(response.hasMore)
+        setTotalCount(response.total)
+      } catch (error) {
+        console.error('データ取得エラー:', error)
+      } finally {
+        setIsLoadingMore(false)
+      }
+    }
+    
+    // 検索クエリまたはソートが変更された場合のみリセット
+    if (search || sortBy !== "post_count") {
+      resetData()
+    }
   }, [search, sortBy])
 
-  // 検索とソートを適用したチャンネルリストを生成
-  const filteredAndSortedChannels = useMemo(() => {
+  // 表示用チャンネルリストの生成
+  const displayChannels = useMemo(() => {
+    // 検索・ソート中の場合はクライアントサイドフィルタリング＋ページネーション
+    if (search || sortBy !== "post_count") {
     // 検索フィルター
     const filtered = channels.filter(channel =>
       channel.name.toLowerCase().includes(search.toLowerCase())
     )
 
     // ソート
-    return [...filtered].sort((a, b) => {
+      const sorted = [...filtered].sort((a, b) => {
       if (sortBy === "post_count") {
         return (b.post_count || 0) - (a.post_count || 0)
       } else if (sortBy === "latest") {
@@ -51,20 +84,28 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
       }
       return 0
     })
-  }, [channels, search, sortBy])
 
-  // ページネーション適用後のチャンネルリスト
-  const paginatedChannels = useMemo(() => {
-    return filteredAndSortedChannels.slice(
+      // ページネーション適用
+      return sorted.slice(
       (currentPage - 1) * itemsPerPage,
       currentPage * itemsPerPage
     )
-  }, [filteredAndSortedChannels, currentPage])
+    } else {
+      // デフォルト表示の場合は無限スクロール（全件表示）
+      return channels
+    }
+  }, [channels, search, sortBy, currentPage])
 
-  // 総ページ数の計算
+  // 総ページ数の計算（検索・ソート時のみ）
   const totalPages = useMemo(() => {
-    return Math.ceil(filteredAndSortedChannels.length / itemsPerPage)
-  }, [filteredAndSortedChannels.length])
+    if (search || sortBy !== "post_count") {
+      const filtered = channels.filter(channel =>
+        channel.name.toLowerCase().includes(search.toLowerCase())
+      )
+      return Math.ceil(filtered.length / itemsPerPage)
+    }
+    return 0
+  }, [channels, search, sortBy])
 
   // 検索ハンドラー
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +121,26 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
   const handlePageChange = useCallback((pageNumber: number) => {
     setCurrentPage(pageNumber)
   }, [])
+
+  // さらに読み込むハンドラー
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMoreData) return
+
+    setIsLoadingMore(true)
+    try {
+      const response = search 
+        ? await searchChannels(search, channels.length, 16, sortBy)
+        : await getChannels(channels.length, 16, sortBy)
+      
+      setChannels(prev => [...prev, ...response.channels])
+      setHasMoreData(response.hasMore)
+      setTotalCount(response.total)
+    } catch (error) {
+      console.error('追加読み込みエラー:', error)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [isLoadingMore, hasMoreData, search, channels.length, sortBy])
 
   return (
     <div className="space-y-4">
@@ -104,18 +165,43 @@ export function ChannelList({ initialChannels }: ChannelListProps) {
 
       {/* チャンネル一覧 */}
       <div className="grid gap-4">
-        {paginatedChannels.map((channel) => (
+        {displayChannels.map((channel) => (
           <ChannelCard key={channel.id} channel={channel} />
         ))}
-        {paginatedChannels.length === 0 && (
+        {displayChannels.length === 0 && (
           <p className="text-center text-muted-foreground">
             チャンネルが見つかりません
           </p>
         )}
       </div>
 
-      {/* ページネーション */}
-      {totalPages > 1 && (
+
+
+      {/* さらに読み込むボタン */}
+      {hasMoreData && !search && sortBy === "post_count" && (
+        <div className="flex justify-center mt-6">
+          <Button
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            variant="outline"
+            size="lg"
+          >
+            {isLoadingMore ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                読み込み中...
+              </>
+            ) : (
+              <>
+                さらに読み込む ({totalCount - channels.length}件)
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+
+      {/* ページネーション（検索・ソート時のみ） */}
+      {(search || sortBy !== "post_count") && totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-4">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <Button

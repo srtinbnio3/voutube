@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { createBrowserClient } from "@supabase/ssr"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
@@ -135,9 +135,11 @@ export function ChannelForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     
+
+    
     // チャンネルが選択されていない場合は処理しない
-    if (!selectedChannel) {
-      toast({
+          if (!selectedChannel) {
+        toast({
         title: "エラー",
         description: "チャンネルを選択してください",
         variant: "destructive",
@@ -145,9 +147,34 @@ export function ChannelForm() {
       return
     }
     
-    setIsLoading(true)
+          setIsLoading(true)
 
     try {
+              // 事前チェック：既に同じチャンネルが存在するかチェック
+      const { data: existingChannel, error: checkError } = await supabase
+        .from("channels")
+        .select("id, name")
+        .eq("youtube_channel_id", selectedChannel.youtube_channel_id)
+        .single()
+
+              // チェック時のエラーを無視（存在しない場合は正常）
+        if (checkError && checkError.code !== 'PGRST116') {
+          console.warn('事前チェックエラー:', checkError)
+        }
+
+        if (existingChannel) {
+
+        toast({
+          title: "チャンネルは既に登録済みです",
+          description: `「${existingChannel.name}」は既にデータベースに登録されています`,
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+
+      
+
       // 登録するチャンネルデータ
       const channelData = {
         name: selectedChannel.name,
@@ -172,6 +199,18 @@ export function ChannelForm() {
           details: error.details,
           hint: error.hint
         })
+        
+        // 重複エラーの場合は専用メッセージを表示
+        if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+          toast({
+            title: "チャンネルは既に登録済みです",
+            description: "このチャンネルは既にデータベースに登録されています",
+            variant: "destructive",
+          })
+          setIsLoading(false)
+          return
+        }
+        
         throw error
       }
 
@@ -190,15 +229,31 @@ export function ChannelForm() {
       
       // 画面更新
       router.refresh()
-    } catch (error) {
-      console.error('作成エラー:', error)
-      toast({
-        title: "エラーが発生しました",
-        description: error instanceof Error ? error.message : "チャンネルの作成に失敗しました",
-        variant: "destructive",
-      })
+    } catch (error: any) {
+              console.error('作成エラー:', error)
+      
+
+      
+      // 重複エラーの詳細チェック
+      if (error?.code === '23505' || 
+          error?.message?.includes('duplicate') || 
+          error?.message?.includes('unique') ||
+          error?.message?.includes('already exists')) {
+        toast({
+          title: "チャンネルは既に登録済みです",
+          description: `「${selectedChannel?.name}」は既にデータベースに登録されています`,
+          variant: "destructive",
+        })
+      } else {
+        // その他のエラー
+        toast({
+          title: "エラーが発生しました",
+          description: error instanceof Error ? error.message : "チャンネルの作成に失敗しました",
+          variant: "destructive",
+        })
+      }
     } finally {
-      setIsLoading(false)
+              setIsLoading(false)
     }
   }
 
@@ -303,7 +358,10 @@ export function ChannelForm() {
           {/* チャンネル作成フォーム */}
           <form onSubmit={handleSubmit}>
             <div className="flex justify-end mt-3">
-              <Button type="submit" disabled={isLoading || !selectedChannel}>
+              <Button 
+                type="submit" 
+                disabled={isLoading || !selectedChannel}
+              >
                 {isLoading ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />

@@ -24,11 +24,17 @@ export default async function ChannelsPage() {
     }
   )
 
-  // データベースからチャンネル一覧を取得
+  // 初回表示用に最初の16件のみ取得（軽量化）
   const { data: channels } = await supabase
     .from("channels")
-    .select("*")  // すべてのカラムを取得
-    .order("post_count", { ascending: false })  // 投稿数の多い順に並び替え
+    .select("*")  // 型エラー回避のため全項目取得（後で最適化予定）
+    .order("post_count", { ascending: false })
+    .range(0, 15)  // 最初の16件のみ取得
+
+  // 全体のチャンネル数を取得
+  const { count: totalChannels } = await supabase
+    .from("channels")
+    .select("*", { count: 'exact', head: true })
 
   // ログイン中のユーザーIDを取得（ログインしていない場合はnull）
   const { data: { user } } = await supabase.auth.getUser()
@@ -42,7 +48,11 @@ export default async function ChannelsPage() {
         <ChannelForm />  {/* ログイン状態に関わらず表示 */}
       </div>
       {/* チャンネル一覧の表示 */}
-      <ChannelList initialChannels={channels || []} />
+      <ChannelList 
+        initialChannels={channels || []} 
+        totalChannels={totalChannels || 0}
+        hasMore={(totalChannels || 0) > 16}
+      />
     </div>
   )
 } 
