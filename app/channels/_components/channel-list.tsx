@@ -143,76 +143,102 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
   }, [isLoadingMore, hasMoreData, search, channels.length, sortBy])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {/* 検索とソートのコントロール */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Input
-          placeholder="チャンネルを検索..."
-          value={search}
-          onChange={handleSearch}
-          className="sm:max-w-[300px]"
-        />
+      <div className="flex flex-col sm:flex-row gap-4 p-6 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-lg">
+        <div className="relative flex-1 sm:max-w-md">
+          <Input
+            placeholder="チャンネルを検索..."
+            value={search}
+            onChange={handleSearch}
+            className="pl-10 h-12 bg-white/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+          />
+          <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
         <Select value={sortBy} onValueChange={handleSortChange}>
-          <SelectTrigger className="sm:w-[180px]">
+          <SelectTrigger className="sm:w-[200px] h-12 bg-white/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
             <SelectValue placeholder="並び替え" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="post_count">投稿数順</SelectItem>
-            <SelectItem value="latest">最新の投稿順</SelectItem>
+          <SelectContent className="rounded-xl border-slate-200/50 dark:border-slate-700/50">
+            <SelectItem value="post_count" className="rounded-lg">投稿数順</SelectItem>
+            <SelectItem value="latest" className="rounded-lg">最新の投稿順</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* チャンネル一覧 */}
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
         {displayChannels.map((channel) => (
           <ChannelCard key={channel.id} channel={channel} />
         ))}
-        {displayChannels.length === 0 && (
-          <p className="text-center text-muted-foreground">
-            チャンネルが見つかりません
-          </p>
-        )}
       </div>
 
-
-
-      {/* さらに読み込むボタン */}
-      {hasMoreData && !search && sortBy === "post_count" && (
-        <div className="flex justify-center mt-6">
-          <Button
-            onClick={handleLoadMore}
-            disabled={isLoadingMore}
-            variant="outline"
-            size="lg"
-          >
-            {isLoadingMore ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                読み込み中...
-              </>
-            ) : (
-              <>
-                さらに読み込む ({totalCount - channels.length}件)
-              </>
-            )}
-          </Button>
+      {/* 空の状態 */}
+      {displayChannels.length === 0 && (
+        <div className="text-center py-16">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-6">
+            <svg className="w-10 h-10 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-slate-600 dark:text-slate-300 mb-2">
+            チャンネルが見つかりません
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400">
+            検索条件を変更して再度お試しください
+          </p>
         </div>
       )}
 
       {/* ページネーション（検索・ソート時のみ） */}
       {(search || sortBy !== "post_count") && totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+        <div className="flex justify-center gap-2 mt-8">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
             <Button
-              key={page}
-              variant={currentPage === page ? "default" : "outline"}
+              key={pageNum}
+              variant={currentPage === pageNum ? "default" : "outline"}
               size="sm"
-              onClick={() => handlePageChange(page)}
+              onClick={() => handlePageChange(pageNum)}
+              className={`h-10 w-10 rounded-xl transition-all duration-200 ${
+                currentPage === pageNum 
+                  ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg shadow-blue-500/25" 
+                  : "hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200/50 dark:border-slate-700/50"
+              }`}
             >
-              {page}
+              {pageNum}
             </Button>
           ))}
+        </div>
+      )}
+
+      {/* さらに読み込むボタン */}
+      {hasMoreData && !search && sortBy === "post_count" && (
+        <div className="flex justify-center mt-12">
+          <Button
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            variant="outline"
+            size="lg"
+            className="h-14 px-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 rounded-2xl hover:bg-white dark:hover:bg-slate-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+          >
+            {isLoadingMore ? (
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span className="font-medium">読み込み中...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+                <span className="font-medium">
+                  さらに読み込む ({totalCount - channels.length}件)
+                </span>
+              </div>
+            )}
+          </Button>
         </div>
       )}
     </div>
