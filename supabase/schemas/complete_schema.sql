@@ -308,10 +308,22 @@ CREATE TABLE IF NOT EXISTS "public"."channels" (
     "post_count" integer DEFAULT 0,
     "latest_post_at" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "owner_user_id" "uuid",
+    "ownership_verified_at" timestamp with time zone,
+    "ownership_verification_expires_at" timestamp with time zone,
+    "ownership_verification_method" "text" DEFAULT 'youtube_api',
+    "last_ownership_check_at" timestamp with time zone,
+    CONSTRAINT "ownership_verification_method_check" CHECK (("ownership_verification_method" = ANY (ARRAY['youtube_api'::"text", 'manual'::"text"])))
 );
 
 ALTER TABLE "public"."channels" OWNER TO "postgres";
+
+COMMENT ON COLUMN "public"."channels"."owner_user_id" IS 'チャンネルの所有者のユーザーID（確認済み）';
+COMMENT ON COLUMN "public"."channels"."ownership_verified_at" IS '所有権が最後に確認された日時';
+COMMENT ON COLUMN "public"."channels"."ownership_verification_expires_at" IS '所有権確認の有効期限（通常は30日後）';
+COMMENT ON COLUMN "public"."channels"."ownership_verification_method" IS '所有権確認の方法（youtube_api, manual）';
+COMMENT ON COLUMN "public"."channels"."last_ownership_check_at" IS '最後に所有権チェックを実行した日時';
 
 CREATE TABLE IF NOT EXISTS "public"."comments" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -486,6 +498,10 @@ CREATE INDEX "channels_post_count_idx" ON "public"."channels" USING "btree" ("po
 
 CREATE INDEX "channels_youtube_id_idx" ON "public"."channels" USING "btree" ("youtube_channel_id");
 
+CREATE INDEX "idx_channels_owner_user_id" ON "public"."channels" USING "btree" ("owner_user_id");
+
+CREATE INDEX "idx_channels_ownership_expires" ON "public"."channels" USING "btree" ("ownership_verification_expires_at");
+
 CREATE INDEX "creator_rewards_campaign_id_idx" ON "public"."creator_rewards" USING "btree" ("campaign_id");
 
 CREATE INDEX "creator_rewards_payment_status_idx" ON "public"."creator_rewards" USING "btree" ("payment_status");
@@ -535,6 +551,9 @@ ALTER TABLE ONLY "public"."comments"
 ALTER TABLE ONLY "public"."comments"
     ADD CONSTRAINT "comments_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "public"."comments"("id") ON DELETE CASCADE;
 
+ALTER TABLE ONLY "public"."channels"
+    ADD CONSTRAINT "channels_owner_user_id_fkey" FOREIGN KEY ("owner_user_id") REFERENCES "public"."profiles"("id") ON DELETE SET NULL;
+
 ALTER TABLE ONLY "public"."creator_rewards"
     ADD CONSTRAINT "creator_rewards_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "public"."crowdfunding_campaigns"("id") ON DELETE CASCADE;
 
@@ -579,6 +598,8 @@ CREATE POLICY "Authenticated users can create channels" ON "public"."channels" F
 CREATE POLICY "Channels are viewable by everyone" ON "public"."channels" FOR SELECT USING (true);
 
 CREATE POLICY "Users can update channels" ON "public"."channels" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
+
+CREATE POLICY "チャンネル所有者のみ所有権情報を更新可能" ON "public"."channels" FOR UPDATE USING (("auth"."uid"() = "owner_user_id"));
 
 CREATE POLICY "Authenticated users can create creator rewards" ON "public"."creator_rewards" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 

@@ -36,10 +36,17 @@ export async function POST(req: Request) {
     console.log("認証成功、ユーザーID:", session.user.id);
     console.log("provider_token存在:", !!session.provider_token);
     
-    // チャンネル情報を取得（YouTube channel IDが必要）
+    // チャンネル情報を取得（所有権キャッシュ情報を含む）
     const { data: channelData, error: channelError } = await supabase
       .from("channels")
-      .select("youtube_channel_id, name")
+      .select(`
+        youtube_channel_id, 
+        name,
+        owner_user_id,
+        ownership_verified_at,
+        ownership_verification_expires_at,
+        last_ownership_check_at
+      `)
       .eq("id", channelId)
       .single();
     
@@ -52,6 +59,43 @@ export async function POST(req: Request) {
         details: channelError?.message || "チャンネルが見つかりません" 
       }, { status: 404 });
     }
+
+    // キャッシュされた所有権情報をチェック
+    const now = new Date();
+    const hasValidCache = channelData.owner_user_id && 
+                         channelData.ownership_verification_expires_at && 
+                         new Date(channelData.ownership_verification_expires_at) > now;
+
+    console.log("所有権キャッシュ確認:", {
+      hasOwner: !!channelData.owner_user_id,
+      expiresAt: channelData.ownership_verification_expires_at,
+      isExpired: channelData.ownership_verification_expires_at ? 
+                new Date(channelData.ownership_verification_expires_at) <= now : true,
+      hasValidCache,
+      currentUserId: session.user.id
+    });
+
+    // キャッシュが有効で、現在のユーザーが所有者の場合は即座に成功を返す
+    if (hasValidCache && channelData.owner_user_id === session.user.id) {
+      console.log("キャッシュされた所有権情報を使用:", {
+        ownerId: channelData.owner_user_id,
+        verifiedAt: channelData.ownership_verified_at
+      });
+      
+      return NextResponse.json({ 
+        isOwner: true,
+        channelTitle: channelData.name,
+        cached: true,
+        verifiedAt: channelData.ownership_verified_at
+      });
+    }
+
+    // キャッシュが無効、または別のユーザーの場合はYouTube APIで確認
+    console.log("YouTube API所有権確認が必要:", {
+      reason: hasValidCache ? 
+        (channelData.owner_user_id !== session.user.id ? "different_user" : "cache_expired") :
+        "no_cache"
+    });
     
     // Google OAuthプロバイダートークンを取得
     const googleAccessToken = session.provider_token;
@@ -138,6 +182,18 @@ export async function POST(req: Request) {
     });
     
     if (!ownedChannel) {
+      // 所有権確認失敗時にもチェック時刻を更新
+      const { error: updateError } = await supabase
+        .from("channels")
+        .update({
+          last_ownership_check_at: new Date().toISOString()
+        })
+        .eq("id", channelId);
+
+      if (updateError) {
+        console.error("最終チェック時刻更新エラー:", updateError);
+      }
+
       return NextResponse.json({ 
         isOwner: false,
         error: "指定されたチャンネルの所有権が確認できませんでした",
@@ -152,10 +208,37 @@ export async function POST(req: Request) {
       channelTitle: ownedChannel.snippet.title,
       userId: session.user.id
     });
+
+    // 所有権確認成功時にキャッシュを更新（30日間有効）
+    const verificationExpiry = new Date();
+    verificationExpiry.setDate(verificationExpiry.getDate() + 30);
+
+    const { error: updateError } = await supabase
+      .from("channels")
+      .update({
+        owner_user_id: session.user.id,
+        ownership_verified_at: new Date().toISOString(),
+        ownership_verification_expires_at: verificationExpiry.toISOString(),
+        ownership_verification_method: 'youtube_api',
+        last_ownership_check_at: new Date().toISOString()
+      })
+      .eq("id", channelId);
+
+    if (updateError) {
+      console.error("所有権キャッシュ更新エラー:", updateError);
+      // キャッシュ更新エラーでも所有権確認は成功として扱う
+    } else {
+      console.log("所有権キャッシュ更新成功:", {
+        ownerId: session.user.id,
+        expiresAt: verificationExpiry.toISOString()
+      });
+    }
     
     return NextResponse.json({ 
       isOwner: true,
       channelTitle: ownedChannel.snippet.title || channelData.name,
+      cached: false,
+      justVerified: true,
       debug: {
         channelId,
         youtubeChannelId: channelData.youtube_channel_id,
