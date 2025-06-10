@@ -132,7 +132,12 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
         ? await searchChannels(search, channels.length, 16, sortBy)
         : await getChannels(channels.length, 16, sortBy)
       
-      setChannels(prev => [...prev, ...response.channels])
+      // 重複を除去して新しいチャンネルのみを追加
+      setChannels(prev => {
+        const existingIds = new Set(prev.map(channel => channel.id))
+        const newChannels = response.channels.filter(channel => !existingIds.has(channel.id))
+        return [...prev, ...newChannels]
+      })
       setHasMoreData(response.hasMore)
       setTotalCount(response.total)
     } catch (error) {
@@ -145,7 +150,7 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
   return (
     <div className="space-y-8">
       {/* 検索とソートのコントロール */}
-      <div className="flex flex-col sm:flex-row gap-4 p-6 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-lg">
+      <div className="flex flex-col sm:flex-row gap-4 p-6 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-lg max-w-6xl mx-auto">
         <div className="relative flex-1 sm:max-w-md">
           <Input
             placeholder="チャンネルを検索..."
@@ -169,7 +174,7 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
       </div>
 
       {/* チャンネル一覧 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
         {displayChannels.map((channel) => (
           <ChannelCard key={channel.id} channel={channel} />
         ))}

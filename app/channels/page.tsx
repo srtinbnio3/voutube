@@ -42,9 +42,10 @@ export default async function ChannelsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      <div className="container max-w-7xl py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full py-8 sm:py-12 px-2 sm:px-4 lg:px-6">
         {/* ヘッダー部分 */}
-        <div className="text-center mb-12 sm:mb-16">
+        <div className="text-center mb-12 sm:mb-16 max-w-4xl mx-auto">
+
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-slate-900 via-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-white dark:via-blue-400 dark:to-purple-400 mb-4">
             チャンネル一覧
           </h1>
