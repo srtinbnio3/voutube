@@ -144,11 +144,11 @@ export default function RootLayout({
           </nav>
 
           <main className="min-h-screen flex flex-col items-center">
-            <div className="flex-1 w-full flex flex-col gap-20 items-center">
+            <div className="flex-1 w-full flex flex-col items-center">
               {children}
 
               {/* フッター */}
-              <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-16">
+              <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-8">
                 <div className="flex gap-8 items-center">
                   <Link
                     href="https://x.com/kmrmsys"
