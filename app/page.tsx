@@ -67,6 +67,10 @@ export default function LandingPage() {
                 報酬として還元される
               </span>
               革新的なプラットフォーム
+               <br />
+               <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">
+                 ※ クラウドファンディング機能は Coming Soon
+               </span>
             </p>
           </div>
 
@@ -160,6 +164,13 @@ export default function LandingPage() {
               <Card key={index} className="relative p-8 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 group overflow-hidden">
                 <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${item.color}`} />
                 
+                {/* Coming Soon badge for step 03 */}
+                {item.step === "03" && (
+                  <div className="absolute -right-16 top-6 rotate-45 bg-purple-600 text-white px-16 py-1 text-sm font-semibold shadow-lg">
+                    Coming Soon
+                  </div>
+                )}
+                
                 <div className="relative">
                   <div className="flex items-center gap-4 mb-6">
                     <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center text-white font-bold text-lg`}>
@@ -240,11 +251,18 @@ export default function LandingPage() {
                 key={index} 
                 className={`p-6 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 group ${
                   feature.highlight ? 'ring-2 ring-purple-200 dark:ring-purple-800' : ''
-                }`}
+                } ${feature.title === '資金調達サポート' ? 'relative overflow-hidden' : ''}`}
               >
                 {feature.highlight && (
                   <div className="absolute -top-3 left-6 px-3 py-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-semibold rounded-full">
                     注目機能
+                  </div>
+                )}
+                
+                {/* Coming Soon badge for 資金調達サポート */}
+                {feature.title === '資金調達サポート' && (
+                  <div className="absolute -right-16 top-6 rotate-45 bg-purple-600 text-white px-16 py-1 text-sm font-semibold shadow-lg">
+                    Coming Soon
                   </div>
                 )}
                 
