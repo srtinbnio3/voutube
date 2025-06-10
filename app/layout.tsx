@@ -121,7 +121,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {/* ヘッダーナビゲーション */}
-          <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
+          <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 bg-transparent">
             <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
               {/* 左側：ロゴとサイト名 */}
               <div className="flex gap-3 sm:gap-5 items-center font-semibold">
@@ -148,7 +148,7 @@ export default function RootLayout({
               {children}
 
               {/* フッター */}
-              <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-8">
+              <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-8 bg-transparent">
                 <div className="flex gap-8 items-center">
                   <Link
                     href="https://x.com/kmrmsys"

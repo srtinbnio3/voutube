@@ -41,8 +41,16 @@ export default async function ChannelsPage() {
   const isLoggedIn = !!user
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      <div className="w-full py-8 sm:py-12 px-2 sm:px-4 lg:px-6">
+    <main className="relative overflow-hidden">
+      {/* Background Elements - トップページと統一 */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-purple-950/20 dark:to-blue-950/20" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl animate-pulse delay-1000" />
+      </div>
+      
+      <div className="relative min-h-screen">
+        <div className="w-full py-8 sm:py-12 px-2 sm:px-4 lg:px-6">
         {/* ヘッダー部分 */}
         <div className="text-center mb-12 sm:mb-16 max-w-4xl mx-auto">
 
@@ -63,7 +71,8 @@ export default async function ChannelsPage() {
           totalChannels={totalChannels || 0}
           hasMore={(totalChannels || 0) > 16}
         />
+        </div>
       </div>
-    </div>
+    </main>
   )
 } 
