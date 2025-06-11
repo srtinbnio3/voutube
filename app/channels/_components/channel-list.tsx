@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { getChannels, searchChannels } from "../_actions/channel-actions"
-import { Loader2 } from "lucide-react"
+import { Loader2, Search } from "lucide-react"
 
 type Channel = Database["public"]["Tables"]["channels"]["Row"]
 
@@ -27,26 +27,24 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
   const [channels, setChannels] = useState<Channel[]>(initialChannels)
   const [sortBy, setSortBy] = useState("post_count")
   const [search, setSearch] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 8
+  const [searchInput, setSearchInput] = useState("")
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [hasMoreData, setHasMoreData] = useState(hasMore)
   const [totalCount, setTotalCount] = useState(totalChannels)
 
   useEffect(() => {
     setChannels(initialChannels)
-    setCurrentPage(1)
     setHasMoreData(hasMore)
     setTotalCount(totalChannels)
   }, [initialChannels, hasMore, totalChannels])
 
   useEffect(() => {
-    setCurrentPage(1)
     // 検索やソートが変更されたらデータをリセット
     const resetData = async () => {
       setIsLoadingMore(true)
       try {
-        const response = search 
+        // 空文字列の検索は全件取得として扱う
+        const response = (search && search.trim()) 
           ? await searchChannels(search, 0, 16, sortBy)
           : await getChannels(0, 16, sortBy)
         
@@ -61,65 +59,32 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
     }
     
     // 検索クエリまたはソートが変更された場合のみリセット
-    if (search || sortBy !== "post_count") {
+    // 空文字列でも検索ボタンを押した場合は実行されるように修正
+    if (search !== undefined || sortBy !== "post_count") {
       resetData()
     }
   }, [search, sortBy])
 
-  // 表示用チャンネルリストの生成
-  const displayChannels = useMemo(() => {
-    // 検索・ソート中の場合はクライアントサイドフィルタリング＋ページネーション
-    if (search || sortBy !== "post_count") {
-    // 検索フィルター
-    const filtered = channels.filter(channel =>
-      channel.name.toLowerCase().includes(search.toLowerCase())
-    )
+  // 検索入力ハンドラー
+  const handleSearchInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value)
+  }, [])
 
-    // ソート
-      const sorted = [...filtered].sort((a, b) => {
-      if (sortBy === "post_count") {
-        return (b.post_count || 0) - (a.post_count || 0)
-      } else if (sortBy === "latest") {
-        return new Date(b.latest_post_at || 0).getTime() - new Date(a.latest_post_at || 0).getTime()
-      }
-      return 0
-    })
+  // 検索実行ハンドラー
+  const handleSearchSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault()
+    setSearch(searchInput)
+  }, [searchInput])
 
-      // ページネーション適用
-      return sorted.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    )
-    } else {
-      // デフォルト表示の場合は無限スクロール（全件表示）
-      return channels
-    }
-  }, [channels, search, sortBy, currentPage])
-
-  // 総ページ数の計算（検索・ソート時のみ）
-  const totalPages = useMemo(() => {
-    if (search || sortBy !== "post_count") {
-      const filtered = channels.filter(channel =>
-        channel.name.toLowerCase().includes(search.toLowerCase())
-      )
-      return Math.ceil(filtered.length / itemsPerPage)
-    }
-    return 0
-  }, [channels, search, sortBy])
-
-  // 検索ハンドラー
-  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value)
+  // 検索クリアハンドラー
+  const handleSearchClear = useCallback(() => {
+    setSearchInput("")
+    setSearch("")
   }, [])
 
   // ソート変更ハンドラー
   const handleSortChange = useCallback((value: string) => {
     setSortBy(value)
-  }, [])
-
-  // ページ変更ハンドラー
-  const handlePageChange = useCallback((pageNumber: number) => {
-    setCurrentPage(pageNumber)
   }, [])
 
   // さらに読み込むハンドラー
@@ -128,7 +93,8 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
 
     setIsLoadingMore(true)
     try {
-      const response = search 
+      // 空文字列の検索は全件取得として扱う
+      const response = (search && search.trim()) 
         ? await searchChannels(search, channels.length, 16, sortBy)
         : await getChannels(channels.length, 16, sortBy)
       
@@ -151,17 +117,38 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
     <div className="space-y-8">
       {/* 検索とソートのコントロール */}
       <div className="flex flex-col sm:flex-row gap-4 p-6 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-lg max-w-6xl mx-auto">
-        <div className="relative flex-1 sm:max-w-md">
-          <Input
-            placeholder="チャンネルを検索..."
-            value={search}
-            onChange={handleSearch}
-            className="pl-10 h-12 bg-white/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-          />
-          <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
+        <form onSubmit={handleSearchSubmit} className="flex gap-2 flex-1 sm:max-w-md">
+          <div className="relative flex-1">
+            <Input
+              placeholder="チャンネルを検索..."
+              value={searchInput}
+              onChange={handleSearchInputChange}
+              className="pl-10 h-12 bg-white/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+            />
+            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <Button
+            type="submit"
+            size="sm"
+            className="h-12 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Search className="w-4 h-4 mr-2" />
+            検索
+          </Button>
+          {search && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSearchClear}
+              className="h-12 px-4 border-slate-200/50 dark:border-slate-700/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+            >
+              クリア
+            </Button>
+          )}
+        </form>
         <Select value={sortBy} onValueChange={handleSortChange}>
           <SelectTrigger className="sm:w-[200px] h-12 bg-white/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
             <SelectValue placeholder="並び替え" />
@@ -175,13 +162,13 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
 
       {/* チャンネル一覧 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
-        {displayChannels.map((channel) => (
+        {channels.map((channel) => (
           <ChannelCard key={channel.id} channel={channel} />
         ))}
       </div>
 
       {/* 空の状態 */}
-      {displayChannels.length === 0 && (
+      {channels.length === 0 && (
         <div className="text-center py-16">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-6">
             <svg className="w-10 h-10 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,29 +184,8 @@ export function ChannelList({ initialChannels, totalChannels = 0, hasMore = fals
         </div>
       )}
 
-      {/* ページネーション（検索・ソート時のみ） */}
-      {(search || sortBy !== "post_count") && totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-8">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-            <Button
-              key={pageNum}
-              variant={currentPage === pageNum ? "default" : "outline"}
-              size="sm"
-              onClick={() => handlePageChange(pageNum)}
-              className={`h-10 w-10 rounded-xl transition-all duration-200 ${
-                currentPage === pageNum 
-                  ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg shadow-blue-500/25" 
-                  : "hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200/50 dark:border-slate-700/50"
-              }`}
-            >
-              {pageNum}
-            </Button>
-          ))}
-        </div>
-      )}
-
-      {/* さらに読み込むボタン */}
-      {hasMoreData && !search && sortBy === "post_count" && (
+      {/* さらに読み込むボタン（無限スクロール統一） */}
+      {hasMoreData && (
         <div className="flex justify-center mt-12">
           <Button
             onClick={handleLoadMore}

@@ -69,7 +69,7 @@ export default function LandingPage() {
               革新的なプラットフォーム
                <br />
                <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">
-                 ※ クラウドファンディング機能は Coming Soon
+                 ※ クラウドファンディング機能は近日公開予定
                </span>
             </p>
           </div>

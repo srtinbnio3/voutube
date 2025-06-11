@@ -34,12 +34,14 @@ export async function getChannels(
   // ソート条件の設定
   const orderColumn = sortBy === 'latest' ? 'latest_post_at' : 'post_count'
   const ascending = false
+  // 最新の投稿順の場合、NULL値（投稿履歴なし）を最後に表示（nullsFirst: falseで実現）
+  const nullsFirst = sortBy !== 'latest'
 
   // チャンネル取得（必要な列のみ）
   const { data: channels, error } = await supabase
     .from("channels")
     .select("id, name, description, icon_url, post_count, latest_post_at, subscriber_count, youtube_channel_id")
-    .order(orderColumn, { ascending })
+    .order(orderColumn, { ascending, nullsFirst })
     .range(offset, offset + limit - 1) // offsetからlimit件取得
 
   if (error) {
@@ -82,13 +84,16 @@ export async function searchChannels(
   )
 
   const orderColumn = sortBy === 'latest' ? 'latest_post_at' : 'post_count'
+  const ascending = false
+  // 最新の投稿順の場合、NULL値（投稿履歴なし）を最後に表示（nullsFirst: falseで実現）
+  const nullsFirst = sortBy !== 'latest'
   
   // 検索クエリでフィルタリング
   const searchQuery = supabase
     .from("channels")
     .select("id, name, description, icon_url, post_count, latest_post_at, subscriber_count, youtube_channel_id")
     .ilike('name', `%${query}%`) // 部分一致検索
-    .order(orderColumn, { ascending: false })
+    .order(orderColumn, { ascending, nullsFirst })
     .range(offset, offset + limit - 1)
 
   const { data: channels, error } = await searchQuery
