@@ -117,8 +117,9 @@ export default async function ChannelPage(props: {
           <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl sm:rounded-3xl border-0 shadow-xl p-4 sm:p-6 lg:p-8">
             {/* セクションヘッダー - モバイル最適化 */}
             <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="order-2 sm:order-1">
+              {/* タイトル行とボタン */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
                   <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-white dark:via-blue-400 dark:to-purple-400">
                     投稿企画一覧
                   </h2>
@@ -127,17 +128,15 @@ export default async function ChannelPage(props: {
                   </p>
                 </div>
                 
-                <div className="order-1 sm:order-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  <PostSort currentSort={sort} />
-                  <div className="sm:hidden">
-                    <PostForm channelId={channel.id} />
-                  </div>
+                {/* 新規投稿ボタン - 全画面で右側に配置 */}
+                <div className="flex-shrink-0">
+                  <PostForm channelId={channel.id} />
                 </div>
               </div>
               
-              {/* デスクトップ版投稿フォーム */}
-              <div className="hidden sm:flex justify-end">
-                <PostForm channelId={channel.id} />
+              {/* ソートボタン */}
+              <div className="flex justify-end">
+                <PostSort currentSort={sort} />
               </div>
             </div>
             

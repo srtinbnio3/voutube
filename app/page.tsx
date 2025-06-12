@@ -142,7 +142,7 @@ export default function LandingPage() {
               {
                 step: "01",
                 title: "アイデアを投稿",
-                description: "あなたの企画アイデアを簡単投稿。",
+                description: "あなたの企画アイデアを投稿して、推しYoutuberに提案",
                 icon: Lightbulb,
                 color: "from-purple-500 to-purple-600"
               },

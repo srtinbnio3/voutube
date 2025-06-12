@@ -117,7 +117,7 @@ export function ChannelInfo({ channel }: ChannelInfoProps) {
                 <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 flex items-center justify-center">
                   <Users className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
                 </div>
-                <span className="font-medium">{channel.subscriber_count.toLocaleString()}</span>
+                                  <span className="font-medium">{formatNumber(channel.subscriber_count)}</span>
                 <span className="text-slate-500 dark:text-slate-400">登録</span>
               </div>
             )}
