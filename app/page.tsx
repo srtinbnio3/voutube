@@ -298,7 +298,7 @@ export default function LandingPage() {
             </h2>
             
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            今すぐ、推しYoutuberに企画を提案しましょう！
+            今すぐ、推しYouTuberに企画を提案しましょう！
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
