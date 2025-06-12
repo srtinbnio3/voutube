@@ -84,6 +84,36 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
           },
+          {
+            key: 'Content-Security-Policy',
+            value: (() => {
+              // 開発環境かどうかを判定（NODE_ENVが未設定の場合も開発環境として扱う）
+              const isDevelopment = process.env.NODE_ENV !== 'production';
+              console.log(`CSP設定: NODE_ENV=${process.env.NODE_ENV}, isDevelopment=${isDevelopment}`);
+              
+              // script-srcを個別に構築
+              const scriptSrc = isDevelopment 
+                ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com"
+                : "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com";
+              
+              const cspPolicy = [
+                "default-src 'self'",
+                scriptSrc,
+                "style-src 'self' 'unsafe-inline'",
+                "img-src 'self' data: https: blob:",
+                "font-src 'self' data:",
+                "connect-src 'self' https://*.supabase.co https://*.googleapis.com https://va.vercel-scripts.com",
+                "frame-src 'self' https://www.youtube.com",
+                "object-src 'none'",
+                "base-uri 'self'",
+                "form-action 'self'",
+                "frame-ancestors 'self'"
+              ].join('; ');
+              
+              console.log(`生成されたCSPポリシー: ${cspPolicy}`);
+              return cspPolicy;
+            })()
+          },
         ],
       },
     ]

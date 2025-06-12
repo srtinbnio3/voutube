@@ -8,7 +8,7 @@ import { ja } from "date-fns/locale"
 import Link from "next/link"
 import { formatNumber } from "../../lib/format"
 import { memo, useMemo, useEffect, useState } from "react"
-import { Share2, Link as LinkIcon } from "lucide-react"
+import { Share2, Link as LinkIcon, FileText, Users } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -128,11 +128,6 @@ const ChannelCard = memo(function ChannelCard({ channel }: ChannelCardProps) {
                   {initials || 'CH'}
                 </AvatarFallback>
               </Avatar>
-              {/* 投稿ステータスインジケーター */}
-              <div 
-                className={`absolute -bottom-1 -right-1 w-5 h-5 ${postStatus.color} rounded-full border-2 border-white dark:border-slate-800 shadow-sm`}
-                title={`${postStatus.label}: ${postStatus.description}`}
-              />
             </div>
             
             <div className="flex-1 min-w-0">
@@ -141,17 +136,13 @@ const ChannelCard = memo(function ChannelCard({ channel }: ChannelCardProps) {
               </h3>
               <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300 mt-1">
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+                  <FileText className="w-3.5 h-3.5 text-blue-500" />
                   <span className="font-medium">{channel.post_count || 0}</span>
                   <span className="text-slate-500 dark:text-slate-400">企画</span>
                 </div>
                 <span className="text-slate-400">•</span>
                 <div className="flex items-center gap-1 flex-shrink-0 min-w-0">
-                  <svg className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+                  <Users className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
                   <span className="font-medium flex-shrink-0">
                     {isLoading ? (
                       <div className="w-8 h-3 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
