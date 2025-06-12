@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.ideatube.net'),
   title: "IdeaTube（アイデアチューブ）",
   description: "あなたのアイデアが、次のバズる動画を創ります。推しYoutuberに企画を提案しましょう！",
-  keywords: "アイデアチューブ, YouTube, YouTuber, ユーチューバー, ユーチューブ, 企画, 動画企画, アイデア, 企画案, 企画提案, クリエイター, 動画クリエイター, 視聴者, コミュニティ, プラットフォーム, バズる, バズ動画, 動画作成, 動画制作, 動画編集, 面白い動画, 人気動画, 企画募集, アイデア募集, 視聴者参加型, コラボ企画, 視聴者投票, エンタメ, エンターテインメント",
+  keywords: "IdeaTube, アイデアチューブ, YouTube, YouTuber, クラウドファンディング, ユーチューバー, ユーチューブ, 企画, 動画企画, アイデア, 企画案, 企画提案, クリエイター, 動画クリエイター, 視聴者, コミュニティ, プラットフォーム, バズる, バズ動画, 動画作成, 動画制作, 動画編集, 面白い動画, 人気動画, 企画募集, アイデア募集, 視聴者参加型, コラボ企画, 視聴者投票, エンタメ, エンターテインメント",
   authors: [{ name: "IdeaTube Team" }],
   creator: "IdeaTube Team",
   publisher: "IdeaTube",
@@ -121,7 +121,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {/* ヘッダーナビゲーション */}
-          <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
+          <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 bg-transparent">
             <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
               {/* 左側：ロゴとサイト名 */}
               <div className="flex gap-3 sm:gap-5 items-center font-semibold">
@@ -144,11 +144,11 @@ export default function RootLayout({
           </nav>
 
           <main className="min-h-screen flex flex-col items-center">
-            <div className="flex-1 w-full flex flex-col gap-20 items-center">
+            <div className="flex-1 w-full flex flex-col items-center">
               {children}
 
               {/* フッター */}
-              <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-16">
+              <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-8 bg-transparent">
                 <div className="flex gap-8 items-center">
                   <Link
                     href="https://x.com/kmrmsys"

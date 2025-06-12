@@ -13,7 +13,8 @@
     "test:post-card": "vitest run app/channels/\\[channel_id\\]/_components/__tests__/post-card.test.tsx",
     "dev:test": "NODE_ENV=test next dev",
     "build:test": "NODE_ENV=test next build",
-    "start:test": "NODE_ENV=test next start"
+    "start:test": "NODE_ENV=test next start",
+    "dev:supabase": "dotenv -e .env -- next dev"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.6",
@@ -28,6 +29,7 @@
     "@radix-ui/react-toast": "^1.2.6",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "latest",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "@testing-library/user-event": "^14.6.1",
     "@types/lodash": "^4.17.15",
     "@vercel/analytics": "^1.5.0",
@@ -62,6 +64,7 @@
     "@types/react-dom": "19.0.2",
     "@vitejs/plugin-react": "^4.3.4",
     "dotenv": "^16.4.7",
+    "dotenv-cli": "^8.0.0",
     "jsdom": "^26.0.0",
     "postcss": "8.4.49",
     "tailwind-merge": "^2.6.0",

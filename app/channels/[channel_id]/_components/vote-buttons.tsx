@@ -166,22 +166,30 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
 
   // ボタンの見た目を決める関数
   const getButtonStyle = useCallback((isUpvote: boolean) => {
-    const baseStyle = 'h-8 w-8 rounded-full p-0 transition-all duration-200'
+    const baseStyle = 'h-9 w-9 rounded-xl p-0 transition-all duration-300 border-2'
     if (currentVote === isUpvote) {
-      return `${baseStyle} ${isUpvote ? 'text-orange-500' : 'text-blue-500'} active:scale-110`
+      return `${baseStyle} ${
+        isUpvote 
+          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-400 shadow-lg shadow-green-400/20' 
+          : 'bg-gradient-to-r from-red-400 to-rose-500 text-white border-red-400 shadow-lg shadow-red-400/20'
+      } scale-110`
     }
-    return `${baseStyle} ${isUpvote ? 'hover:bg-orange-500/10' : 'hover:bg-blue-500/10'} hover:scale-105`
+    return `${baseStyle} ${
+      isUpvote 
+        ? 'border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-300 dark:hover:border-green-700' 
+        : 'border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 dark:hover:border-red-700'
+    } hover:scale-105`
   }, [currentVote])
 
   // 投票ボタンのデザインを作ります
   return (
     <>
-      <div className="flex flex-col items-center gap-1">
-        {/* いいねボタン */}
+      <div className="flex items-center gap-2 sm:gap-4 bg-slate-50/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-slate-200/50 dark:border-slate-700/50">
+        {/* いいねボタン - モバイル最適化 */}
         <Button
           variant="ghost"
           size="sm"
-          className={getButtonStyle(true)}
+          className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg sm:rounded-xl p-0 transition-all duration-300 border-2 ${getButtonStyle(true)}`}
           onClick={() => {
             if (!isLoading) {
               console.log("いいねボタンがクリックされました");
@@ -190,31 +198,26 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
           }}
           disabled={isLoading}
           aria-label="upvote"
-          data-state={currentVote === true ? "active" : "inactive"}
         >
-          {isLoading && loadingType === 'upvote' ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+          {loadingType === 'upvote' ? (
+            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
           ) : (
-            <ThumbsUp className={`h-5 w-5 transition-transform duration-200 ${currentVote === true ? 'scale-125' : ''}`} />
+            <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
           )}
         </Button>
 
-        {/* 投票スコアの表示 */}
-        <span 
-          data-testid="vote-score"
-          className={`text-sm font-bold transition-colors duration-200 ${
-            currentVote === true ? 'text-orange-500' : 
-            currentVote === false ? 'text-blue-500' : ''
-          }`}
-        >
-          {formatNumber(score)}
-        </span>
+        {/* 投票スコア表示 - モバイル最適化 */}
+        <div className="flex items-center justify-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-lg sm:rounded-xl shadow-inner min-w-[2rem] sm:min-w-[2.5rem]">
+          <span className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-200">
+            {score}
+          </span>
+        </div>
 
-        {/* よくないねボタン */}
+        {/* よくないねボタン - モバイル最適化 */}
         <Button
           variant="ghost"
           size="sm"
-          className={getButtonStyle(false)}
+          className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg sm:rounded-xl p-0 transition-all duration-300 border-2 ${getButtonStyle(false)}`}
           onClick={() => {
             if (!isLoading) {
               console.log("よくないねボタンがクリックされました");
@@ -223,17 +226,14 @@ const VoteButtons = memo(function VoteButtons({ postId, initialScore, initialVot
           }}
           disabled={isLoading}
           aria-label="downvote"
-          data-state={currentVote === false ? "active" : "inactive"}
         >
-          {isLoading && loadingType === 'downvote' ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+          {loadingType === 'downvote' ? (
+            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
           ) : (
-            <ThumbsDown className={`h-5 w-5 transition-transform duration-200 ${currentVote === false ? 'scale-125' : ''}`} />
+            <ThumbsDown className="h-3 w-3 sm:h-4 sm:w-4" />
           )}
         </Button>
       </div>
-      
-      {/* 認証ダイアログ */}
       <AuthDialog open={open} onOpenChange={setOpen} />
     </>
   )
