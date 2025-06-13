@@ -15,8 +15,13 @@ export type Database = {
           description: string | null
           icon_url: string | null
           id: string
+          last_ownership_check_at: string | null
           latest_post_at: string | null
           name: string
+          owner_user_id: string | null
+          ownership_verification_expires_at: string | null
+          ownership_verification_method: string | null
+          ownership_verified_at: string | null
           post_count: number | null
           subscriber_count: number | null
           updated_at: string
@@ -27,8 +32,13 @@ export type Database = {
           description?: string | null
           icon_url?: string | null
           id?: string
+          last_ownership_check_at?: string | null
           latest_post_at?: string | null
           name: string
+          owner_user_id?: string | null
+          ownership_verification_expires_at?: string | null
+          ownership_verification_method?: string | null
+          ownership_verified_at?: string | null
           post_count?: number | null
           subscriber_count?: number | null
           updated_at?: string
@@ -39,14 +49,27 @@ export type Database = {
           description?: string | null
           icon_url?: string | null
           id?: string
+          last_ownership_check_at?: string | null
           latest_post_at?: string | null
           name?: string
+          owner_user_id?: string | null
+          ownership_verification_expires_at?: string | null
+          ownership_verification_method?: string | null
+          ownership_verified_at?: string | null
           post_count?: number | null
           subscriber_count?: number | null
           updated_at?: string
           youtube_channel_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "channels_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       comments: {
         Row: {
@@ -394,6 +417,7 @@ export type Database = {
           created_at: string
           id: string
           updated_at: string
+          user_handle: string
           username: string
         }
         Insert: {
@@ -401,6 +425,7 @@ export type Database = {
           created_at?: string
           id: string
           updated_at?: string
+          user_handle: string
           username: string
         }
         Update: {
@@ -408,6 +433,7 @@ export type Database = {
           created_at?: string
           id?: string
           updated_at?: string
+          user_handle?: string
           username?: string
         }
         Relationships: []
