@@ -278,16 +278,16 @@ export function StartCrowdfundingButton({
   return (
     <>
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={() => {
           setDialogError(null);
           setDialogOpen(true);
         }}
-        className="flex items-center gap-1"
+        className="backdrop-blur-sm bg-gradient-to-r from-purple-500/70 to-blue-500/70 hover:from-purple-600/80 hover:to-blue-600/80 border-0 shadow-lg transition-all duration-200 text-white hover:text-white h-9 px-3"
       >
-        <Sparkles className="h-4 w-4" />
-        <span>クラウドファンディング開始</span>
+        <Sparkles className="h-4 w-4 mr-2" />
+        <span className="text-sm font-medium">クラウドファンディング開始</span>
       </Button>
       
       <Dialog open={dialogOpen} onOpenChange={(open) => {

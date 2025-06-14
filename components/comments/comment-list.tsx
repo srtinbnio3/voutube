@@ -219,7 +219,7 @@ export function CommentList({ postId }: CommentListProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-muted-foreground hover:text-primary"
+                  className="backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 hover:bg-white/90 dark:hover:bg-slate-800/90 border-0 shadow-lg transition-all duration-200 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                   onClick={() => toggleReplies(comment.id)}
                 >
                   {expandedReplies.has(comment.id) ? (
@@ -265,7 +265,11 @@ export function CommentList({ postId }: CommentListProps) {
         
         {hasMore && !isLoading && (
           <div className="flex justify-center">
-            <Button variant="outline" onClick={handleLoadMore}>
+            <Button 
+              variant="ghost" 
+              onClick={handleLoadMore}
+              className="backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 hover:bg-white/90 dark:hover:bg-slate-800/90 border-0 shadow-lg transition-all duration-200"
+            >
               もっと見る
             </Button>
           </div>

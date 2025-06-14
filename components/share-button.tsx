@@ -17,12 +17,22 @@ export function ShareButton({ onShare, className }: ShareButtonProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className={cn("h-8 w-8", className)}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={cn(
+            "backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 hover:bg-white/90 dark:hover:bg-slate-800/90 border-0 shadow-lg transition-all duration-200 h-9 w-9",
+            className
+          )}
+        >
           <Share2 className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => onShare('x')}>
+      <DropdownMenuContent 
+        align="end" 
+        className="backdrop-blur-sm bg-white/90 dark:bg-slate-800/90 border-white/20 dark:border-slate-700/50 shadow-xl"
+      >
+        <DropdownMenuItem onClick={() => onShare('x')} className="hover:bg-white/50 dark:hover:bg-slate-700/50">
           <svg
             viewBox="0 0 24 24"
             aria-hidden="true"
@@ -32,7 +42,7 @@ export function ShareButton({ onShare, className }: ShareButtonProps) {
           </svg>
           Xでシェア
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onShare('copy')}>
+        <DropdownMenuItem onClick={() => onShare('copy')} className="hover:bg-white/50 dark:hover:bg-slate-700/50">
           <LinkIcon className="mr-2 h-4 w-4" />
           リンクをコピー
         </DropdownMenuItem>
