@@ -5,6 +5,7 @@ import { ChannelInfo } from './_components/channel-info'
 import { PostCard } from './_components/post-card'
 import { PostForm } from './_components/post-form'
 import { PostSort } from './_components/post-sort'
+import { Pagination } from './_components/pagination'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -15,11 +16,13 @@ export const dynamic = "force-dynamic"
 // URLのパラメータの型定義
 export default async function ChannelPage(props: {
   params: Promise<{ channel_id: string }>;
-  searchParams: Promise<{ sort?: 'popular' | 'recent' }>;
+  searchParams: Promise<{ sort?: 'popular' | 'recent', page?: string }>;
 }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const sort = searchParams.sort || 'popular'; // デフォルトは人気順
+  const currentPage = parseInt(searchParams.page || '1', 10); // ページ番号（デフォルトは1）
+  const itemsPerPage = 10; // 1ページあたりの投稿数
 
   // Cookieの取得（認証情報などが含まれる）
   const cookieStore = await cookies()
@@ -49,7 +52,14 @@ export default async function ChannelPage(props: {
     notFound()
   }
 
-  // チャンネルの投稿一覧を取得
+  // 総投稿数を取得（ページネーション用）
+  const { count: totalPosts } = await supabase
+    .from("posts")
+    .select("*", { count: "exact", head: true })
+    .eq("channel_id", params.channel_id)
+
+  // チャンネルの投稿一覧を取得（ページネーション対応）
+  const offset = (currentPage - 1) * itemsPerPage
   const { data: posts, error: postsError } = await supabase
     .from("posts")
     .select(`
@@ -66,6 +76,7 @@ export default async function ChannelPage(props: {
     `)
     .eq("channel_id", params.channel_id)
     .order(sort === "popular" ? "score" : "created_at", { ascending: false })
+    .range(offset, offset + itemsPerPage - 1)
 
   // 各投稿のコメント数を取得
   const postsWithCommentCount = await Promise.all(
@@ -86,6 +97,9 @@ export default async function ChannelPage(props: {
   const { data: { user } } = await supabase.auth.getUser()
   const userId = user?.id
   const isLoggedIn = !!user
+
+  // ページネーション計算
+  const totalPages = Math.ceil((totalPosts || 0) / itemsPerPage)
 
   // ページのレイアウトを返す
   return (
@@ -124,7 +138,7 @@ export default async function ChannelPage(props: {
                     投稿企画一覧
                   </h2>
                   <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">
-                    {postsWithCommentCount?.length || 0}件の企画が投稿されています
+                    {totalPosts || 0}件の企画が投稿されています
                   </p>
                 </div>
                 
@@ -163,6 +177,14 @@ export default async function ChannelPage(props: {
                 </div>
               )}
             </div>
+
+            {/* ページネーション */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalPosts || 0}
+              itemsPerPage={itemsPerPage}
+            />
           </div>
         </div>
       </div>
