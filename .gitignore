@@ -96,6 +96,9 @@ coverage/
 # New directories
 .cursor/
 
+# Database backups
+/supabase/backup/
+
 # Obsidian
 .obsidian/
 doc/.obsidian/

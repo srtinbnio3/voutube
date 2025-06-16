@@ -172,6 +172,14 @@ export function ChannelForm() {
       }
 
       // 登録するチャンネルデータ
+      // 現在のユーザー情報を取得（認証確認のため）
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error("ユーザー認証が必要です")
+      }
+
+      // 登録するチャンネルデータ（owner_idは設定しない）
       const channelData = {
         name: selectedChannel.name,
         description: selectedChannel.description || "",
@@ -213,8 +221,8 @@ export function ChannelForm() {
       // 成功処理
       console.log('作成成功:', data)
       toast({
-        title: "チャンネルを作成しました",
-        description: "チャンネルが正常に作成されました",
+        title: "チャンネルを登録しました",
+        description: `「${selectedChannel.name}」が正常に登録されました`,
       })
       
       // フォームをリセット
@@ -278,47 +286,47 @@ export function ChannelForm() {
 
       {/* チャンネル追加モーダル */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[600px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-0 shadow-2xl rounded-3xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="w-[95vw] max-w-[500px] sm:max-w-[600px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-0 shadow-2xl rounded-3xl max-h-[90vh] overflow-hidden mx-4">
           {/* モーダルの背景グラデーション */}
           <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 via-transparent to-pink-50/50 dark:from-red-950/30 dark:via-transparent dark:to-pink-950/30 rounded-3xl" />
           
-          <div className="relative z-10 max-h-[80vh] overflow-y-auto">
-            <DialogHeader className="pb-6">
-              <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-gradient-to-r from-slate-900 via-red-600 to-pink-600 bg-clip-text text-transparent dark:from-white dark:via-red-400 dark:to-pink-400">
-                <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl shadow-lg">
-                  <Youtube className="w-5 h-5 text-white" />
+          <div className="relative z-10 max-h-[80vh] overflow-y-auto p-1">
+            <DialogHeader className="pb-4 sm:pb-6 px-1">
+              <DialogTitle className="flex items-center gap-2 sm:gap-3 text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-900 via-red-600 to-pink-600 bg-clip-text text-transparent dark:from-white dark:via-red-400 dark:to-pink-400">
+                <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl shadow-lg">
+                  <Youtube className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 新規チャンネル追加
               </DialogTitle>
-              <p className="text-slate-600 dark:text-slate-300 mt-2">
+              <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm sm:text-base">
                 YouTubeチャンネルを検索して、システムに追加しましょう
               </p>
             </DialogHeader>
             
             {/* 検索フォーム */}
             {!selectedChannel && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6 px-1">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                     YouTubeチャンネル検索
                   </label>
-                  <form onSubmit={searchYouTubeChannels} className="flex gap-3">
+                  <form onSubmit={searchYouTubeChannels} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <Input
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="チャンネル名やキーワードを入力"
-                      className="flex-1 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 rounded-2xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 transition-all duration-300"
+                      className="flex-1 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 rounded-2xl px-3 sm:px-4 py-2 sm:py-3 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 transition-all duration-300 text-sm sm:text-base"
                     />
                     <Button 
                       type="submit" 
                       disabled={!searchQuery.trim() || isSearching}
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-6 py-3 font-medium"
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-4 sm:px-6 py-2 sm:py-3 font-medium text-sm sm:text-base whitespace-nowrap"
                     >
                       {isSearching ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                       ) : (
-                        <Search className="h-5 w-5" />
+                        <Search className="h-4 w-4 sm:h-5 sm:w-5" />
                       )}
                     </Button>
                   </form>
@@ -331,7 +339,7 @@ export function ChannelForm() {
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       検索結果から選択
                     </label>
-                    <div className="max-h-[300px] overflow-y-auto space-y-2">
+                    <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1">
                       {searchResults.map((channel) => (
                         <Card
                           key={channel.youtube_channel_id}
@@ -377,16 +385,16 @@ export function ChannelForm() {
             
             {/* 選択済みチャンネル表示 */}
             {selectedChannel && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6 px-1">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     選択されたチャンネル
                   </label>
                   <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200/50 dark:border-green-800/50 rounded-2xl">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden ring-4 ring-white/50 dark:ring-slate-700/50 shadow-lg">
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 rounded-2xl overflow-hidden ring-2 sm:ring-4 ring-white/50 dark:ring-slate-700/50 shadow-lg">
                           {selectedChannel.icon_url && (
                             <Image
                               src={selectedChannel.icon_url}
@@ -400,14 +408,14 @@ export function ChannelForm() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-lg text-slate-900 dark:text-white truncate">
+                          <p className="font-bold text-base sm:text-lg text-slate-900 dark:text-white truncate">
                             {selectedChannel.name}
                           </p>
-                          <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 mt-1">
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-2 mt-1">
                             {selectedChannel.description || "説明なし"}
                           </p>
                           {selectedChannel.subscriber_count && (
-                            <p className="text-xs text-green-600 dark:text-green-400 font-medium mt-2">
+                            <p className="text-xs text-green-600 dark:text-green-400 font-medium mt-1 sm:mt-2">
                               登録者数: {selectedChannel.subscriber_count.toLocaleString()}人
                             </p>
                           )}
@@ -416,9 +424,9 @@ export function ChannelForm() {
                           variant="outline" 
                           size="sm" 
                           onClick={resetSelection}
-                          className="flex-shrink-0 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl"
+                          className="flex-shrink-0 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs sm:text-sm"
                         >
-                          <X className="w-4 h-4 mr-1" />
+                          <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           変更
                         </Button>
                       </div>
@@ -427,17 +435,17 @@ export function ChannelForm() {
                 </div>
                 
                 {/* 作成ボタン */}
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end pt-2 sm:pt-4">
                   <Button 
                     onClick={handleSubmit}
                     disabled={isLoading || !selectedChannel}
-                    className="group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:scale-105 rounded-2xl px-8 py-3 font-semibold min-w-[140px]"
+                    className="group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:scale-105 rounded-2xl px-6 sm:px-8 py-2 sm:py-3 font-semibold min-w-[120px] sm:min-w-[140px] text-sm sm:text-base"
                   >
                     {/* 背景のアニメーション効果 */}
                     <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     
                     {/* ボタンの内容 */}
-                    <div className="relative z-10 flex items-center justify-center gap-2">
+                    <div className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">
                       {isLoading ? (
                         <>
                           <LoadingSpinner size="sm" className="text-white" />
@@ -445,7 +453,7 @@ export function ChannelForm() {
                         </>
                       ) : (
                         <>
-                          <Check className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
+                          <Check className="w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 group-hover:scale-110" />
                           <span>チャンネル作成</span>
                         </>
                       )}

@@ -60,7 +60,7 @@ create table comments (
   post_id uuid references posts(id) on delete cascade not null,
   user_id uuid references profiles(id) on delete cascade not null,
   content text not null,
-  parent_id uuid,
+  parent_id uuid references comments(id) on delete cascade,
   mentioned_username text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -78,6 +78,8 @@ create table crowdfunding_campaigns (
   start_date timestamp with time zone not null,
   end_date timestamp with time zone not null,
   status text not null check (status in ('draft', 'active', 'completed', 'cancelled')),
+  reward_enabled boolean default false,
+  bank_account_info jsonb,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   
@@ -110,13 +112,9 @@ create table crowdfunding_supporters (
   user_id uuid references profiles(id) on delete cascade not null,
   reward_id uuid references crowdfunding_rewards(id) on delete cascade not null,
   amount integer not null check (amount > 0),
-  status text not null check (status in ('pending', 'completed', 'failed', 'refunded')),
+  payment_status text not null check (payment_status in ('pending', 'completed', 'failed', 'refunded')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  
-  constraint unique_support check (amount >= (
-    select amount from crowdfunding_rewards where id = reward_id
-  ))
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- 8. crowdfunding_payments table
@@ -208,16 +206,21 @@ create policy "自分のコメントのみ削除可能"
   using (auth.uid() = user_id);
 
 -- Triggers
--- Update channel stats
+-- チャンネルの投稿数と最新投稿日時を更新するトリガー
+drop trigger if exists on_post_update_channel_stats on posts;
+drop function if exists update_channel_stats();
+
 create or replace function update_channel_stats()
 returns trigger as $$
 begin
   if (TG_OP = 'INSERT') then
+    -- 新規投稿時：投稿数を+1し、最新投稿日時を更新
     update channels
     set post_count = post_count + 1,
         latest_post_at = new.created_at
     where id = new.channel_id;
   elsif (TG_OP = 'DELETE') then
+    -- 投稿削除時：投稿数を-1し、最新投稿日時を更新（残りの投稿の中で最新のもの）
     update channels
     set post_count = post_count - 1,
         latest_post_at = (
@@ -236,10 +239,14 @@ create trigger on_post_update_channel_stats
   for each row
   execute function update_channel_stats();
 
--- Update post score
+-- 投稿のスコア（賛成票 - 反対票）を更新するトリガー
+drop trigger if exists on_vote_update_score on votes;
+drop function if exists update_post_score();
+
 create or replace function update_post_score()
 returns trigger as $$
 begin
+  -- 投票の変更時に投稿のスコアを再計算
   update posts
   set score = (
     select count(case when is_upvote then 1 end) - count(case when not is_upvote then 1 end)
@@ -265,6 +272,10 @@ create index posts_channel_created_idx on posts (channel_id, created_at desc);
 create index votes_post_id_idx on votes (post_id);
 
 -- Create profile for new user trigger
+-- 既存のトリガーを削除
+drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists create_profile_for_new_user();
+
 create or replace function create_profile_for_new_user()
 returns trigger as $$
 begin
@@ -289,6 +300,12 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function create_profile_for_new_user();
 
+-- ストレージポリシーの設定
+-- 既存のポリシーを削除
+drop policy if exists "認証済みユーザーのみアップロード可能" on storage.objects;
+drop policy if exists "認証済みユーザーは自分のファイルのみ更新可能" on storage.objects;
+drop policy if exists "全ユーザーが閲覧可能" on storage.objects;
+
 -- 認証済みユーザーのみアップロード可能
 CREATE POLICY "認証済みユーザーのみアップロード可能" ON storage.objects
   FOR INSERT TO authenticated
@@ -305,10 +322,14 @@ CREATE POLICY "全ユーザーが閲覧可能" ON storage.objects
   FOR SELECT TO public
   USING (bucket_id = 'user-content');
 
--- 更新日時を自動更新するトリガーの作成
+-- 更新日時を自動更新するトリガー
+drop trigger if exists update_comments_updated_at on comments;
+drop function if exists update_updated_at_column();
+
 create or replace function update_updated_at_column()
 returns trigger as $$
 begin
+  -- レコード更新時にupdated_atを現在時刻に設定
   new.updated_at = timezone('utc'::text, now());
   return new;
 end;
@@ -331,18 +352,25 @@ create index crowdfunding_payments_stripe_payment_intent_id_idx on crowdfunding_
 create index comments_parent_id_idx on comments (parent_id);
 
 -- Create triggers
+-- クラウドファンディングの支援金額を更新するトリガー
+drop trigger if exists on_supporter_update_campaign_amount on crowdfunding_supporters;
+drop function if exists update_campaign_amount();
+
 create or replace function update_campaign_amount()
 returns trigger as $$
 begin
   if (TG_OP = 'INSERT' and new.status = 'completed') then
+    -- 新規支援完了時：支援金額を加算
     update crowdfunding_campaigns
     set current_amount = current_amount + new.amount
     where id = new.campaign_id;
   elsif (TG_OP = 'UPDATE' and old.status != 'completed' and new.status = 'completed') then
+    -- 支援ステータスが完了に変更時：支援金額を加算
     update crowdfunding_campaigns
     set current_amount = current_amount + new.amount
     where id = new.campaign_id;
   elsif (TG_OP = 'UPDATE' and old.status = 'completed' and new.status != 'completed') then
+    -- 支援ステータスが完了から変更時：支援金額を減算
     update crowdfunding_campaigns
     set current_amount = current_amount - old.amount
     where id = old.campaign_id;
@@ -356,18 +384,25 @@ create trigger on_supporter_update_campaign_amount
   for each row
   execute function update_campaign_amount();
 
+-- リワードの残数を更新するトリガー
+drop trigger if exists on_supporter_update_reward_quantity on crowdfunding_supporters;
+drop function if exists update_reward_quantity();
+
 create or replace function update_reward_quantity()
 returns trigger as $$
 begin
   if (TG_OP = 'INSERT' and new.status = 'completed') then
+    -- 新規支援完了時：リワード残数を-1
     update crowdfunding_rewards
     set remaining_quantity = remaining_quantity - 1
     where id = new.reward_id;
   elsif (TG_OP = 'UPDATE' and old.status != 'completed' and new.status = 'completed') then
+    -- 支援ステータスが完了に変更時：リワード残数を-1
     update crowdfunding_rewards
     set remaining_quantity = remaining_quantity - 1
     where id = new.reward_id;
   elsif (TG_OP = 'UPDATE' and old.status = 'completed' and new.status != 'completed') then
+    -- 支援ステータスが完了から変更時：リワード残数を+1
     update crowdfunding_rewards
     set remaining_quantity = remaining_quantity + 1
     where id = old.reward_id;
@@ -383,4 +418,4 @@ create trigger on_supporter_update_reward_quantity
 
 -- Comments table foreign key constraints
 alter table comments add constraint comments_parent_id_fkey 
-  foreign key (parent_id) references comments(id) on delete cascade; 
+  foreign key (parent_id) references comments(id) on delete cascade;

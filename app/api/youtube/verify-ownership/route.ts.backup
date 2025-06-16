@@ -1,0 +1,86 @@
+import { createClient } from "@/utils/supabase/server";
+import { google } from "googleapis";
+import { NextResponse } from "next/server";
+
+// テスト用のGETエンドポイント
+export async function GET() {
+  console.log("verify-ownership API GET endpoint called");
+  return NextResponse.json({ 
+    message: "verify-ownership API is working",
+    timestamp: new Date().toISOString()
+  });
+}
+
+export async function POST(req: Request) {
+  console.log("POST メソッドが呼び出されました");
+  
+  try {
+    const body = await req.json();
+    console.log("受信したリクエストボディ:", body);
+    
+    const { channelId } = body;
+    console.log("所有権確認API呼び出し:", { channelId });
+    
+    if (!channelId) {
+      console.error("チャンネルIDが不正:", channelId);
+      return NextResponse.json({ error: "チャンネルIDが必要です" }, { status: 400 });
+    }
+    
+    // ユーザー認証情報を取得
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      console.error("セッション情報なし");
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    }
+    
+    console.log("認証成功、ユーザーID:", session.user.id);
+    
+    // チャンネル情報を取得
+    console.log("データベースからチャンネル情報を取得中:", { channelId, channelIdType: typeof channelId });
+    const { data: channelData, error: channelError } = await supabase
+      .from("channels")
+      .select("youtube_channel_id, owner_id, name")
+      .eq("id", channelId)
+      .single();
+    
+    console.log("チャンネルクエリ結果:", { channelData, channelError });
+    
+    if (channelError || !channelData) {
+      console.error("チャンネル情報取得エラー詳細:", {
+        error: channelError,
+        data: channelData,
+        channelId: channelId,
+        errorCode: channelError?.code,
+        errorMessage: channelError?.message,
+        errorDetails: channelError?.details
+      });
+      return NextResponse.json({ 
+        error: `チャンネル情報の取得に失敗しました。チャンネルID: ${channelId}`,
+        details: channelError?.message || "データが見つかりません"
+      }, { status: 404 });
+    }
+    
+    console.log("チャンネル情報取得成功:", channelData);
+    const youtubeChannelId = channelData.youtube_channel_id;
+    
+    // データベースに記録されているチャンネルオーナーIDとセッションユーザーIDを比較
+    const isOwner = channelData.owner_id === session.user.id;
+    console.log("所有権確認結果:", { 
+      dbOwnerId: channelData.owner_id, 
+      sessionUserId: session.user.id, 
+      isOwner 
+    });
+    
+    return NextResponse.json({ 
+      isOwner,
+      channelTitle: channelData.name || "",
+      youtubeChannelId: youtubeChannelId
+    });
+    
+  } catch (error) {
+    console.error('POST エラー:', error);
+    return NextResponse.json({ error: "リクエストの処理中にエラーが発生しました" }, { status: 500 });
+  }
+} 

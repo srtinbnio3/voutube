@@ -5,9 +5,8 @@ import { ChannelInfo } from './_components/channel-info'
 import { PostCard } from './_components/post-card'
 import { PostForm } from './_components/post-form'
 import { PostSort } from './_components/post-sort'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, PlusCircle } from 'lucide-react'
-import Link from 'next/link'
+import { Pagination } from './_components/pagination'
+import { PlusCircle } from 'lucide-react'
 
 // ページの動的生成を有効化（キャッシュを無効化）
 export const dynamic = "force-dynamic"
@@ -15,11 +14,13 @@ export const dynamic = "force-dynamic"
 // URLのパラメータの型定義
 export default async function ChannelPage(props: {
   params: Promise<{ channel_id: string }>;
-  searchParams: Promise<{ sort?: 'popular' | 'recent' }>;
+  searchParams: Promise<{ sort?: 'popular' | 'recent', page?: string }>;
 }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const sort = searchParams.sort || 'popular'; // デフォルトは人気順
+  const currentPage = parseInt(searchParams.page || '1', 10); // ページ番号（デフォルトは1）
+  const itemsPerPage = 10; // 1ページあたりの投稿数
 
   // Cookieの取得（認証情報などが含まれる）
   const cookieStore = await cookies()
@@ -49,7 +50,14 @@ export default async function ChannelPage(props: {
     notFound()
   }
 
-  // チャンネルの投稿一覧を取得
+  // 総投稿数を取得（ページネーション用）
+  const { count: totalPosts } = await supabase
+    .from("posts")
+    .select("*", { count: "exact", head: true })
+    .eq("channel_id", params.channel_id)
+
+  // チャンネルの投稿一覧を取得（ページネーション対応）
+  const offset = (currentPage - 1) * itemsPerPage
   const { data: posts, error: postsError } = await supabase
     .from("posts")
     .select(`
@@ -66,6 +74,7 @@ export default async function ChannelPage(props: {
     `)
     .eq("channel_id", params.channel_id)
     .order(sort === "popular" ? "score" : "created_at", { ascending: false })
+    .range(offset, offset + itemsPerPage - 1)
 
   // 各投稿のコメント数を取得
   const postsWithCommentCount = await Promise.all(
@@ -87,6 +96,9 @@ export default async function ChannelPage(props: {
   const userId = user?.id
   const isLoggedIn = !!user
 
+  // ページネーション計算
+  const totalPages = Math.ceil((totalPosts || 0) / itemsPerPage)
+
   // ページのレイアウトを返す
   return (
     <main className="relative overflow-hidden min-h-screen">
@@ -101,15 +113,8 @@ export default async function ChannelPage(props: {
         <div className="container max-w-6xl py-4 sm:py-8 px-3 sm:px-4 lg:px-6">
           {/* ヘッダー部分 - モバイル最適化 */}
           <div className="mb-6 sm:mb-8">
-            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <Button variant="ghost" size="icon" asChild className="flex-shrink-0 backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 hover:bg-white/90 dark:hover:bg-slate-800/90 border-0 shadow-lg w-10 h-10 sm:w-12 sm:h-12">
-                <Link href="/channels">
-                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Link>
-              </Button>
-              <div className="flex-1 min-w-0">
-                <ChannelInfo channel={channel} />
-              </div>
+            <div className="mb-4 sm:mb-6">
+              <ChannelInfo channel={channel} />
             </div>
           </div>
           
@@ -124,7 +129,7 @@ export default async function ChannelPage(props: {
                     投稿企画一覧
                   </h2>
                   <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">
-                    {postsWithCommentCount?.length || 0}件の企画が投稿されています
+                    {totalPosts || 0}件の企画が投稿されています
                   </p>
                 </div>
                 
@@ -163,6 +168,14 @@ export default async function ChannelPage(props: {
                 </div>
               )}
             </div>
+
+            {/* ページネーション */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalPosts || 0}
+              itemsPerPage={itemsPerPage}
+            />
           </div>
         </div>
       </div>

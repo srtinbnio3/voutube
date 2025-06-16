@@ -240,11 +240,68 @@ export const signInWithGoogleAction = async (formData?: FormData) => {
     redirectUrl.searchParams.set("redirect_to", redirectTo);
   }
 
-  // Google認証を開始
+  // Google認証を開始（基本認証のみ）
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",  // Google認証を使用することを指定
     options: {
       redirectTo: redirectUrl.toString(),  // 認証後の戻り先URLを設定
+      // 基本的な認証のみ（YouTube APIのスコープは含めない）
+      scopes: "openid profile email",
+      queryParams: {
+        access_type: 'offline',  // refresh tokenを取得するために必要
+        prompt: 'consent',       // 毎回同意画面を表示してtokenを確実に取得
+      },
+    },
+  });
+
+  // エラーが発生した場合
+  if (error) {
+    return encodedRedirect("error", "/sign-in", error.message);
+  }
+
+  // Googleの認証ページへユーザーを移動
+  return redirect(data.url);
+};
+
+/**
+ * YouTube API権限付きでGoogleログインする処理
+ * 
+ * クラウドファンディング開始などYouTube APIアクセスが必要な機能で使用します
+ */
+export const signInWithGoogleForYouTubeAction = async (formData?: FormData) => {
+  // データベースに接続
+  const supabase = await createClient();
+  const headersList = await headers();
+  const origin = headersList.get("origin");
+  
+  // フォームからログイン後の移動先URLを取得（ある場合）
+  let redirectTo = formData?.get("redirect_to")?.toString();
+  
+  // 現在のページのURLから移動先情報を取得（フォームに情報がない場合）
+  const referer = headersList.get("referer");
+  if (referer && !redirectTo) {
+    // URLからredirect_toパラメータを探して取得
+    const url = new URL(referer);
+    redirectTo = url.searchParams.get("redirect_to") || undefined;
+  }
+
+  // Google認証後の戻り先URLを作成
+  const redirectUrl = new URL(`${origin}/auth/callback`);
+  if (redirectTo) {
+    redirectUrl.searchParams.set("redirect_to", redirectTo);
+  }
+
+  // Google認証を開始（YouTube API権限も含む）
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",  // Google認証を使用することを指定
+    options: {
+      redirectTo: redirectUrl.toString(),  // 認証後の戻り先URLを設定
+      // YouTube API権限も含めたスコープ - チャンネル一覧取得に必要な最小限の権限
+      scopes: "openid profile email https://www.googleapis.com/auth/youtube.readonly",
+      queryParams: {
+        access_type: 'offline',  // refresh tokenを取得するために必要
+        prompt: 'consent',       // 毎回同意画面を表示してtokenを確実に取得
+      },
     },
   });
 

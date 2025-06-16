@@ -64,7 +64,7 @@ export function CommentList({ postId }: CommentListProps) {
 
   const handleCommentAdded = (newComment: CommentWithReplies) => {
     // APIからの返信で親コメントIDが変更されている場合があるため、その状態を確認
-    const originalParentId = newComment.parent_id;
+    const originalParentId = (newComment as any).parentId;
     
     // 親コメントの場合は先頭に追加
     if (!originalParentId) {
@@ -129,7 +129,7 @@ export function CommentList({ postId }: CommentListProps) {
 
   const handleCommentUpdated = (updatedComment: CommentWithReplies) => {
     // フラグで更新か追加かを判断
-    const isNewReply = updatedComment.replies && updatedComment.replies.length === 0 && updatedComment.parent_id;
+    const isNewReply = updatedComment.replies && updatedComment.replies.length === 0 && (updatedComment as any).parentId;
     
     if (isNewReply) {
       // 新しい返信の場合はhandleCommentAddedを利用
@@ -219,7 +219,7 @@ export function CommentList({ postId }: CommentListProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-muted-foreground hover:text-primary"
+                  className="backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 hover:bg-white/90 dark:hover:bg-slate-800/90 border-0 shadow-lg transition-all duration-200 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                   onClick={() => toggleReplies(comment.id)}
                 >
                   {expandedReplies.has(comment.id) ? (
@@ -265,7 +265,11 @@ export function CommentList({ postId }: CommentListProps) {
         
         {hasMore && !isLoading && (
           <div className="flex justify-center">
-            <Button variant="outline" onClick={handleLoadMore}>
+            <Button 
+              variant="ghost" 
+              onClick={handleLoadMore}
+              className="backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 hover:bg-white/90 dark:hover:bg-slate-800/90 border-0 shadow-lg transition-all duration-200"
+            >
               もっと見る
             </Button>
           </div>

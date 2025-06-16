@@ -28,17 +28,42 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 CREATE OR REPLACE FUNCTION "public"."create_profile_for_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
+DECLARE
+  base_username text;
+  generated_handle text;
+  counter integer := 1;
 begin
-  insert into public.profiles (id, username, avatar_url)
+  -- 基本となるusernameを取得
+  base_username := coalesce(
+    (new.raw_user_meta_data->>'name')::text,
+    split_part(new.email, '@', 1)
+  );
+  
+  -- 基本usernameが空の場合は'user'を使用
+  if base_username is null or trim(base_username) = '' then
+    base_username := 'user';
+  end if;
+  
+  -- user_handleを自動生成（user_ + ランダムな8桁の英数字）
+  generated_handle := 'user_' || lower(substring(md5(random()::text), 1, 8));
+  
+  -- user_handleがユニークになるまでループ（念のため）
+  while exists (select 1 from public.profiles where user_handle = generated_handle) loop
+    generated_handle := 'user_' || lower(substring(md5(random()::text), 1, 8));
+    counter := counter + 1;
+    
+    -- 無限ループ防止（最大100回試行）
+    if counter > 100 then
+      generated_handle := 'user_' || extract(epoch from now())::bigint;
+      exit;
+    end if;
+  end loop;
+  
+  insert into public.profiles (id, user_handle, username, avatar_url)
   values (
     new.id,
-    -- OAuth認証の場合はraw_user_meta_dataからusernameを取得、
-    -- なければメールアドレスのローカル部分を使用
-    coalesce(
-      (new.raw_user_meta_data->>'name')::text,
-      split_part(new.email, '@', 1)
-    ),
-    -- OAuth認証の場合はavatarを使用
+    generated_handle,
+    base_username,
     (new.raw_user_meta_data->>'avatar_url')::text
   );
   return new;
@@ -260,6 +285,19 @@ SET default_tablespace = '';
 
 SET default_table_access_method = "heap";
 
+CREATE TABLE IF NOT EXISTS "public"."profiles" (
+    "id" "uuid" NOT NULL,
+    "user_handle" "text" NOT NULL,
+    "username" "text" NOT NULL,
+    "avatar_url" "text",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    CONSTRAINT "username_length" CHECK (("char_length"("username") >= 1)),
+    CONSTRAINT "user_handle_length" CHECK (("char_length"("user_handle") >= 1))
+);
+
+ALTER TABLE "public"."profiles" OWNER TO "postgres";
+
 CREATE TABLE IF NOT EXISTS "public"."channels" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "youtube_channel_id" "text" NOT NULL,
@@ -270,10 +308,22 @@ CREATE TABLE IF NOT EXISTS "public"."channels" (
     "post_count" integer DEFAULT 0,
     "latest_post_at" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "owner_user_id" "uuid",
+    "ownership_verified_at" timestamp with time zone,
+    "ownership_verification_expires_at" timestamp with time zone,
+    "ownership_verification_method" "text" DEFAULT 'youtube_api',
+    "last_ownership_check_at" timestamp with time zone,
+    CONSTRAINT "ownership_verification_method_check" CHECK (("ownership_verification_method" = ANY (ARRAY['youtube_api'::"text", 'manual'::"text"])))
 );
 
 ALTER TABLE "public"."channels" OWNER TO "postgres";
+
+COMMENT ON COLUMN "public"."channels"."owner_user_id" IS 'チャンネルの所有者のユーザーID（確認済み）';
+COMMENT ON COLUMN "public"."channels"."ownership_verified_at" IS '所有権が最後に確認された日時';
+COMMENT ON COLUMN "public"."channels"."ownership_verification_expires_at" IS '所有権確認の有効期限（通常は30日後）';
+COMMENT ON COLUMN "public"."channels"."ownership_verification_method" IS '所有権確認の方法（youtube_api, manual）';
+COMMENT ON COLUMN "public"."channels"."last_ownership_check_at" IS '最後に所有権チェックを実行した日時';
 
 CREATE TABLE IF NOT EXISTS "public"."comments" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -392,17 +442,6 @@ CREATE TABLE IF NOT EXISTS "public"."posts" (
 
 ALTER TABLE "public"."posts" OWNER TO "postgres";
 
-CREATE TABLE IF NOT EXISTS "public"."profiles" (
-    "id" "uuid" NOT NULL,
-    "username" "text" NOT NULL,
-    "avatar_url" "text",
-    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    CONSTRAINT "username_length" CHECK (("char_length"("username") >= 1))
-);
-
-ALTER TABLE "public"."profiles" OWNER TO "postgres";
-
 CREATE TABLE IF NOT EXISTS "public"."votes" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -445,7 +484,7 @@ ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."profiles"
-    ADD CONSTRAINT "profiles_username_key" UNIQUE ("username");
+    ADD CONSTRAINT "profiles_user_handle_key" UNIQUE ("user_handle");
 
 ALTER TABLE ONLY "public"."votes"
     ADD CONSTRAINT "unique_user_post" UNIQUE ("user_id", "post_id");
@@ -458,6 +497,10 @@ CREATE INDEX "channels_latest_post_at_idx" ON "public"."channels" USING "btree" 
 CREATE INDEX "channels_post_count_idx" ON "public"."channels" USING "btree" ("post_count" DESC);
 
 CREATE INDEX "channels_youtube_id_idx" ON "public"."channels" USING "btree" ("youtube_channel_id");
+
+CREATE INDEX "idx_channels_owner_user_id" ON "public"."channels" USING "btree" ("owner_user_id");
+
+CREATE INDEX "idx_channels_ownership_expires" ON "public"."channels" USING "btree" ("ownership_verification_expires_at");
 
 CREATE INDEX "creator_rewards_campaign_id_idx" ON "public"."creator_rewards" USING "btree" ("campaign_id");
 
@@ -508,6 +551,9 @@ ALTER TABLE ONLY "public"."comments"
 ALTER TABLE ONLY "public"."comments"
     ADD CONSTRAINT "comments_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "public"."comments"("id") ON DELETE CASCADE;
 
+ALTER TABLE ONLY "public"."channels"
+    ADD CONSTRAINT "channels_owner_user_id_fkey" FOREIGN KEY ("owner_user_id") REFERENCES "public"."profiles"("id") ON DELETE SET NULL;
+
 ALTER TABLE ONLY "public"."creator_rewards"
     ADD CONSTRAINT "creator_rewards_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "public"."crowdfunding_campaigns"("id") ON DELETE CASCADE;
 
@@ -549,13 +595,17 @@ ALTER TABLE ONLY "public"."votes"
 
 CREATE POLICY "Authenticated users can create channels" ON "public"."channels" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
+CREATE POLICY "Channels are viewable by everyone" ON "public"."channels" FOR SELECT USING (true);
+
+CREATE POLICY "Users can update channels" ON "public"."channels" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
+
+CREATE POLICY "チャンネル所有者のみ所有権情報を更新可能" ON "public"."channels" FOR UPDATE USING (("auth"."uid"() = "owner_user_id"));
+
 CREATE POLICY "Authenticated users can create creator rewards" ON "public"."creator_rewards" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
 CREATE POLICY "Authenticated users can create posts" ON "public"."posts" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
 
 CREATE POLICY "Authenticated users can vote" ON "public"."votes" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
-
-CREATE POLICY "Channels are viewable by everyone" ON "public"."channels" FOR SELECT USING (true);
 
 CREATE POLICY "Creator rewards are viewable by everyone" ON "public"."creator_rewards" FOR SELECT USING (true);
 
@@ -568,8 +618,6 @@ CREATE POLICY "Users can create their own profile" ON "public"."profiles" FOR IN
 CREATE POLICY "Users can delete their own posts" ON "public"."posts" FOR DELETE USING (("auth"."uid"() = "user_id"));
 
 CREATE POLICY "Users can delete their own votes" ON "public"."votes" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-CREATE POLICY "Users can update channels" ON "public"."channels" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
 
 CREATE POLICY "Users can update their own creator rewards" ON "public"."creator_rewards" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
 

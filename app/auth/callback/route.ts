@@ -19,7 +19,15 @@ export async function GET(request: Request) {
   // 3. リダイレクト先の決定
   // リダイレクト先が指定されている場合はそこへ
   if (redirectTo) {
-    return NextResponse.redirect(`${origin}${redirectTo}`);
+    // redirectToが完全なURL（httpで始まる）かパスかを判定
+    try {
+      // 完全なURLの場合はそのまま使用
+      const url = new URL(redirectTo);
+      return NextResponse.redirect(url.toString());
+    } catch {
+      // パスの場合はoriginと結合
+      return NextResponse.redirect(`${origin}${redirectTo}`);
+    }
   }
 
   // リダイレクト先が指定されていない場合はチャンネル一覧ページへ

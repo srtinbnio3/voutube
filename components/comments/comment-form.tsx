@@ -95,22 +95,27 @@ export function CommentForm({
           placeholder={replyToUsername ? `@${replyToUsername} に返信...` : 'コメントを入力...'}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="min-h-[100px] text-sm sm:text-base"
+          className="min-h-[100px] text-sm sm:text-base backdrop-blur-sm bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50 focus:bg-white/70 dark:focus:bg-slate-800/70 transition-all duration-200"
           disabled={isSubmitting}
         />
         <div className="flex justify-end space-x-2">
           {onCancel && (
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={onCancel}
               disabled={isSubmitting}
-              className="text-xs sm:text-sm"
+              className="backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 hover:bg-white/90 dark:hover:bg-slate-800/90 border-0 shadow-lg transition-all duration-200 text-xs sm:text-sm"
             >
               キャンセル
             </Button>
           )}
-          <Button type="submit" disabled={isSubmitting} className="text-xs sm:text-sm">
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            variant="ghost"
+            className="backdrop-blur-sm bg-gradient-to-r from-blue-500/70 to-purple-500/70 hover:from-blue-600/80 hover:to-purple-600/80 border-0 shadow-lg transition-all duration-200 text-white hover:text-white text-xs sm:text-sm"
+          >
             {isSubmitting ? '投稿中...' : '投稿'}
           </Button>
         </div>
