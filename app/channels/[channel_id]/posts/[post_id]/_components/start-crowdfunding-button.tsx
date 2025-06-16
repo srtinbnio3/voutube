@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog'
-import { Sparkles, AlertTriangle } from 'lucide-react'
+import { Sparkles, AlertTriangle, Clock } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
 import { signInWithGoogleForYouTubeAction } from '@/app/actions'
@@ -33,6 +33,9 @@ export function StartCrowdfundingButton({
   const [isLoading, setIsLoading] = useState(false)
   const [dialogError, setDialogError] = useState<string | null>(null)
   const [isReauthenticating, setIsReauthenticating] = useState(false)
+  
+  // 環境変数からクラウドファンディング機能の有効性を確認
+  const isCrowdfundingEnabled = process.env.NEXT_PUBLIC_CROWDFUNDING_ENABLED === 'true'
   
   // 再認証から戻った際の自動復元処理
   useEffect(() => {
@@ -277,95 +280,142 @@ export function StartCrowdfundingButton({
   
   return (
     <>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => {
-          setDialogError(null);
-          setDialogOpen(true);
-        }}
-        className="backdrop-blur-sm bg-gradient-to-r from-purple-500/70 to-blue-500/70 hover:from-purple-600/80 hover:to-blue-600/80 border-0 shadow-lg transition-all duration-200 text-white hover:text-white h-9 px-3"
-      >
-        <Sparkles className="h-4 w-4 mr-2" />
-        <span className="text-sm font-medium">クラウドファンディング開始</span>
-      </Button>
+      {isCrowdfundingEnabled ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setDialogError(null);
+            setDialogOpen(true);
+          }}
+          className="backdrop-blur-sm bg-gradient-to-r from-purple-500/70 to-blue-500/70 hover:from-purple-600/80 hover:to-blue-600/80 border-0 shadow-lg transition-all duration-200 text-white hover:text-white h-9 px-3"
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          <span className="text-sm font-medium">クラウドファンディング開始</span>
+        </Button>
+                    ) : (
+         <div className="flex flex-col items-center gap-1">
+           <Button
+             variant="ghost"
+             size="sm"
+             disabled
+             className="backdrop-blur-sm bg-gradient-to-r from-gray-400/70 to-gray-500/70 border-0 shadow-lg transition-all duration-200 text-white h-9 px-3 cursor-not-allowed opacity-75"
+           >
+             <Clock className="h-4 w-4 mr-2" />
+             <span className="text-sm font-medium">クラファン開始(CommingSoon)</span>
+           </Button>
+         </div>
+       )}
       
       <Dialog open={dialogOpen} onOpenChange={(open) => {
         setDialogOpen(open);
         if (!open) setDialogError(null);
       }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>クラウドファンディングを開始</DialogTitle>
-            <DialogDescription>
-              この投稿内容に基づいてクラウドファンディングを開始します。
-              支援者を募り、プロジェクトを実現しましょう。
-              <br /><br />
-              <span className="text-muted-foreground text-xs">
-                ※ クラウドファンディングを開始できるのは、チャンネルの所有者のみです。
-                チャンネル所有権の確認のため、YouTubeとの連携が必要な場合があります。
-              </span>
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[500px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-0 shadow-2xl rounded-3xl">
+          {/* モーダルの背景グラデーション */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-transparent to-blue-50/50 dark:from-purple-950/30 dark:via-transparent dark:to-blue-950/30 rounded-3xl" />
           
-          <div className="py-4">
-            <h4 className="font-medium">投稿タイトル</h4>
-            <p className="text-sm text-muted-foreground mt-1">{postTitle}</p>
+          <div className="relative z-10">
+            <DialogHeader className="pb-6">
+              <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-gradient-to-r from-slate-900 via-purple-600 to-blue-600 bg-clip-text text-transparent dark:from-white dark:via-purple-400 dark:to-blue-400">
+                <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl shadow-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                クラウドファンディングを開始
+              </DialogTitle>
+              <DialogDescription className="text-slate-600 dark:text-slate-300 mt-2">
+                この投稿内容に基づいてクラウドファンディングを開始します。支援者を募り、プロジェクトを実現しましょう。
+              </DialogDescription>
+            </DialogHeader>
             
-            {isReauthenticating && (
-              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-4 rounded-lg mt-4">
-                <div className="flex items-start gap-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mt-0.5"></div>
-                  <div>
-                    <p className="font-medium mb-1">YouTubeとの連携を確認中...</p>
-                    <p className="text-sm">チャンネルの所有権を確認しています。しばらくお待ちください。</p>
-                  </div>
+            <div className="space-y-6">
+              {/* 投稿タイトル表示 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  投稿タイトル
+                </label>
+                <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 rounded-2xl px-4 py-3">
+                  <p className="text-slate-900 dark:text-white font-medium">{postTitle}</p>
                 </div>
               </div>
-            )}
-            
-            {dialogError && !isReauthenticating && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-lg mt-4">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium mb-1">アクセス権限がありません</p>
-                    <p className="text-sm whitespace-pre-line">{dialogError}</p>
-                    
-                    {dialogError.includes("YouTube権限") && (
-                      <div className="mt-3">
-                        <Button 
-                          size="sm" 
-                          onClick={async () => {
-                            setIsLoading(true);
-                            const formData = new FormData();
-                            formData.append("redirect_to", window.location.pathname);
-                            await signInWithGoogleForYouTubeAction(formData);
-                          }}
-                          disabled={isLoading}
-                          className="bg-red-600 hover:bg-red-700 text-white"
-                        >
-                          {isLoading ? "処理中..." : "YouTube権限を追加"}
-                        </Button>
-                      </div>
-                    )}
+              
+              {/* 再認証中のメッセージ */}
+              {isReauthenticating && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-blue-200/50 dark:border-blue-700/50 text-blue-700 dark:text-blue-300 px-4 py-4 rounded-2xl backdrop-blur-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mt-0.5"></div>
+                    <div>
+                      <p className="font-medium mb-1">YouTubeとの連携を確認中...</p>
+                      <p className="text-sm opacity-80">チャンネルの所有権を確認しています。しばらくお待ちください。</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+              
+              {/* エラーメッセージ */}
+              {dialogError && !isReauthenticating && (
+                <div className="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/30 dark:to-pink-950/30 border border-red-200/50 dark:border-red-700/50 text-red-700 dark:text-red-300 px-4 py-4 rounded-2xl backdrop-blur-sm">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium mb-1">アクセス権限がありません</p>
+                      <p className="text-sm opacity-80 whitespace-pre-line">{dialogError}</p>
+                      
+                      {dialogError.includes("YouTube権限") && (
+                        <div className="mt-3">
+                          <Button 
+                            size="sm" 
+                            onClick={async () => {
+                              setIsLoading(true);
+                              const formData = new FormData();
+                              formData.append("redirect_to", window.location.pathname);
+                              await signInWithGoogleForYouTubeAction(formData);
+                            }}
+                            disabled={isLoading}
+                            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-4 py-2"
+                          >
+                            {isLoading ? "処理中..." : "YouTube権限を追加"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+               {/* 注意事項 */}
+               <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200/50 dark:border-amber-700/50 text-amber-700 dark:text-amber-300 px-4 py-3 rounded-2xl backdrop-blur-sm">
+                 <div className="text-sm flex items-start gap-2">
+                   <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2 flex-shrink-0"></div>
+                   <span className="opacity-80">
+                     クラウドファンディングを開始できるのは、チャンネルの所有者のみです。チャンネル所有権の確認のため、YouTubeとの連携を許可してください。
+                   </span>
+                 </div>
+               </div>
+            </div>
+            
+            <DialogFooter className="mt-8 gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setDialogError(null);
+                  setDialogOpen(false);
+                }} 
+                disabled={isLoading || isReauthenticating}
+                className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 rounded-xl px-6 py-2 transition-all duration-300 hover:bg-white/90 dark:hover:bg-slate-800/90"
+              >
+                キャンセル
+              </Button>
+              <Button 
+                onClick={handleStartCrowdfunding} 
+                disabled={isLoading || isReauthenticating}
+                className="bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-2 font-medium"
+              >
+                {isLoading || isReauthenticating ? "確認中..." : "作成ページへ進む"}
+              </Button>
+            </DialogFooter>
           </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setDialogError(null);
-              setDialogOpen(false);
-            }} disabled={isLoading || isReauthenticating}>
-              キャンセル
-            </Button>
-            <Button onClick={handleStartCrowdfunding} disabled={isLoading || isReauthenticating}>
-              {isLoading || isReauthenticating ? "確認中..." : "作成ページへ進む"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
