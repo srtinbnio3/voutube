@@ -2,8 +2,7 @@ import { createClient } from "@/utils/supabase/server"
 import { notFound } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Calendar, User } from "lucide-react"
+import { Calendar, User } from "lucide-react"
 import { CommentList } from "@/components/comments/comment-list"
 import { PostShareButton } from "./_components/post-share-button"
 import { StartCrowdfundingButton } from "./_components/start-crowdfunding-button"
@@ -71,25 +70,13 @@ export default async function PostDetailPage(
         <div className="container max-w-4xl py-4 sm:py-8 px-3 sm:px-4 lg:px-6">
           {/* ヘッダー部分 - モバイル最適化 */}
           <div className="mb-6 sm:mb-8">
-            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                asChild 
-                className="flex-shrink-0 backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 hover:bg-white/90 dark:hover:bg-slate-800/90 border-0 shadow-lg w-10 h-10 sm:w-12 sm:h-12"
-              >
-                <Link href={`/channels/${params.channel_id}`}>
-                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Link>
-              </Button>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-900 via-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-white dark:via-blue-400 dark:to-purple-400 truncate">
-                  {channel.name}
-                </h1>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  投稿企画詳細
-                </p>
-              </div>
+            <div className="mb-4 sm:mb-6">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-900 via-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-white dark:via-blue-400 dark:to-purple-400">
+                {channel.name}
+              </h1>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                投稿企画詳細
+              </p>
             </div>
           </div>
 

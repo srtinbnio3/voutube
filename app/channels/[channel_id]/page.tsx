@@ -6,9 +6,7 @@ import { PostCard } from './_components/post-card'
 import { PostForm } from './_components/post-form'
 import { PostSort } from './_components/post-sort'
 import { Pagination } from './_components/pagination'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, PlusCircle } from 'lucide-react'
-import Link from 'next/link'
+import { PlusCircle } from 'lucide-react'
 
 // ページの動的生成を有効化（キャッシュを無効化）
 export const dynamic = "force-dynamic"
@@ -115,15 +113,8 @@ export default async function ChannelPage(props: {
         <div className="container max-w-6xl py-4 sm:py-8 px-3 sm:px-4 lg:px-6">
           {/* ヘッダー部分 - モバイル最適化 */}
           <div className="mb-6 sm:mb-8">
-            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <Button variant="ghost" size="icon" asChild className="flex-shrink-0 backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 hover:bg-white/90 dark:hover:bg-slate-800/90 border-0 shadow-lg w-10 h-10 sm:w-12 sm:h-12">
-                <Link href="/channels">
-                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Link>
-              </Button>
-              <div className="flex-1 min-w-0">
-                <ChannelInfo channel={channel} />
-              </div>
+            <div className="mb-4 sm:mb-6">
+              <ChannelInfo channel={channel} />
             </div>
           </div>
           
