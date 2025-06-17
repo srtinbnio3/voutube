@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog'
-import { Sparkles, AlertTriangle, Clock } from 'lucide-react'
+import { HandCoins, AlertTriangle, Clock } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
 import { signInWithGoogleForYouTubeAction } from '@/app/actions'
@@ -290,7 +290,7 @@ export function StartCrowdfundingButton({
           }}
           className="backdrop-blur-sm bg-gradient-to-r from-purple-500/70 to-blue-500/70 hover:from-purple-600/80 hover:to-blue-600/80 border-0 shadow-lg transition-all duration-200 text-white hover:text-white h-9 px-3"
         >
-          <Sparkles className="h-4 w-4 mr-2" />
+          <HandCoins className="h-4 w-4 mr-2" />
           <span className="text-sm font-medium">クラウドファンディング開始</span>
         </Button>
                     ) : (
@@ -319,7 +319,7 @@ export function StartCrowdfundingButton({
             <DialogHeader className="pb-6">
               <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-gradient-to-r from-slate-900 via-purple-600 to-blue-600 bg-clip-text text-transparent dark:from-white dark:via-purple-400 dark:to-blue-400">
                 <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl shadow-lg">
-                  <Sparkles className="w-5 h-5 text-white" />
+                  <HandCoins className="w-5 h-5 text-white" />
                 </div>
                 クラウドファンディングを開始
               </DialogTitle>
