@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Autocomplete } from "@/components/ui/autocomplete"
+import { useDebounce } from "@/hooks/use-debounce"
 import { toast } from "sonner"
 
 interface ProjectOwnerFormProps {
@@ -23,6 +25,17 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
     bank_account_number: "",
     bank_account_holder: ""
   })
+
+  // 銀行・支店検索関連の状態
+  const [selectedBankCode, setSelectedBankCode] = useState("")
+  const [bankOptions, setBankOptions] = useState<any[]>([])
+  const [branchOptions, setBranchOptions] = useState<any[]>([])
+  const [isBankLoading, setIsBankLoading] = useState(false)
+  const [isBranchLoading, setIsBranchLoading] = useState(false)
+
+  // デバウンス処理
+  const debouncedBankName = useDebounce(formData.bank_name, 300)
+  const debouncedBranchName = useDebounce(formData.bank_branch, 300)
 
   const [corporateFormData, setCorporateFormData] = useState({
     company_name: "",
@@ -44,6 +57,84 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
     return_policy: "",
     other_terms: ""
   })
+
+  // 銀行検索関数
+  const searchBanks = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setBankOptions([])
+      return
+    }
+
+    setIsBankLoading(true)
+    try {
+      const response = await fetch(`/api/banks/search?q=${encodeURIComponent(query)}&limit=10`)
+      if (response.ok) {
+        const data = await response.json()
+        setBankOptions(data.banks || [])
+      } else {
+        setBankOptions([])
+      }
+    } catch (error) {
+      console.error("銀行検索エラー:", error)
+      setBankOptions([])
+    } finally {
+      setIsBankLoading(false)
+    }
+  }, [])
+
+  // 支店検索関数
+  const searchBranches = useCallback(async (bankCode: string, query: string = "") => {
+    if (!bankCode) {
+      setBranchOptions([])
+      return
+    }
+
+    setIsBranchLoading(true)
+    try {
+      const url = query 
+        ? `/api/banks/${bankCode}/branches?q=${encodeURIComponent(query)}&limit=20`
+        : `/api/banks/${bankCode}/branches?limit=20`
+      
+      const response = await fetch(url)
+      if (response.ok) {
+        const data = await response.json()
+        setBranchOptions(data.branches || [])
+      } else {
+        setBranchOptions([])
+      }
+    } catch (error) {
+      console.error("支店検索エラー:", error)
+      setBranchOptions([])
+    } finally {
+      setIsBranchLoading(false)
+    }
+  }, [])
+
+  // デバウンスされた銀行名での検索
+  useEffect(() => {
+    searchBanks(debouncedBankName)
+  }, [debouncedBankName, searchBanks])
+
+  // デバウンスされた支店名での検索（銀行が選択されている場合のみ）
+  useEffect(() => {
+    if (selectedBankCode) {
+      searchBranches(selectedBankCode, debouncedBranchName)
+    }
+  }, [debouncedBranchName, selectedBankCode, searchBranches])
+
+  // 銀行選択時の処理
+  const handleBankSelect = (bank: any) => {
+    setSelectedBankCode(bank.code)
+    setFormData({ ...formData, bank_name: bank.name, bank_branch: "" })
+    setBranchOptions([])
+    // 支店データの初期ロード
+    searchBranches(bank.code)
+  }
+
+  // 支店選択時の処理
+  const handleBranchSelect = (branch: any) => {
+    setFormData({ ...formData, bank_branch: branch.name })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -191,11 +282,15 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                 <Label htmlFor="bank_name">
                   銀行名 <span className="text-destructive">*</span>
                 </Label>
-                <Input
+                <Autocomplete
                   id="bank_name"
                   value={formData.bank_name}
-                  onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, bank_name: value })}
+                  onSelect={handleBankSelect}
+                  options={bankOptions}
                   placeholder="例: みずほ銀行"
+                  loading={isBankLoading}
+                  noOptionsMessage="銀行が見つかりません"
                   required
                 />
               </div>
@@ -204,11 +299,16 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                 <Label htmlFor="bank_branch">
                   支店名 <span className="text-destructive">*</span>
                 </Label>
-                <Input
+                <Autocomplete
                   id="bank_branch"
                   value={formData.bank_branch}
-                  onChange={(e) => setFormData({ ...formData, bank_branch: e.target.value })}
-                  placeholder="例: 渋谷支店"
+                  onChange={(value) => setFormData({ ...formData, bank_branch: value })}
+                  onSelect={handleBranchSelect}
+                  options={branchOptions}
+                  placeholder={selectedBankCode ? "例: 渋谷支店" : "まず銀行を選択してください"}
+                  loading={isBranchLoading}
+                  disabled={!selectedBankCode}
+                  noOptionsMessage="支店が見つかりません"
                   required
                 />
               </div>
@@ -228,6 +328,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                 >
                   <option value="普通">普通</option>
                   <option value="当座">当座</option>
+                  <option value="貯蓄">貯蓄</option>
                 </select>
               </div>
 
