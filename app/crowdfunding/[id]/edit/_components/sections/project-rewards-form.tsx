@@ -547,7 +547,7 @@ function RewardFormDialog({
           <Label className="text-sm font-medium">発送情報の設定</Label>
           <p className="text-xs text-muted-foreground">
             支援者に関連情報の回答が求められる情報です。リターンの内容に応じて選択し調整してください。
-            メールアドレス・氏名・住所・電話番号など支援者の情報が必要な場合があります。リターンの内容やサイズの選択により異なる場合があります。
+            メールアドレス・氏名・住所・電話番号・リターンのサイズなど支援者の情報が必要な場合があります。
           </p>
           
           <div className="space-y-2">

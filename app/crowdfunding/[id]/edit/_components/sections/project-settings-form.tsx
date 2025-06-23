@@ -14,7 +14,7 @@ interface ProjectSettingsFormProps {
 export function ProjectSettingsForm({ campaign }: ProjectSettingsFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
-    target_amount: campaign.target_amount || 0,
+    target_amount: campaign.target_amount || 10000,
     start_date: campaign.start_date ? new Date(campaign.start_date).toISOString().split('T')[0] : "",
     end_date: campaign.end_date ? new Date(campaign.end_date).toISOString().split('T')[0] : ""
   })
@@ -71,13 +71,22 @@ export function ProjectSettingsForm({ campaign }: ProjectSettingsFormProps) {
                 type="number"
                 value={formData.target_amount}
                 onChange={(e) => setFormData({ ...formData, target_amount: Number(e.target.value) })}
-                placeholder="100000"
-                min="1000"
+                placeholder="50000"
+                min="10000"
                 step="1000"
                 required
               />
               <p className="text-xs text-muted-foreground">
-                最低1,000円から設定可能です
+                最低10,000円から設定可能です
+              </p>
+            </div>
+
+            {/* 募集方式の説明 */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">募集方式について</h4>
+              <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                目標金額に到達しなくても、集まった支援金を受け取ることができます（All-In方式）。<br />
+                <span className="font-medium">※支援されたリターンには、履行義務が発生します。</span>
               </p>
             </div>
 
@@ -91,6 +100,7 @@ export function ProjectSettingsForm({ campaign }: ProjectSettingsFormProps) {
                   type="date"
                   value={formData.start_date}
                   onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
                   required
                 />
               </div>
@@ -104,8 +114,17 @@ export function ProjectSettingsForm({ campaign }: ProjectSettingsFormProps) {
                   type="date"
                   value={formData.end_date}
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
+                  max={(() => {
+                    const maxDate = new Date()
+                    maxDate.setDate(maxDate.getDate() + 99)
+                    return maxDate.toISOString().split('T')[0]
+                  })()}
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  本日から99日先まで設定可能です
+                </p>
               </div>
             </div>
 
