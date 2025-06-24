@@ -422,7 +422,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                 postalCodeLabel="郵便番号"
                 addressLabel="本店所在地"
                 postalCodePlaceholder="例: 150-0002"
-                addressPlaceholder="例: 東京都渋谷区渋谷1-1-1"
+                addressPlaceholder="例: 東京都渋谷区渋谷1-1-1 〇〇ビル 10F 1001号室"
                 required
               />
 
@@ -538,7 +538,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
               postalCodeLabel="郵便番号"
               addressLabel="事業者の住所"
               postalCodePlaceholder="例: 150-0002"
-              addressPlaceholder="例: 東京都渋谷区渋谷1-1-1"
+              addressPlaceholder="例: 東京都渋谷区渋谷1-1-1 〇〇ビル 10F 1001号室"
               required
             />
 
