@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Autocomplete } from "@/components/ui/autocomplete"
+import { PostalCodeInput } from "@/components/ui/postal-code-input"
 import { useDebounce } from "@/hooks/use-debounce"
 import { toast } from "sonner"
 
@@ -40,6 +41,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
   const [corporateFormData, setCorporateFormData] = useState({
     company_name: "",
     representative_name: "",
+    company_postal_code: "",
     company_address: "",
     company_phone: "",
     company_email: "",
@@ -50,6 +52,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
   const [legalFormData, setLegalFormData] = useState({
     business_name: "",
     representative_name: "",
+    business_postal_code: "",
     business_address: "",
     phone_number: "",
     email_address: "",
@@ -410,19 +413,18 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="company_address">
-                  本店所在地 <span className="text-destructive">*</span>
-                </Label>
-                <Textarea
-                  id="company_address"
-                  value={corporateFormData.company_address}
-                  onChange={(e) => setCorporateFormData({ ...corporateFormData, company_address: e.target.value })}
-                  placeholder="例: 〒150-0002 東京都渋谷区渋谷1-1-1"
-                  required
-                  rows={3}
-                />
-              </div>
+              {/* 郵便番号と住所（法人情報） */}
+              <PostalCodeInput
+                postalCode={corporateFormData.company_postal_code}
+                address={corporateFormData.company_address}
+                onPostalCodeChange={(value) => setCorporateFormData({ ...corporateFormData, company_postal_code: value })}
+                onAddressChange={(value) => setCorporateFormData({ ...corporateFormData, company_address: value })}
+                postalCodeLabel="郵便番号"
+                addressLabel="本店所在地"
+                postalCodePlaceholder="例: 150-0002"
+                addressPlaceholder="例: 東京都渋谷区渋谷1-1-1"
+                required
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -514,11 +516,11 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="representative_name">
+                <Label htmlFor="legal_representative_name">
                   代表者名 <span className="text-destructive">*</span>
                 </Label>
                 <Input
-                  id="representative_name"
+                  id="legal_representative_name"
                   value={legalFormData.representative_name}
                   onChange={(e) => setLegalFormData({ ...legalFormData, representative_name: e.target.value })}
                   placeholder="例: 山田太郎"
@@ -527,19 +529,18 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="business_address">
-                事業者の住所 <span className="text-destructive">*</span>
-              </Label>
-              <Textarea
-                id="business_address"
-                value={legalFormData.business_address}
-                onChange={(e) => setLegalFormData({ ...legalFormData, business_address: e.target.value })}
-                placeholder="例: 〒150-0002 東京都渋谷区渋谷1-1-1"
-                required
-                rows={3}
-              />
-            </div>
+            {/* 郵便番号と住所（特商法表記） */}
+            <PostalCodeInput
+              postalCode={legalFormData.business_postal_code}
+              address={legalFormData.business_address}
+              onPostalCodeChange={(value) => setLegalFormData({ ...legalFormData, business_postal_code: value })}
+              onAddressChange={(value) => setLegalFormData({ ...legalFormData, business_address: value })}
+              postalCodeLabel="郵便番号"
+              addressLabel="事業者の住所"
+              postalCodePlaceholder="例: 150-0002"
+              addressPlaceholder="例: 東京都渋谷区渋谷1-1-1"
+              required
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
