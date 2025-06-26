@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Wand2 } from "lucide-react"
@@ -154,15 +155,14 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
                   {isGeneratingStory ? "生成中..." : "AIで生成"}
                 </Button>
               </div>
-              <Textarea
-                id="story"
-                value={formData.story}
-                onChange={(e) => setFormData({ ...formData, story: e.target.value })}
+              <RichTextEditor
+                content={formData.story}
+                onChange={(content) => setFormData({ ...formData, story: content })}
                 placeholder="プロジェクトの背景や詳細な説明を入力してください。上記の「AIで生成」ボタンでプロジェクト概要から自動生成することもできます。"
-                rows={8}
+                className="min-h-[300px]"
               />
               <p className="text-sm text-muted-foreground">
-                ヒント: プロジェクト概要を入力後、「AIで生成」ボタンで詳細なストーリーを自動作成できます
+                ヒント: プロジェクト概要を入力後、「AIで生成」ボタンで詳細なストーリーを自動作成できます。リッチエディタでテキストの装飾や見出し、リストなどを追加できます。
               </p>
             </div>
 
