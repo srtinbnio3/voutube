@@ -20,10 +20,10 @@ show_help() {
 
 例:
   ./scripts/journal-helper.sh create
-  ./scripts/journal-helper.sh create 2024-12-15
+  ./scripts/journal-helper.sh create 2025-06-26
   ./scripts/journal-helper.sh list
   ./scripts/journal-helper.sh search "クラウドファンディング"
-  ./scripts/journal-helper.sh summary 2024-12
+  ./scripts/journal-helper.sh summary 2025-06
 EOF
 }
 
@@ -157,7 +157,7 @@ case "$1" in
         ;;
     summary)
         if [ -z "$2" ]; then
-            echo "❌ 月を指定してください（例: 2024-12）。"
+            echo "❌ 月を指定してください（例: 2025-06）。"
             exit 1
         fi
         generate_summary "$2"

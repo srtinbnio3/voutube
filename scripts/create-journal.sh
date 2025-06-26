@@ -42,24 +42,32 @@ COMMIT_COUNT=$(git log --since="$DATE 00:00:00" --until="$DATE 23:59:59" --oneli
 if [ -z "$TODAY_COMMITS" ]; then
     COMMITS_SECTION="今日はまだコミットがありません。"
 else
-    COMMITS_SECTION="$TODAY_COMMITS"
+    # 改行を\\nに変換してsedで安全に処理できるようにする
+    COMMITS_SECTION=$(echo "$TODAY_COMMITS" | sed 's/$/\\/')
 fi
 
 # テンプレートからファイル作成
 if [ -f "$TEMPLATE_FILE" ]; then
     cp "$TEMPLATE_FILE" "$JOURNAL_FILE"
     
-    # macOS対応のsed
+    # macOS対応のsed（改行を考慮した安全な置換）
     if [[ "$OSTYPE" == "darwin"* ]]; then
         sed -i '' "s/{{DATE}}/$DATE/g" "$JOURNAL_FILE"
         sed -i '' "s/{{BRANCH}}/$CURRENT_BRANCH/g" "$JOURNAL_FILE"
         sed -i '' "s/{{COMMIT_COUNT}}/$COMMIT_COUNT/g" "$JOURNAL_FILE"
-        sed -i '' "s|{{COMMITS}}|$COMMITS_SECTION|g" "$JOURNAL_FILE"
+        # コミット情報は一時ファイルを使用して安全に置換
+        echo "$COMMITS_SECTION" > /tmp/commits_temp.txt
+        sed -i '' "/{{COMMITS}}/r /tmp/commits_temp.txt" "$JOURNAL_FILE"
+        sed -i '' "/{{COMMITS}}/d" "$JOURNAL_FILE"
+        rm -f /tmp/commits_temp.txt
     else
         sed -i "s/{{DATE}}/$DATE/g" "$JOURNAL_FILE"
         sed -i "s/{{BRANCH}}/$CURRENT_BRANCH/g" "$JOURNAL_FILE"
         sed -i "s/{{COMMIT_COUNT}}/$COMMIT_COUNT/g" "$JOURNAL_FILE"
-        sed -i "s|{{COMMITS}}|$COMMITS_SECTION|g" "$JOURNAL_FILE"
+        echo "$COMMITS_SECTION" > /tmp/commits_temp.txt
+        sed -i "/{{COMMITS}}/r /tmp/commits_temp.txt" "$JOURNAL_FILE"
+        sed -i "/{{COMMITS}}/d" "$JOURNAL_FILE"
+        rm -f /tmp/commits_temp.txt
     fi
     
     echo "✅ 開発日誌を作成しました: $JOURNAL_FILE"

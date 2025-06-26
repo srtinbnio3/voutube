@@ -23,7 +23,7 @@ doc/development-journal/
 ### 2. 特定の日付の日誌を作成
 
 ```bash
-./scripts/create-journal.sh 2024-12-15
+./scripts/create-journal.sh 2025-06-26
 ```
 
 ### 3. エイリアスを設定（推奨）
