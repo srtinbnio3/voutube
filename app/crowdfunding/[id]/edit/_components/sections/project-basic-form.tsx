@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
+import { Wand2 } from "lucide-react"
 
 interface ProjectBasicFormProps {
   campaign: any
@@ -14,6 +15,7 @@ interface ProjectBasicFormProps {
 
 export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isGeneratingStory, setIsGeneratingStory] = useState(false)
   const [formData, setFormData] = useState({
     title: campaign.title || "",
     description: campaign.post?.description || campaign.description || "",
@@ -42,6 +44,53 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
       toast.error("更新に失敗しました")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // AI ストーリー生成機能
+  const handleGenerateStory = async () => {
+    // プロジェクト概要が入力されているかチェック
+    if (!formData.description.trim()) {
+      toast.error("プロジェクト概要を先に入力してください")
+      return
+    }
+
+    // 既存のストーリーがある場合は確認
+    if (formData.story.trim()) {
+      const confirmed = window.confirm(
+        "既存のストーリーが上書きされます。続行しますか？"
+      )
+      if (!confirmed) return
+    }
+
+    setIsGeneratingStory(true)
+
+    try {
+      const response = await fetch('/api/crowdfunding/generate-story', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: formData.description
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'ストーリー生成に失敗しました')
+      }
+
+      // 生成されたストーリーをフォームに設定
+      setFormData({ ...formData, story: data.story })
+      toast.success("ストーリーを生成しました！内容を確認して必要に応じて編集してください")
+
+    } catch (error) {
+      console.error('ストーリー生成エラー:', error)
+      toast.error(error instanceof Error ? error.message : 'ストーリー生成に失敗しました')
+    } finally {
+      setIsGeneratingStory(false)
     }
   }
 
@@ -91,14 +140,30 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="story">ストーリー・詳細説明</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="story">ストーリー・詳細説明</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateStory}
+                  disabled={isGeneratingStory || !formData.description.trim()}
+                  className="flex items-center gap-2"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  {isGeneratingStory ? "生成中..." : "AIで生成"}
+                </Button>
+              </div>
               <Textarea
                 id="story"
                 value={formData.story}
                 onChange={(e) => setFormData({ ...formData, story: e.target.value })}
-                placeholder="プロジェクトの背景や詳細な説明を入力してください"
+                placeholder="プロジェクトの背景や詳細な説明を入力してください。上記の「AIで生成」ボタンでプロジェクト概要から自動生成することもできます。"
                 rows={8}
               />
+              <p className="text-sm text-muted-foreground">
+                ヒント: プロジェクト概要を入力後、「AIで生成」ボタンで詳細なストーリーを自動作成できます
+              </p>
             </div>
 
             <div className="flex justify-end">
