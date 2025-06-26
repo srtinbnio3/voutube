@@ -16,7 +16,7 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     title: campaign.title || "",
-    description: campaign.description || "",
+    description: campaign.post?.description || campaign.description || "",
     story: campaign.story || ""
   })
 
