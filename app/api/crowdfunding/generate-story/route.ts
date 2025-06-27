@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { description } = await request.json()
+    const { title, description } = await request.json()
 
     // 必須パラメータのチェック
+    if (!title) {
+      return NextResponse.json(
+        { error: 'プロジェクトタイトルが必要です' },
+        { status: 400 }
+      )
+    }
     if (!description) {
       return NextResponse.json(
         { error: 'プロジェクト概要が必要です' },
@@ -34,7 +40,10 @@ export async function POST(request: NextRequest) {
             {
               parts: [
                 {
-                  text: `以下のプロジェクト概要を基に、クラウドファンディングプロジェクトの魅力的なストーリー・詳細説明を生成してください。
+                  text: `以下のプロジェクトタイトルと概要を基に、クラウドファンディングプロジェクトの魅力的なストーリー・詳細説明をHTML形式で生成してください。
+
+プロジェクトタイトル：
+${title}
 
 プロジェクト概要：
 ${description}
@@ -46,7 +55,15 @@ ${description}
 - 親しみやすく読みやすい文章
 - 具体的で魅力的な内容
 
-ストーリー・詳細説明：`
+出力形式：
+- HTMLタグを使用してください（<h2>、<h3>、<p>、<strong>、<em>、<ul>、<li>など）
+- マークダウン記法（##、**など）は使用しないでください
+- 見出しは<h2>または<h3>タグを使用してください
+- 段落は<p>タグで囲んでください
+- 強調したい部分は<strong>タグを使用してください
+- コードブロック（\`\`\`html）は使用せず、直接HTMLコンテンツのみを出力してください
+
+ストーリー・詳細説明（HTML形式）：`
                 }
               ]
             }

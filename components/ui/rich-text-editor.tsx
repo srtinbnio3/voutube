@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
@@ -52,6 +53,13 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
     },
   })
 
+  // コンテンツが変更されたときにエディタの内容を更新
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content)
+    }
+  }, [content, editor])
+
   if (!editor) {
     return null
   }
@@ -64,9 +72,9 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
   }
 
   return (
-    <div className={cn('border rounded-md', className)}>
+    <div className={cn('border rounded-md flex flex-col h-[500px]', className)}>
       {/* ツールバー */}
-      <div className="border-b p-2 flex flex-wrap gap-1">
+      <div className="flex-shrink-0 bg-background border-b p-2 flex flex-wrap gap-1 shadow-sm">
         {/* テキスト装飾 */}
         <Button
           type="button"
@@ -183,7 +191,9 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
       </div>
 
       {/* エディタ領域 */}
-      <EditorContent editor={editor} />
+      <div className="flex-1 overflow-y-auto min-h-[300px]">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   )
 } 

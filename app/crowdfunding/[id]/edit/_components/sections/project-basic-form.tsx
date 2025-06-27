@@ -50,7 +50,11 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
 
   // AI ストーリー生成機能
   const handleGenerateStory = async () => {
-    // プロジェクト概要が入力されているかチェック
+    // プロジェクトタイトルと概要が入力されているかチェック
+    if (!formData.title.trim()) {
+      toast.error("プロジェクトタイトルを先に入力してください")
+      return
+    }
     if (!formData.description.trim()) {
       toast.error("プロジェクト概要を先に入力してください")
       return
@@ -73,6 +77,7 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          title: formData.title,
           description: formData.description
         }),
       })
@@ -83,8 +88,20 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
         throw new Error(data.error || 'ストーリー生成に失敗しました')
       }
 
-      // 生成されたストーリーをフォームに設定
-      setFormData({ ...formData, story: data.story })
+      // 生成されたストーリー（HTML形式）をフォームに設定
+      console.log('生成された原文:', data.story)
+      
+      // コードブロックマーカーを除去（複数パターンに対応）
+      let cleanStory = data.story
+        .replace(/^```html\s*\n?/i, '')  // 開始の```html を除去
+        .replace(/^```\s*\n?/i, '')      // 開始の```のみも除去
+        .replace(/\n?\s*```\s*$/g, '')   // 終了の```を除去
+        .replace(/```\s*$/g, '')         // 行末の```も除去
+        .replace(/```/g, '')             // 残りの```も全て除去
+        .trim()
+      
+      console.log('清書後:', cleanStory)
+      setFormData({ ...formData, story: cleanStory })
       toast.success("ストーリーを生成しました！内容を確認して必要に応じて編集してください")
 
     } catch (error) {
@@ -148,7 +165,7 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
                   variant="outline"
                   size="sm"
                   onClick={handleGenerateStory}
-                  disabled={isGeneratingStory || !formData.description.trim()}
+                  disabled={isGeneratingStory || !formData.title.trim() || !formData.description.trim()}
                   className="flex items-center gap-2"
                 >
                   <Wand2 className="h-4 w-4" />
@@ -162,7 +179,7 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
                 className="min-h-[300px]"
               />
               <p className="text-sm text-muted-foreground">
-                ヒント: プロジェクト概要を入力後、「AIで生成」ボタンで詳細なストーリーを自動作成できます。リッチエディタでテキストの装飾や見出し、リストなどを追加できます。
+                ヒント: プロジェクトタイトルと概要を入力後、「AIで生成」ボタンで詳細なストーリーを自動作成できます。リッチエディタでテキストの装飾や見出し、リストなどを追加できます。
               </p>
             </div>
 
