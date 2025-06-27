@@ -405,7 +405,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
 
         {/* メインコンテンツエリア */}
         <div className="flex-1 min-w-0">
-          <div className="max-w-4xl mx-auto p-4 lg:p-8">
+          <div className="max-w-4xl mx-auto p-2 lg:p-8">
             {/* ワークフロー状態表示 */}
             <WorkflowStatus campaign={campaignData} onStatusChange={handleStatusChange} />
             
@@ -433,7 +433,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
             )}
 
             {/* コンテンツ */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg lg:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 lg:p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg lg:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 lg:p-8">
               {renderContent()}
             </div>
           </div>

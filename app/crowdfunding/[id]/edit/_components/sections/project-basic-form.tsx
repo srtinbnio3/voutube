@@ -113,23 +113,23 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">ページ作成</h2>
-        <p className="text-muted-foreground">
+    <div className="space-y-4 lg:space-y-6">
+      <div className="px-1">
+        <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">ページ作成</h2>
+        <p className="text-sm lg:text-base text-muted-foreground">
           プロジェクトの基本情報を設定します。タイトルや説明文を魅力的に作成しましょう。
         </p>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>基本情報</CardTitle>
-          <CardDescription>
+        <CardHeader className="px-3 py-4 lg:px-6 lg:py-6">
+          <CardTitle className="text-lg lg:text-xl">基本情報</CardTitle>
+          <CardDescription className="text-sm lg:text-base">
             プロジェクトの基本的な情報を入力してください
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <CardContent className="px-3 pb-4 lg:px-6 lg:pb-6">
+          <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">
                 プロジェクトタイトル <span className="text-destructive">*</span>
@@ -176,7 +176,7 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
                 content={formData.story}
                 onChange={(content) => setFormData({ ...formData, story: content })}
                 placeholder="プロジェクトの背景や詳細な説明を入力してください。上記の「AIで生成」ボタンでプロジェクト概要から自動生成することもできます。"
-                className="min-h-[300px]"
+                className="min-h-[250px] lg:min-h-[300px]"
               />
               <p className="text-sm text-muted-foreground">
                 ヒント: プロジェクトタイトルと概要を入力後、「AIで生成」ボタンで詳細なストーリーを自動作成できます。リッチエディタでテキストの装飾や見出し、リストなどを追加できます。
