@@ -73,11 +73,13 @@ if [ -f "$TEMPLATE_FILE" ]; then
     echo "✅ 開発日誌を作成しました: $JOURNAL_FILE"
     echo "📝 内容を編集してください。"
     
-    # エディタで開く（VS Codeがあれば）
-    if command -v code &> /dev/null; then
+    # エディタで開く（Cursor、VS Codeの順で確認）
+    if command -v cursor &> /dev/null; then
+        cursor "$JOURNAL_FILE"
+    elif command -v code &> /dev/null; then
         code "$JOURNAL_FILE"
     else
-        echo "VS Codeでファイルを開けませんでした。手動で編集してください: $JOURNAL_FILE"
+        echo "エディタでファイルを開けませんでした。手動で編集してください: $JOURNAL_FILE"
     fi
 else
     echo "❌ テンプレートファイルが見つかりません: $TEMPLATE_FILE"

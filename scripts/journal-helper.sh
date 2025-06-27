@@ -54,7 +54,9 @@ open_journal() {
     local journal_file="doc/development-journal/${year}/${month}/${date}.md"
     
     if [ -f "$journal_file" ]; then
-        if command -v code &> /dev/null; then
+        if command -v cursor &> /dev/null; then
+            cursor "$journal_file"
+        elif command -v code &> /dev/null; then
             code "$journal_file"
         else
             echo "📝 日誌ファイル: $journal_file"
