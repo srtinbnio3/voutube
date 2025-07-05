@@ -11,10 +11,12 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog'
-import { Sparkles, AlertTriangle, Clock } from 'lucide-react'
+import { HandCoins, AlertTriangle, Clock } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
 import { signInWithGoogleForYouTubeAction } from '@/app/actions'
+import { useAuthDialog } from '@/hooks/use-auth-dialog'
+import { AuthDialog } from '@/components/ui/auth-dialog'
 
 interface StartCrowdfundingButtonProps {
   postId: string
@@ -33,6 +35,7 @@ export function StartCrowdfundingButton({
   const [isLoading, setIsLoading] = useState(false)
   const [dialogError, setDialogError] = useState<string | null>(null)
   const [isReauthenticating, setIsReauthenticating] = useState(false)
+  const { open, setOpen, checkAuthAndShowDialog } = useAuthDialog()
   
   // 環境変数からクラウドファンディング機能の有効性を確認
   const isCrowdfundingEnabled = process.env.NEXT_PUBLIC_CROWDFUNDING_ENABLED === 'true'
@@ -76,12 +79,14 @@ export function StartCrowdfundingButton({
       
       if (error || !user) {
         console.error("ユーザー認証エラー:", error);
-        toast.error("クラウドファンディングを開始するにはログインが必要です", {
-          duration: 10000
-        })
+        // toast.error("クラウドファンディングを開始するにはログインが必要です", {
+        //   duration: 10000
+        // })
         setIsLoading(false)
         setDialogOpen(false)
-        router.push("/sign-in")
+        // router.push("/sign-in")
+        // ログインダイアログを表示
+        setOpen(true)
         return false
       }
       
@@ -275,6 +280,12 @@ export function StartCrowdfundingButton({
   // クラウドファンディング作成ページへ遷移
   const handleStartCrowdfunding = async () => {
     console.log("クラウドファンディング開始処理を開始:", { postId, channelId, postTitle });
+    
+    // 先に認証状態をチェック
+    const isAuthenticated = await checkAuthAndShowDialog()
+    if (!isAuthenticated) return
+    
+    // ログイン済みの場合は所有権確認を実行
     await handleOwnershipVerification()
   }
   
@@ -284,13 +295,19 @@ export function StartCrowdfundingButton({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
+          onClick={async () => {
             setDialogError(null);
+            
+            // まず認証状態をチェック
+            const isAuthenticated = await checkAuthAndShowDialog()
+            if (!isAuthenticated) return
+            
+            // ログイン済みの場合はクラウドファンディングダイアログを表示
             setDialogOpen(true);
           }}
           className="backdrop-blur-sm bg-gradient-to-r from-purple-500/70 to-blue-500/70 hover:from-purple-600/80 hover:to-blue-600/80 border-0 shadow-lg transition-all duration-200 text-white hover:text-white h-9 px-3"
         >
-          <Sparkles className="h-4 w-4 mr-2" />
+          <HandCoins className="h-4 w-4 mr-2" />
           <span className="text-sm font-medium">クラウドファンディング開始</span>
         </Button>
                     ) : (
@@ -319,7 +336,7 @@ export function StartCrowdfundingButton({
             <DialogHeader className="pb-6">
               <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-gradient-to-r from-slate-900 via-purple-600 to-blue-600 bg-clip-text text-transparent dark:from-white dark:via-purple-400 dark:to-blue-400">
                 <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl shadow-lg">
-                  <Sparkles className="w-5 h-5 text-white" />
+                  <HandCoins className="w-5 h-5 text-white" />
                 </div>
                 クラウドファンディングを開始
               </DialogTitle>
@@ -418,6 +435,9 @@ export function StartCrowdfundingButton({
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* 認証ダイアログ */}
+      <AuthDialog open={open} onOpenChange={setOpen} />
     </>
   )
 } 

@@ -95,6 +95,9 @@ export default async function AuthButton() {
           <DropdownMenuItem asChild>
             <Link href="/channels">チャンネル一覧</Link>
           </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard">プロジェクト管理</Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <form action={signOutAction} className="w-full">

@@ -128,13 +128,22 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
   const currentSectionItem = sidebarItems.find(item => item.id === activeSection)
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* モバイル用のヘッダー */}
+    <main className="relative overflow-hidden min-h-screen">
+      {/* Background Elements - Same as landing page */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-purple-950/20 dark:to-blue-950/20" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-300/30 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-purple-400/20 via-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-spin-slow" />
+      </div>
+      
+             <div className="relative">
+        {/* モバイル用のヘッダー */}
       <div className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" asChild>
-              <Link href={`/crowdfunding/${campaignData.id}`}>
+              <Link href="/dashboard">
                 <ChevronLeft className="h-5 w-5" />
               </Link>
             </Button>
@@ -281,7 +290,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
             <div className="hidden lg:block p-6 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-3 mb-4">
                 <Button variant="ghost" size="icon" asChild>
-                  <Link href={`/crowdfunding/${campaignData.id}`}>
+                  <Link href="/dashboard">
                     <ChevronLeft className="h-5 w-5" />
                   </Link>
                 </Button>
@@ -396,7 +405,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
 
         {/* メインコンテンツエリア */}
         <div className="flex-1 min-w-0">
-          <div className="max-w-4xl mx-auto p-4 lg:p-8">
+          <div className="max-w-4xl mx-auto p-2 lg:p-8">
             {/* ワークフロー状態表示 */}
             <WorkflowStatus campaign={campaignData} onStatusChange={handleStatusChange} />
             
@@ -424,12 +433,13 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
             )}
 
             {/* コンテンツ */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg lg:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 lg:p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg lg:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 lg:p-8">
               {renderContent()}
             </div>
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </main>
   )
 } 
