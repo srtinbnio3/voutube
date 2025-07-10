@@ -15,9 +15,9 @@ YEAR=$(date -j -f "%Y-%m-%d" "$DATE" +%Y 2>/dev/null || date +%Y)
 MONTH=$(date -j -f "%Y-%m-%d" "$DATE" +%m 2>/dev/null || date +%m)
 
 # ファイルパスの設定
-JOURNAL_DIR="doc/development-journal/${YEAR}/${MONTH}"
+JOURNAL_DIR="docs/development-journal/${YEAR}/${MONTH}"
 JOURNAL_FILE="${JOURNAL_DIR}/${DATE}.md"
-TEMPLATE_FILE="doc/development-journal/template.md"
+TEMPLATE_FILE="docs/development-journal/template.md"
 
 # ディレクトリの作成
 mkdir -p "$JOURNAL_DIR"
