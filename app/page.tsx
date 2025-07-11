@@ -54,7 +54,7 @@ export default function LandingPage() {
           <div className="space-y-6">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
               <span className="block bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x">
-                アイデアが
+                企画アイデアが
               </span>
               <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient-x delay-500">
                 収益になる
