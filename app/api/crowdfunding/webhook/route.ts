@@ -83,7 +83,7 @@ async function handlePaymentIntentSucceeded(supabase: any, paymentIntent: any) {
   // 支払い情報を更新
   const { error: paymentError } = await supabase
     .from("crowdfunding_payments")
-    .update({ status: "succeeded" })
+    .update({ status: "completed" })
     .eq("supporter_id", supporterId)
     .eq("stripe_payment_intent_id", paymentIntent.id);
   
