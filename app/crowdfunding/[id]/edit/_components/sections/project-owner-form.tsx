@@ -10,12 +10,30 @@ import { Autocomplete } from "@/components/ui/autocomplete"
 import { PostalCodeInput } from "@/components/ui/postal-code-input"
 import { useDebounce } from "@/hooks/use-debounce"
 import { toast } from "sonner"
+import { IdentityVerification } from "./identity-verification"
+import { createClient } from "@/utils/supabase/client"
 
 interface ProjectOwnerFormProps {
   campaign: any
 }
 
 export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
+  // 現在のユーザーIDを取得
+  const [userId, setUserId] = useState<string | null>(null)
+  
+  // ユーザーIDを取得する関数
+  const fetchUserId = async () => {
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user?.id) {
+      setUserId(session.user.id)
+    }
+  }
+  
+  // コンポーネントマウント時にユーザーIDを取得
+  useEffect(() => {
+    fetchUserId()
+  }, [])
   const [isLoading, setIsLoading] = useState(false)
   const [operatorType, setOperatorType] = useState<"individual" | "corporate">("individual")
   
@@ -269,6 +287,14 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* 本人確認セクション */}
+      {userId && (
+        <IdentityVerification 
+          campaign={campaign} 
+          userId={userId} 
+        />
+      )}
 
       {/* 振込先口座情報 */}
       <Card>

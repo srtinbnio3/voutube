@@ -166,6 +166,9 @@ export type Database = {
           description: string
           end_date: string
           id: string
+          identity_verification_id: string | null
+          identity_verification_required: boolean | null
+          identity_verification_status: string | null
           post_id: string
           reward_enabled: boolean | null
           start_date: string
@@ -182,6 +185,9 @@ export type Database = {
           description: string
           end_date: string
           id?: string
+          identity_verification_id?: string | null
+          identity_verification_required?: boolean | null
+          identity_verification_status?: string | null
           post_id: string
           reward_enabled?: boolean | null
           start_date: string
@@ -198,6 +204,9 @@ export type Database = {
           description?: string
           end_date?: string
           id?: string
+          identity_verification_id?: string | null
+          identity_verification_required?: boolean | null
+          identity_verification_status?: string | null
           post_id?: string
           reward_enabled?: boolean | null
           start_date?: string
@@ -212,6 +221,13 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crowdfunding_campaigns_identity_verification_id_fkey"
+            columns: ["identity_verification_id"]
+            isOneToOne: false
+            referencedRelation: "identity_verifications"
             referencedColumns: ["id"]
           },
           {
@@ -356,6 +372,66 @@ export type Database = {
           },
           {
             foreignKeyName: "crowdfunding_supporters_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      identity_verifications: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          error_message: string | null
+          expires_at: string | null
+          id: string
+          stripe_verification_session_id: string
+          updated_at: string
+          user_id: string
+          verification_status: string
+          verification_type: string
+          verified_at: string | null
+          verified_data: Json | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          stripe_verification_session_id: string
+          updated_at?: string
+          user_id: string
+          verification_status?: string
+          verification_type?: string
+          verified_at?: string | null
+          verified_data?: Json | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          stripe_verification_session_id?: string
+          updated_at?: string
+          user_id?: string
+          verification_status?: string
+          verification_type?: string
+          verified_at?: string | null
+          verified_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_verifications_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crowdfunding_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "identity_verifications_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
