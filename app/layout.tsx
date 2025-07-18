@@ -145,7 +145,14 @@ export default function RootLayout({
 
               {/* フッター */}
               <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-8 bg-transparent">
-                <div className="flex gap-8 items-center">
+                {/* 連絡先情報 */}
+                <div className="flex flex-col sm:flex-row gap-4 items-center text-gray-600 dark:text-gray-400">
+                  <span>お問い合わせ: team@ideatube.net</span>
+                  <span>事業所: 福岡県</span>
+                </div>
+                
+                {/* リンク */}
+                <div className="flex flex-wrap gap-6 items-center justify-center">
                   <Link
                     href="https://x.com/kmrmsys"
                     target="_blank"
@@ -162,7 +169,10 @@ export default function RootLayout({
                   </Link>
                   <Link href="/terms" className="hover:underline">利用規約</Link>
                   <Link href="/privacy" className="hover:underline">プライバシーポリシー</Link>
+                  <Link href="/specified-commercial-code" className="hover:underline">特定商取引法に基づく表記</Link>
                 </div>
+                
+                {/* コピーライト */}
                 <div className="flex items-center gap-8">
                   <p>
                     &copy; {new Date().getFullYear()} IdeaTube

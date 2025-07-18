@@ -16,7 +16,7 @@ export const formatAmountForDisplay = (amount: number): string => {
     style: 'currency',
     currency: 'JPY',
   }).format(amount);
-};
+}; 
 
 // Stripe Identity関連の関数
 
