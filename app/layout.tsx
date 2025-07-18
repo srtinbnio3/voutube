@@ -149,6 +149,9 @@ export default function RootLayout({
                 <div className="flex flex-col sm:flex-row gap-4 items-center text-gray-600 dark:text-gray-400">
                   <span>お問い合わせ: team@ideatube.net</span>
                   <span>事業所: 福岡県</span>
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
+                    Powered by Stripe (PCI DSS準拠)
+                  </span>
                 </div>
                 
                 {/* リンク */}

@@ -74,6 +74,26 @@ export default function LandingPage() {
             </p>
           </div>
 
+          {/* サービス詳細説明 */}
+          <div className="max-w-4xl mx-auto mt-8 p-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-purple-600" />
+              提供サービス詳細
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
+              <div className="space-y-2">
+                <p>🎯 <strong>企画投稿プラットフォーム</strong><br/>YouTuber向けの動画企画アイデアを投稿・共有</p>
+                <p>💰 <strong>クラウドファンディング機能</strong><br/>採用された企画の資金調達支援（All in型）</p>
+                <p>🎁 <strong>報酬還元システム</strong><br/>成功プロジェクトの3%を企画者に還元（最低5万円から）</p>
+              </div>
+              <div className="space-y-2">
+                <p>🔒 <strong>安全な決済処理</strong><br/>Stripe社のPCI DSS準拠システム（日本円・JPY対応）</p>
+                <p>👥 <strong>コミュニティ機能</strong><br/>投票・評価によるアイデアの品質向上</p>
+                <p>📱 <strong>モバイル対応</strong><br/>スマートフォン・タブレットで快適に利用可能</p>
+              </div>
+            </div>
+          </div>
+
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
             <Button 

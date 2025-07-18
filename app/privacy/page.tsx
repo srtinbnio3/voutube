@@ -174,9 +174,9 @@ export default async function PrivacyPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-300">
-                  個人情報の取り扱いに関するお問い合わせは、contact@ideatube.netまでご連絡ください。
-                </p>
+                              <p className="text-gray-600 dark:text-gray-300">
+                個人情報の取り扱いに関するお問い合わせは、team@ideatube.netまでご連絡ください。
+              </p>
               </CardContent>
             </Card>
 

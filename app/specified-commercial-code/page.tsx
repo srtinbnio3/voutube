@@ -98,12 +98,39 @@ export default async function SpecifiedCommercialCodePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">決済方法</h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    クレジットカード決済（Visa、Mastercard、American Express、JCB）
-                  </p>
+                              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">決済方法</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  クレジットカード決済（Visa、Mastercard、American Express、JCB）
+                </p>
+                
+                {/* クレジットカードロゴ */}
+                <div className="flex flex-wrap gap-4 mb-4">
+                  <div className="flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700">
+                    <span className="text-blue-600 font-bold text-lg">VISA</span>
+                  </div>
+                  <div className="flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700">
+                    <span className="text-red-600 font-bold text-lg">Mastercard</span>
+                  </div>
+                  <div className="flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700">
+                    <span className="text-blue-500 font-bold text-lg">AMEX</span>
+                  </div>
+                  <div className="flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700">
+                    <span className="text-green-600 font-bold text-lg">JCB</span>
+                  </div>
                 </div>
+                
+                <p className="text-gray-600 dark:text-gray-300">
+                  決済通貨：日本円（JPY）
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">セキュリティについて</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  当サービスはSSL/TLS暗号化通信（HTTPS）を使用し、Stripe社のPCI DSS準拠決済システムを採用しています。お客様のクレジットカード情報は当サービスで保存されません。
+                </p>
+              </div>
                 
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">手数料等の追加料金</h3>
@@ -128,29 +155,45 @@ export default async function SpecifiedCommercialCodePage() {
               </CardContent>
             </Card>
 
-            {/* 返品・キャンセルポリシー */}
-            <Card className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                  返品・キャンセルポリシー
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">クラウドファンディング支援のキャンセル</h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    プロジェクト終了前までキャンセル可能です。プロジェクト終了後の返金はできません。
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">プロジェクトの失敗時</h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    目標金額に達しない場合、支援金は全額返金されます。
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                      {/* 返品・キャンセルポリシー */}
+          <Card className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+                返品・キャンセルポリシー
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">クラウドファンディング支援のキャンセル</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  プロジェクト終了前まで：支援者マイページからキャンセル可能（手数料無料）<br/>
+                  プロジェクト終了後：返金不可（All in型のため）<br/>
+                  キャンセル処理期間：1-3営業日
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">配送・フルフィルメント</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  デジタルサービスのため物理的な配送はありません。特典がある場合は、プロジェクトオーナーが直接支援者に提供します。
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">返金処理</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  返金が承認された場合、決済に使用したクレジットカードに3-10営業日以内に返金されます。返金手数料は発生しません。
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">プロジェクト中止時の対応</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  プロジェクトオーナーによる中止、または管理者による停止の場合、支援金は全額返金されます。
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
             {/* 運送時の損害の責任所在 */}
             <Card className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0 shadow-lg">
