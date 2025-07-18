@@ -75,23 +75,27 @@ export default function LandingPage() {
           </div>
 
           {/* サービス詳細説明 */}
-          <div className="max-w-4xl mx-auto mt-8 p-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-purple-600" />
-              提供サービス詳細
-            </h3>
-            <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
-              <div className="space-y-2">
-                <p>🎯 <strong>企画投稿プラットフォーム</strong><br/>YouTuber向けの動画企画アイデアを投稿・共有</p>
-                <p>💰 <strong>クラウドファンディング機能</strong><br/>採用された企画の資金調達支援（All in型）</p>
-                <p>🎁 <strong>報酬還元システム</strong><br/>成功プロジェクトの3%を企画者に還元（最低5万円から）</p>
+          <div className="max-w-2xl mx-auto mt-6">
+            <details className="group">
+              <summary className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer flex items-center gap-2 justify-center transition-colors">
+                <span>サービス詳細を見る</span>
+                <span className="transform group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="mt-4 p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-lg border border-gray-100 dark:border-gray-800">
+                <div className="grid md:grid-cols-2 gap-3 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="space-y-2">
+                    <p>• <strong>企画投稿プラットフォーム</strong><br/>YouTuber向けの動画企画アイデアを投稿・共有</p>
+                    <p>• <strong>クラウドファンディング機能</strong><br/>採用された企画の資金調達支援（All in型）</p>
+                    <p>• <strong>報酬還元システム</strong><br/>成功プロジェクトの3%を企画者に還元（最低5万円から）</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p>• <strong>安全な決済処理</strong><br/>Stripe社のPCI DSS準拠システム（日本円・JPY対応）</p>
+                    <p>• <strong>コミュニティ機能</strong><br/>投票・評価によるアイデアの品質向上</p>
+                    <p>• <strong>モバイル対応</strong><br/>スマートフォン・タブレットで快適に利用可能</p>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <p>🔒 <strong>安全な決済処理</strong><br/>Stripe社のPCI DSS準拠システム（日本円・JPY対応）</p>
-                <p>👥 <strong>コミュニティ機能</strong><br/>投票・評価によるアイデアの品質向上</p>
-                <p>📱 <strong>モバイル対応</strong><br/>スマートフォン・タブレットで快適に利用可能</p>
-              </div>
-            </div>
+            </details>
           </div>
 
           {/* CTA Buttons */}
