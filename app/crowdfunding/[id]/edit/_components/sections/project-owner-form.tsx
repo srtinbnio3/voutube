@@ -288,6 +288,20 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
         </CardContent>
       </Card>
 
+      {/* 本人確認に関する注意事項 */}
+      <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+        <CardHeader>
+          <CardTitle className="text-blue-900 dark:text-blue-100">本人確認について</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+            <p>• 本人確認情報は非公開です。プロジェクトページ等では表示されません。</p>
+            <p>• 共同または団体でプロジェクトを実施する場合、プロジェクトの代表者（あなた）の情報をご入力ください。</p>
+            <p>• 未成年の方は18歳以上の保護者（もしくは代理人）の同意を得て、その方の情報を入力してください。※審査の際に改めて確認する場合があります。</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* 本人確認セクション */}
       {userId && (
         <IdentityVerification 
