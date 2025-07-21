@@ -159,7 +159,7 @@ async function handleIdentityVerificationSucceeded(supabase: any, verificationSe
     const { data: identityVerification, error: updateError } = await supabase
       .from("identity_verifications")
       .update({
-        verification_status: 'verified',
+        verification_status: 'succeeded', // Stripeの'verified'をデータベースの'succeeded'にマッピング
         verified_data: verifiedData,
         verified_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -167,7 +167,7 @@ async function handleIdentityVerificationSucceeded(supabase: any, verificationSe
       .eq("stripe_verification_session_id", verificationSession.id)
       .eq("user_id", user_id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (updateError) {
       console.error("🔐 本人確認情報更新エラー:", updateError);
@@ -176,14 +176,14 @@ async function handleIdentityVerificationSucceeded(supabase: any, verificationSe
 
     console.log("🔐 本人確認情報更新成功:", { verificationId: identityVerification.id });
 
-    // キャンペーンの本人確認状況を更新
-    if (campaign_id) {
-      const { error: campaignUpdateError } = await supabase
-        .from("crowdfunding_campaigns")
-        .update({
-          identity_verification_status: 'verified'
-        })
-        .eq("id", campaign_id);
+          // キャンペーンの本人確認状況を更新
+      if (campaign_id) {
+        const { error: campaignUpdateError } = await supabase
+          .from("crowdfunding_campaigns")
+          .update({
+            identity_verification_status: 'succeeded'
+          })
+          .eq("id", campaign_id);
 
       if (campaignUpdateError) {
         console.error("🔐 キャンペーン本人確認状況更新エラー:", campaignUpdateError);

@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
       .from("identity_verifications")
       .select(`
         *,
-        campaign:crowdfunding_campaigns(id, title)
+        campaign:crowdfunding_campaigns!identity_verifications_campaign_id_fkey(id, title)
       `)
       .eq("user_id", session.user.id)
       .order("created_at", { ascending: false });

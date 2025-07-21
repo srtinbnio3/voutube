@@ -31,6 +31,7 @@ interface VerificationData {
     client_secret: string
   }
   verification_type: string
+  verification_status?: string
   verified_data?: any
   verified_at?: string
   created_at: string
@@ -74,7 +75,7 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
   const startVerification = async () => {
     setIsLoading(true)
     try {
-      const returnUrl = `${window.location.origin}/crowdfunding/${campaign.id}/edit?tab=owner&verification=completed`
+      const returnUrl = `${window.location.origin}/crowdfunding/${campaign.id}/edit?section=owner&verification=completed`
       
       const response = await fetch('/api/identity/verification', {
         method: 'POST',
@@ -110,6 +111,32 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
     }
   }
 
+  // テスト用：本人確認データをリセット
+  const resetVerification = async () => {
+    if (!confirm('本人確認データをリセットしますか？（テスト用）')) return
+    
+    try {
+      const response = await fetch('/api/identity/verification/reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          campaign_id: campaign.id,
+        }),
+      })
+
+      if (response.ok) {
+        toast.success('本人確認データをリセットしました')
+        setVerification(null)
+      } else {
+        toast.error('リセットに失敗しました')
+      }
+    } catch (error) {
+      toast.error('リセットに失敗しました')
+    }
+  }
+
   // コンポーネントマウント時に本人確認情報を取得
   useEffect(() => {
     fetchVerification()
@@ -130,6 +157,7 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'verified':
+      case 'succeeded':
         return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"><CheckCircle className="h-3 w-3 mr-1" />確認済み</Badge>
       case 'pending':
       case 'requires_input':
@@ -199,12 +227,28 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">
-          本人確認
-        </h2>
-        <p className="text-muted-foreground">
-          クラウドファンディングを開始するには、Stripe Identityによる本人確認が必要です。
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+              本人確認
+            </h2>
+            <p className="text-muted-foreground">
+              クラウドファンディングを開始するには、Stripe Identityによる本人確認が必要です。
+            </p>
+          </div>
+          
+          {/* テスト環境でのみリセットボタンを表示 */}
+          {process.env.NODE_ENV === 'development' && verification && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={resetVerification}
+              className="text-red-600 border-red-300 hover:bg-red-50"
+            >
+              🔄 テスト用リセット
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -276,23 +320,26 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
                   </p>
                 </div>
                 
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={fetchVerification}
-                  disabled={refreshing}
-                >
-                  {refreshing ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                  状況確認
-                </Button>
+                {/* 確認済み以外の場合のみ状況確認ボタンを表示 */}
+                {verification.verification_status !== 'succeeded' && verification.verification_session.status !== 'verified' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={fetchVerification}
+                    disabled={refreshing}
+                  >
+                    {refreshing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                    状況確認
+                  </Button>
+                )}
               </div>
 
               {/* 確認完了時の情報表示 */}
-              {verification.verification_session.status === 'verified' && verification.verified_data && (
+              {(verification.verification_status === 'succeeded' || verification.verification_session.status === 'verified') && verification.verified_data && (
                 renderVerifiedData(verification.verified_data)
               )}
 

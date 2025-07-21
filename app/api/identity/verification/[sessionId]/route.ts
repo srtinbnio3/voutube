@@ -25,7 +25,7 @@ export async function GET(
       .from("identity_verifications")
       .select(`
         *,
-        campaign:crowdfunding_campaigns(id, title)
+        campaign:crowdfunding_campaigns!identity_verifications_campaign_id_fkey(id, title)
       `)
       .eq("stripe_verification_session_id", sessionId)
       .eq("user_id", session.user.id)
@@ -57,6 +57,7 @@ export async function GET(
 
       // 確認完了時にデータを保存
       if (verificationSession.status === 'verified') {
+        updateData.verification_status = 'succeeded'; // Stripeの'verified'をデータベースの'succeeded'にマッピング
         updateData.verified_data = formatVerificationData(verificationSession);
         updateData.verified_at = new Date().toISOString();
       } else if (verificationSession.status === 'canceled') {
@@ -74,7 +75,7 @@ export async function GET(
 
       // キャンペーンの本人確認状況も更新
       if (identityVerification.campaign_id) {
-        const campaignStatus = verificationSession.status === 'verified' ? 'verified' :
+        const campaignStatus = verificationSession.status === 'verified' ? 'succeeded' :
                               verificationSession.status === 'canceled' ? 'failed' : 'pending';
 
         await supabase
