@@ -30,6 +30,14 @@ export async function POST(req: NextRequest) {
   }
   
   // イベントタイプに基づいて処理
+  console.log(`🔐 Webhook受信: ${event.type}`, { 
+    sessionId: (event.data.object as any)?.id,
+    status: (event.data.object as any)?.status,
+    lastError: (event.data.object as any)?.last_error,
+    options: (event.data.object as any)?.options,
+    verificationCheck: (event.data.object as any)?.verification_check
+  });
+  
   try {
     switch (event.type) {
       case "payment_intent.succeeded":
@@ -46,6 +54,9 @@ export async function POST(req: NextRequest) {
         break;
       case "identity.verification_session.canceled":
         await handleIdentityVerificationCanceled(supabase, event.data.object);
+        break;
+      case "identity.verification_session.failed":
+        await handleIdentityVerificationFailed(supabase, event.data.object);
         break;
       default:
         console.log(`Unhandled event type: ${event.type}`);
@@ -174,7 +185,10 @@ async function handleIdentityVerificationSucceeded(supabase: any, verificationSe
       return;
     }
 
-    console.log("🔐 本人確認情報更新成功:", { verificationId: identityVerification.id });
+    console.log("🔐 本人確認情報更新成功:", { 
+      verificationId: identityVerification?.id, 
+      sessionId: verificationSession.id 
+    });
 
           // キャンペーンの本人確認状況を更新
       if (campaign_id) {
@@ -204,7 +218,46 @@ async function handleIdentityVerificationRequiresInput(supabase: any, verificati
   try {
     const { user_id, campaign_id } = verificationSession.metadata;
     
-    // データベースの本人確認情報を更新
+    // last_errorが存在する場合は失敗として処理
+    if (verificationSession.last_error) {
+      console.log("🔐 エラー情報検出、失敗として処理:", verificationSession.last_error);
+      
+      // データベースの本人確認情報を失敗として更新
+      const { error: updateError } = await supabase
+        .from("identity_verifications")
+        .update({
+          verification_status: 'failed',
+          error_message: verificationSession.last_error.reason || '本人確認に失敗しました',
+          updated_at: new Date().toISOString(),
+        })
+        .eq("stripe_verification_session_id", verificationSession.id)
+        .eq("user_id", user_id);
+
+      if (updateError) {
+        console.error("🔐 本人確認情報更新エラー:", updateError);
+        return;
+      }
+
+      console.log("🔐 本人確認情報更新成功（失敗）");
+
+      // キャンペーンの本人確認状況を更新
+      if (campaign_id) {
+        const { error: campaignUpdateError } = await supabase
+          .from("crowdfunding_campaigns")
+          .update({
+            identity_verification_status: 'failed'
+          })
+          .eq("id", campaign_id);
+
+        if (campaignUpdateError) {
+          console.error("🔐 キャンペーン本人確認状況更新エラー:", campaignUpdateError);
+        }
+      }
+      
+      return;
+    }
+    
+    // エラーがない場合は通常の追加情報必要として処理
     const { error: updateError } = await supabase
       .from("identity_verifications")
       .update({
@@ -281,5 +334,49 @@ async function handleIdentityVerificationCanceled(supabase: any, verificationSes
 
   } catch (error) {
     console.error("🔐 本人確認キャンセルwebhook処理エラー:", error);
+  }
+}
+
+// 本人確認失敗時の処理
+async function handleIdentityVerificationFailed(supabase: any, verificationSession: any) {
+  console.log("🔐 本人確認失敗webhook処理開始:", { sessionId: verificationSession.id });
+  
+  try {
+    const { user_id, campaign_id } = verificationSession.metadata;
+    
+    // データベースの本人確認情報を更新
+    const { error: updateError } = await supabase
+      .from("identity_verifications")
+      .update({
+        verification_status: 'failed',
+        error_message: '本人確認に失敗しました',
+        updated_at: new Date().toISOString(),
+      })
+      .eq("stripe_verification_session_id", verificationSession.id)
+      .eq("user_id", user_id);
+
+    if (updateError) {
+      console.error("🔐 本人確認情報更新エラー:", updateError);
+      return;
+    }
+
+    console.log("🔐 本人確認情報更新成功（失敗）");
+
+    // キャンペーンの本人確認状況を更新
+    if (campaign_id) {
+      const { error: campaignUpdateError } = await supabase
+        .from("crowdfunding_campaigns")
+        .update({
+          identity_verification_status: 'failed'
+        })
+        .eq("id", campaign_id);
+
+      if (campaignUpdateError) {
+        console.error("🔐 キャンペーン本人確認状況更新エラー:", campaignUpdateError);
+      }
+    }
+
+  } catch (error) {
+    console.error("🔐 本人確認失敗webhook処理エラー:", error);
   }
 } 

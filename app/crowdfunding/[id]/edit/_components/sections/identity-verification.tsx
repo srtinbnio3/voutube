@@ -166,6 +166,8 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
         return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"><Loader2 className="h-3 w-3 mr-1 animate-spin" />処理中</Badge>
       case 'canceled':
         return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"><XCircle className="h-3 w-3 mr-1" />キャンセル</Badge>
+      case 'failed':
+        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"><XCircle className="h-3 w-3 mr-1" />失敗</Badge>
       default:
         return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100"><AlertCircle className="h-3 w-3 mr-1" />未確認</Badge>
     }
@@ -379,6 +381,38 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
                       <>
                         <Shield className="h-4 w-4 mr-2" />
                         本人確認を再開
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* 失敗した場合 */}
+              {(verification.verification_session.status === 'failed' || 
+                verification.verification_status === 'failed') && (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                    <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5" />
+                    <div className="text-sm text-red-800 dark:text-red-200">
+                      本人確認に失敗しました。提出された書類が受け入れられませんでした。
+                      クラウドファンディングを開始するには、再度本人確認を実施してください。
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={startVerification} 
+                    disabled={isLoading}
+                    variant="outline"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        再試行中...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="h-4 w-4 mr-2" />
+                        本人確認を再試行
                       </>
                     )}
                   </Button>

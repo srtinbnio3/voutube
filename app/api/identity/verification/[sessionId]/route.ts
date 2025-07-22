@@ -43,21 +43,40 @@ export async function GET(
       verified: verificationSession.status === 'verified'
     });
 
+    // Stripeステータスをデータベース制約に合わせてマッピング
+    const mapStripeStatusToDb = (stripeStatus: string): string => {
+      switch (stripeStatus) {
+        case 'verified':
+          return 'succeeded';
+        case 'canceled':
+          return 'cancelled';
+        case 'requires_input':
+        case 'processing':
+          return 'pending';
+        case 'failed':
+          return 'failed';
+        default:
+          return 'pending';
+      }
+    };
+
+    const mappedStatus = mapStripeStatusToDb(verificationSession.status);
+
     // ステータスが変更されていたらデータベースを更新
-    if (verificationSession.status !== identityVerification.verification_status) {
+    if (mappedStatus !== identityVerification.verification_status) {
       console.log("🔐 本人確認ステータス更新:", {
         oldStatus: identityVerification.verification_status,
-        newStatus: verificationSession.status
+        stripeStatus: verificationSession.status,
+        newDbStatus: mappedStatus
       });
 
       const updateData: any = {
-        verification_status: verificationSession.status,
+        verification_status: mappedStatus,
         updated_at: new Date().toISOString(),
       };
 
       // 確認完了時にデータを保存
       if (verificationSession.status === 'verified') {
-        updateData.verification_status = 'succeeded'; // Stripeの'verified'をデータベースの'succeeded'にマッピング
         updateData.verified_data = formatVerificationData(verificationSession);
         updateData.verified_at = new Date().toISOString();
       } else if (verificationSession.status === 'canceled') {
@@ -75,7 +94,7 @@ export async function GET(
 
       // キャンペーンの本人確認状況も更新
       if (identityVerification.campaign_id) {
-        const campaignStatus = verificationSession.status === 'verified' ? 'succeeded' :
+        const campaignStatus = verificationSession.status === 'verified' ? 'verified' :
                               verificationSession.status === 'canceled' ? 'failed' : 'pending';
 
         await supabase
