@@ -1,10 +1,26 @@
 import { createClient } from "@/utils/supabase/server";
 import { stripe, formatVerificationData } from "@/app/lib/stripe";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+
+// サービスロール用のSupabaseクライアントを作成（RLS回避）
+const createServiceRoleClient = () => {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+};
 
 // Stripeのウェブフックを処理する
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
+  // webhook用に管理者権限のクライアントを使用
+  const supabase = createServiceRoleClient();
   
   const body = await req.text();
   const signature = req.headers.get("stripe-signature") as string;
@@ -223,22 +239,80 @@ async function handleIdentityVerificationRequiresInput(supabase: any, verificati
       console.log("🔐 エラー情報検出、失敗として処理:", verificationSession.last_error);
       
       // データベースの本人確認情報を失敗として更新
-      const { error: updateError } = await supabase
+      console.log("🔐 失敗更新前の条件:", {
+        sessionId: verificationSession.id,
+        userId: user_id,
+        errorMessage: verificationSession.last_error.reason
+      });
+
+      // デバッグ：データベースに存在するレコードを確認
+      const { data: existingRecords } = await supabase
         .from("identity_verifications")
-        .update({
-          verification_status: 'failed',
-          error_message: verificationSession.last_error.reason || '本人確認に失敗しました',
-          updated_at: new Date().toISOString(),
-        })
-        .eq("stripe_verification_session_id", verificationSession.id)
+        .select("id, user_id, stripe_verification_session_id, verification_status")
         .eq("user_id", user_id);
 
-      if (updateError) {
-        console.error("🔐 本人確認情報更新エラー:", updateError);
-        return;
+      console.log("🔐 同じuser_idのレコード:", existingRecords);
+
+      const { data: allRecords } = await supabase
+        .from("identity_verifications")
+        .select("id, user_id, stripe_verification_session_id, verification_status")
+        .limit(5);
+
+      console.log("🔐 最新5件のレコード:", allRecords);
+
+      // レコードが見つからない場合のリトライ機能
+      let updateResult = null;
+      let updateError = null;
+      let retryCount = 0;
+      const maxRetries = 3;
+      const retryDelay = 1000; // 1秒
+
+      while (retryCount < maxRetries) {
+        const result = await supabase
+          .from("identity_verifications")
+          .update({
+            verification_status: 'failed',
+            error_message: verificationSession.last_error.reason || '本人確認に失敗しました',
+            updated_at: new Date().toISOString(),
+          })
+          .eq("stripe_verification_session_id", verificationSession.id)
+          .eq("user_id", user_id)
+          .select();
+
+        updateResult = result.data;
+        updateError = result.error;
+
+        console.log(`🔐 失敗更新結果 (試行${retryCount + 1}/${maxRetries}):`, {
+          updateResult,
+          updateError,
+          affectedRows: updateResult?.length || 0
+        });
+
+        if (updateError) {
+          console.error("🔐 本人確認情報更新エラー:", updateError);
+          return;
+        }
+
+        if (updateResult && updateResult.length > 0) {
+          console.log("🔐 失敗更新成功");
+          break;
+        }
+
+        retryCount++;
+        if (retryCount < maxRetries) {
+          console.log(`🔐 レコードが見つからないため ${retryDelay}ms 待機してリトライ...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
       }
 
-      console.log("🔐 本人確認情報更新成功（失敗）");
+      if (!updateResult || updateResult.length === 0) {
+        console.error("🔐 失敗更新：最大リトライ回数に達しました", {
+          sessionId: verificationSession.id,
+          userId: user_id,
+          maxRetries
+        });
+                  return;
+        }
 
       // キャンペーンの本人確認状況を更新
       if (campaign_id) {

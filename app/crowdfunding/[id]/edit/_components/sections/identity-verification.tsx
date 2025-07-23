@@ -34,6 +34,7 @@ interface VerificationData {
   verification_status?: string
   verified_data?: any
   verified_at?: string
+  error_message?: string
   created_at: string
   updated_at: string
 }
@@ -345,9 +346,10 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
                 renderVerifiedData(verification.verified_data)
               )}
 
-              {/* 確認中の場合 */}
-              {(verification.verification_session.status === 'requires_input' || 
-                verification.verification_session.status === 'processing') && (
+              {/* 確認中の場合（失敗・キャンセル・成功以外） */}
+              {verification.verification_status === 'requires_input' && 
+               verification.verification_session.status === 'requires_input' && 
+               !verification.error_message && (
                 <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                   <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div className="text-sm text-blue-800 dark:text-blue-200">
@@ -387,14 +389,20 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
                 </div>
               )}
 
-              {/* 失敗した場合 */}
+              {/* 失敗した場合（error_messageがある場合も含む） */}
               {(verification.verification_session.status === 'failed' || 
-                verification.verification_status === 'failed') && (
+                verification.verification_status === 'failed' ||
+                verification.error_message) && (
                 <div className="space-y-4">
                   <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                     <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5" />
                     <div className="text-sm text-red-800 dark:text-red-200">
-                      本人確認に失敗しました。提出された書類が受け入れられませんでした。
+                      本人確認に失敗しました。
+                      {verification.error_message && (
+                        <div className="mt-1 font-medium">
+                          理由: {verification.error_message}
+                        </div>
+                      )}
                       クラウドファンディングを開始するには、再度本人確認を実施してください。
                     </div>
                   </div>

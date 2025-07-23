@@ -106,22 +106,74 @@ export async function GET(
       }
     }
 
-    // レスポンスデータを構築
+    // 最新のデータベース状態を再取得（webhookで更新されている可能性があるため）
+    const { data: latestVerification, error: latestError } = await supabase
+      .from("identity_verifications")
+      .select("*")
+      .eq("stripe_verification_session_id", sessionId)
+      .eq("user_id", session.user.id)
+      .single();
+
+    console.log("🔐 最新のデータベース状態:", {
+      sessionId,
+      latestVerification: latestVerification ? {
+        verification_status: latestVerification.verification_status,
+        error_message: latestVerification.error_message,
+        updated_at: latestVerification.updated_at
+      } : null,
+      latestError
+    });
+
+    // データベースの状態をStripe APIのステータスフォーマットにマッピング
+    const mapDbStatusToStripe = (dbStatus: string): string => {
+      switch (dbStatus) {
+        case 'succeeded':
+          return 'verified';
+        case 'failed':
+          return 'failed';
+        case 'canceled':
+          return 'canceled';
+        case 'requires_input':
+        case 'pending':
+        default:
+          return 'requires_input';
+      }
+    };
+
+    // error_messageがある場合は失敗として扱う
+    let effectiveStatus: string;
+    if (latestVerification?.error_message) {
+      effectiveStatus = 'failed';
+    } else if (latestVerification?.verification_status) {
+      effectiveStatus = mapDbStatusToStripe(latestVerification.verification_status);
+    } else {
+      effectiveStatus = verificationSession.status;
+    }
+
+    console.log("🔐 ステータス決定:", {
+      dbStatus: latestVerification?.verification_status,
+      stripeStatus: verificationSession.status,
+      effectiveStatus
+    });
+
+    // レスポンスデータを構築（データベースの状態を優先）
     const responseData = {
       id: identityVerification.id,
       verification_session: {
         id: verificationSession.id,
-        status: verificationSession.status,
+        status: effectiveStatus, // データベースの状態を反映
         url: verificationSession.url,
         created: verificationSession.created,
         client_secret: verificationSession.client_secret,
       },
       verification_type: identityVerification.verification_type,
+      verification_status: latestVerification?.verification_status, // データベースの状態も含める
       campaign: identityVerification.campaign,
-      verified_data: identityVerification.verified_data,
-      verified_at: identityVerification.verified_at,
+      verified_data: latestVerification?.verified_data || identityVerification.verified_data,
+      verified_at: latestVerification?.verified_at || identityVerification.verified_at,
+      error_message: latestVerification?.error_message,
       created_at: identityVerification.created_at,
-      updated_at: identityVerification.updated_at,
+      updated_at: latestVerification?.updated_at || identityVerification.updated_at,
     };
 
     return NextResponse.json(responseData);
