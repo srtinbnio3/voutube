@@ -69,15 +69,13 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
 
   const [legalFormData, setLegalFormData] = useState({
     business_name: "",
-    representative_name: "",
     business_postal_code: "",
     business_address: "",
-    phone_number: "",
-    email_address: "",
-    delivery_timing: "",
-    return_policy: "",
-    other_terms: ""
+    phone_number: ""
   })
+
+  // 特商法の表記方法（テンプレート使用 or 入力内容表示）
+  const [legalDisplayMethod, setLegalDisplayMethod] = useState<"template" | "input">("template")
 
   // 銀行検索関数
   const searchBanks = useCallback(async (query: string) => {
@@ -225,7 +223,10 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          legal_info: legalFormData
+          legal_info: {
+            display_method: legalDisplayMethod,
+            ...(legalDisplayMethod === "input" ? legalFormData : {})
+          }
         }),
       })
 
@@ -541,11 +542,45 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLegalSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="business_name">
-                  事業者名 <span className="text-destructive">*</span>
-                </Label>
+            {/* 特商法の表記方法選択 */}
+            <div className="space-y-4">
+              <Label>特商法の表記方法</Label>
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="legal_display_method"
+                    value="template"
+                    checked={legalDisplayMethod === "template"}
+                    onChange={(e) => setLegalDisplayMethod(e.target.value as "template" | "input")}
+                    className="w-4 h-4"
+                  />
+                  <span>テンプレートを使用する</span>
+                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">おすすめ</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="legal_display_method"
+                    value="input"
+                    checked={legalDisplayMethod === "input"}
+                    onChange={(e) => setLegalDisplayMethod(e.target.value as "template" | "input")}
+                    className="w-4 h-4"
+                  />
+                  <span>入力した内容を表示する</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="business_name">
+                事業者名 <span className="text-destructive">*</span>
+              </Label>
+              {legalDisplayMethod === "template" ? (
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">請求があり次第提供します。メッセージ機能にてご連絡ください。</p>
+                </div>
+              ) : (
                 <Input
                   id="business_name"
                   value={legalFormData.business_name}
@@ -553,40 +588,48 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                   placeholder="例: 株式会社〇〇"
                   required
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="legal_representative_name">
-                  代表者名 <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="legal_representative_name"
-                  value={legalFormData.representative_name}
-                  onChange={(e) => setLegalFormData({ ...legalFormData, representative_name: e.target.value })}
-                  placeholder="例: 山田太郎"
-                  required
-                />
-              </div>
+              )}
             </div>
 
             {/* 郵便番号と住所（特商法表記） */}
-            <PostalCodeInput
-              postalCode={legalFormData.business_postal_code}
-              address={legalFormData.business_address}
-              onPostalCodeChange={(value) => setLegalFormData({ ...legalFormData, business_postal_code: value })}
-              onAddressChange={(value) => setLegalFormData({ ...legalFormData, business_address: value })}
-              postalCodeLabel="郵便番号"
-              addressLabel="事業者の住所"
-              postalCodePlaceholder="例: 150-0002"
-              addressPlaceholder="例: 東京都渋谷区渋谷1-1-1 〇〇ビル 10F 1001号室"
-              required
-            />
+            {legalDisplayMethod === "template" ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>郵便番号</Label>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">請求があり次第提供します。メッセージ機能にてご連絡ください。</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>事業者の住所</Label>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">請求があり次第提供します。メッセージ機能にてご連絡ください。</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <PostalCodeInput
+                postalCode={legalFormData.business_postal_code}
+                address={legalFormData.business_address}
+                onPostalCodeChange={(value) => setLegalFormData({ ...legalFormData, business_postal_code: value })}
+                onAddressChange={(value) => setLegalFormData({ ...legalFormData, business_address: value })}
+                postalCodeLabel="郵便番号"
+                addressLabel="事業者の住所"
+                postalCodePlaceholder="例: 150-0002"
+                addressPlaceholder="例: 東京都渋谷区渋谷1-1-1 〇〇ビル 10F 1001号室"
+                required
+              />
+            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone_number">
-                  電話番号 <span className="text-destructive">*</span>
-                </Label>
+            <div className="space-y-2">
+              <Label htmlFor="phone_number">
+                電話番号 <span className="text-destructive">*</span>
+              </Label>
+              {legalDisplayMethod === "template" ? (
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">請求があり次第提供します。メッセージ機能にてご連絡ください。</p>
+                </div>
+              ) : (
                 <Input
                   id="phone_number"
                   value={legalFormData.phone_number}
@@ -594,63 +637,37 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                   placeholder="例: 03-1234-5678"
                   required
                 />
-              </div>
+              )}
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email_address">
-                  メールアドレス <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="email_address"
-                  type="email"
-                  value={legalFormData.email_address}
-                  onChange={(e) => setLegalFormData({ ...legalFormData, email_address: e.target.value })}
-                  placeholder="例: info@example.com"
-                  required
-                />
+            <div className="space-y-2">
+              <Label htmlFor="additional_costs">
+                対価以外に必要な費用
+              </Label>
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
+                <p className="text-sm text-gray-700 dark:text-gray-300">無し</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="delivery_timing">
-                商品の引渡し時期 <span className="text-destructive">*</span>
+              <Label htmlFor="additional_notices">
+                その他記載事項
               </Label>
-              <Textarea
-                id="delivery_timing"
-                value={legalFormData.delivery_timing}
-                onChange={(e) => setLegalFormData({ ...legalFormData, delivery_timing: e.target.value })}
-                placeholder="例: プロジェクト終了後、○ヶ月以内に発送予定"
-                required
-                rows={3}
-              />
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  プロジェクトページ、リターン記載欄、共通記載欄（
+                  <a href="https://www.ideatube.net/specified-commercial-code" 
+                     className="text-blue-600 hover:text-blue-800 underline" 
+                     target="_blank" 
+                     rel="noopener noreferrer">
+                    https://www.ideatube.net/specified-commercial-code
+                  </a>
+                  ）をご確認ください。
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="return_policy">
-                返品・交換について <span className="text-destructive">*</span>
-              </Label>
-              <Textarea
-                id="return_policy"
-                value={legalFormData.return_policy}
-                onChange={(e) => setLegalFormData({ ...legalFormData, return_policy: e.target.value })}
-                placeholder="例: クラウドファンディングの性質上、原則として返品・交換はお受けできません"
-                required
-                rows={3}
-              />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="other_terms">
-                その他必要事項
-              </Label>
-              <Textarea
-                id="other_terms"
-                value={legalFormData.other_terms}
-                onChange={(e) => setLegalFormData({ ...legalFormData, other_terms: e.target.value })}
-                placeholder="その他法的に必要な事項があれば記載してください"
-                rows={4}
-              />
-            </div>
 
             <div className="flex justify-end">
               <Button type="submit" disabled={isLoading}>
