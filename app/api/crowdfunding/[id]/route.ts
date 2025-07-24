@@ -75,6 +75,7 @@ export async function PATCH(
     const {
       title,
       description,
+      story,
       target_amount,
       start_date,
       end_date,
@@ -87,6 +88,7 @@ export async function PATCH(
     const updates: Record<string, any> = {};
     if (title) updates.title = title;
     if (description) updates.description = description;
+    if (story !== undefined) updates.story = story; // 空文字列でも更新できるように !== undefined を使用
     if (target_amount) updates.target_amount = target_amount;
     if (start_date) updates.start_date = start_date;
     if (end_date) updates.end_date = end_date;
