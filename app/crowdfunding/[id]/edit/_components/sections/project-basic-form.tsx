@@ -105,8 +105,13 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
       toast.success("ストーリーを生成しました！内容を確認して必要に応じて編集してください")
 
     } catch (error) {
-      console.error('ストーリー生成エラー:', error)
-      toast.error(error instanceof Error ? error.message : 'ストーリー生成に失敗しました')
+      // 開発環境でのみ詳細なエラー情報をログ出力
+      if (process.env.NODE_ENV === 'development') {
+        console.error('ストーリー生成エラー:', error)
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'ストーリー生成に失敗しました'
+      toast.error(errorMessage)
     } finally {
       setIsGeneratingStory(false)
     }
