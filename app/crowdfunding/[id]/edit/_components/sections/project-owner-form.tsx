@@ -15,6 +15,10 @@ import { createClient } from "@/utils/supabase/client"
 
 interface ProjectOwnerFormProps {
   campaign: any
+  /**
+   * 未保存の変更状態を親コンポーネントに通知するコールバック関数
+   */
+  onUnsavedChangesUpdate?: (hasChanges: boolean) => void
 }
 
 export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {

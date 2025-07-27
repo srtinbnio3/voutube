@@ -16,6 +16,10 @@ import { formatAmountForDisplay } from "@/app/lib/stripe"
 
 interface ProjectRewardsFormProps {
   campaign: any
+  /**
+   * 未保存の変更状態を親コンポーネントに通知するコールバック関数
+   */
+  onUnsavedChangesUpdate?: (hasChanges: boolean) => void
 }
 
 interface RewardFormState extends RewardFormData {

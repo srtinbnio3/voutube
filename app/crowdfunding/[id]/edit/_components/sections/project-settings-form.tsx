@@ -1,23 +1,43 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes"
 
 interface ProjectSettingsFormProps {
   campaign: any
+  /**
+   * 未保存の変更状態を親コンポーネントに通知するコールバック関数
+   */
+  onUnsavedChangesUpdate?: (hasChanges: boolean) => void
 }
 
-export function ProjectSettingsForm({ campaign }: ProjectSettingsFormProps) {
+export function ProjectSettingsForm({ campaign, onUnsavedChangesUpdate }: ProjectSettingsFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     target_amount: campaign.target_amount || 10000,
     start_date: campaign.start_date ? new Date(campaign.start_date).toISOString().split('T')[0] : "",
     end_date: campaign.end_date ? new Date(campaign.end_date).toISOString().split('T')[0] : ""
   })
+
+  // 初期データ（変更検出のベースライン）
+  const initialData = {
+    target_amount: campaign.target_amount || 10000,
+    start_date: campaign.start_date ? new Date(campaign.start_date).toISOString().split('T')[0] : "",
+    end_date: campaign.end_date ? new Date(campaign.end_date).toISOString().split('T')[0] : ""
+  }
+
+  // 未保存の変更を追跡
+  const { hasUnsavedChanges, markAsSaved } = useUnsavedChanges(formData, initialData)
+
+  // 未保存の変更状態を親コンポーネントに通知
+  useEffect(() => {
+    onUnsavedChangesUpdate?.(hasUnsavedChanges)
+  }, [hasUnsavedChanges, onUnsavedChangesUpdate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,6 +56,8 @@ export function ProjectSettingsForm({ campaign }: ProjectSettingsFormProps) {
         throw new Error("更新に失敗しました")
       }
 
+      // 保存成功時に未保存の変更状態をリセット
+      markAsSaved()
       toast.success("募集設定を更新しました")
     } catch (error) {
       toast.error("更新に失敗しました")

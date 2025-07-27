@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { 
@@ -23,6 +23,7 @@ import { ProjectImageForm } from "./sections/project-image-form"
 import { ProjectOwnerForm } from "./sections/project-owner-form"
 import { WorkflowStatus } from "./workflow-status"
 import { AdminFeedback } from "./admin-feedback"
+import { UnsavedChangesDialog } from "./unsaved-changes-dialog"
 
 interface ProjectEditLayoutProps {
   campaign: any
@@ -74,10 +75,65 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
   const [activeSection, setActiveSection] = useState(currentSection)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [campaignData, setCampaignData] = useState(campaign)
+  
+  // 未保存の変更を管理する状態
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false)
+  const [pendingSectionChange, setPendingSectionChange] = useState<string | null>(null)
 
   useEffect(() => {
     setActiveSection(currentSection)
   }, [currentSection])
+
+  /**
+   * セクションの未保存の変更状態を受け取るコールバック関数
+   * 各フォームコンポーネントから呼び出される
+   */
+  const handleUnsavedChangesUpdate = useCallback((hasChanges: boolean) => {
+    setHasUnsavedChanges(hasChanges)
+  }, [])
+
+  /**
+   * セクション切り替えを安全に実行する関数
+   * 未保存の変更がある場合は確認ダイアログを表示
+   */
+  const handleSectionChange = useCallback((newSection: string) => {
+    // 同じセクションの場合は何もしない
+    if (newSection === activeSection) return
+    
+    // 未保存の変更がある場合は確認ダイアログを表示
+    if (hasUnsavedChanges) {
+      setPendingSectionChange(newSection)
+      setShowUnsavedChangesDialog(true)
+      return
+    }
+    
+    // 未保存の変更がない場合は直接セクション切り替え
+    setActiveSection(newSection)
+    setIsSidebarOpen(false) // モバイルでセクション選択時にサイドバーを閉じる
+  }, [activeSection, hasUnsavedChanges])
+
+  /**
+   * 確認ダイアログで「続行」が選択された場合の処理
+   * 未保存の変更を破棄してセクション切り替えを実行
+   */
+  const handleConfirmSectionChange = useCallback(() => {
+    if (pendingSectionChange) {
+      setActiveSection(pendingSectionChange)
+      setIsSidebarOpen(false)
+    }
+    setShowUnsavedChangesDialog(false)
+    setPendingSectionChange(null)
+    setHasUnsavedChanges(false) // 変更を破棄するため未保存状態をリセット
+  }, [pendingSectionChange])
+
+  /**
+   * 確認ダイアログをキャンセルする処理
+   */
+  const handleCancelSectionChange = useCallback(() => {
+    setShowUnsavedChangesDialog(false)
+    setPendingSectionChange(null)
+  }, [])
 
   // ステータスに基づく編集権限の確認
   const isEditingLocked = campaignData.status === 'under_review' || campaignData.status === 'approved'
@@ -109,19 +165,20 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
       )
     }
 
+    // 各フォームコンポーネントに未保存の変更状態を通知するためのプロパティを渡す
     switch (activeSection) {
       case "basic":
-        return <ProjectBasicForm campaign={campaignData} />
+        return <ProjectBasicForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
       case "rewards":
-        return <ProjectRewardsForm campaign={campaignData} />
+        return <ProjectRewardsForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
       case "settings":
-        return <ProjectSettingsForm campaign={campaignData} />
+        return <ProjectSettingsForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
       case "image":
-        return <ProjectImageForm campaign={campaignData} />
+        return <ProjectImageForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
       case "owner":
-        return <ProjectOwnerForm campaign={campaignData} />
+        return <ProjectOwnerForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
       default:
-        return <ProjectBasicForm campaign={campaignData} />
+        return <ProjectBasicForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
     }
   }
 
@@ -209,7 +266,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
                   return (
                     <button
                       key={item.id}
-                      onClick={() => setActiveSection(item.id)}
+                      onClick={() => handleSectionChange(item.id)}
                       className="flex-shrink-0 flex flex-col items-center gap-1 p-2 rounded-lg transition-colors min-w-[60px]"
                     >
                       <div className={`
@@ -247,7 +304,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
                 onClick={() => {
                   const currentIndex = sidebarItems.findIndex(item => item.id === activeSection)
                   if (currentIndex > 0) {
-                    setActiveSection(sidebarItems[currentIndex - 1].id)
+                    handleSectionChange(sidebarItems[currentIndex - 1].id)
                   }
                 }}
                 disabled={sidebarItems.findIndex(item => item.id === activeSection) === 0}
@@ -263,7 +320,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
                 onClick={() => {
                   const currentIndex = sidebarItems.findIndex(item => item.id === activeSection)
                   if (currentIndex < sidebarItems.length - 1) {
-                    setActiveSection(sidebarItems[currentIndex + 1].id)
+                    handleSectionChange(sidebarItems[currentIndex + 1].id)
                   }
                 }}
                 disabled={sidebarItems.findIndex(item => item.id === activeSection) === sidebarItems.length - 1}
@@ -322,8 +379,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
                       key={item.id}
                       onClick={() => {
                         if (!isDisabled) {
-                          setActiveSection(item.id)
-                          setIsSidebarOpen(false) // モバイルでセクション選択時にサイドバーを閉じる
+                          handleSectionChange(item.id)
                         }
                       }}
                       disabled={isDisabled}
@@ -440,6 +496,18 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
         </div>
       </div>
       </div>
+
+      {/* 未保存の変更確認ダイアログ */}
+      <UnsavedChangesDialog
+        open={showUnsavedChangesDialog}
+        onClose={handleCancelSectionChange}
+        onConfirm={handleConfirmSectionChange}
+        targetSectionName={
+          pendingSectionChange 
+            ? sidebarItems.find(item => item.id === pendingSectionChange)?.label
+            : undefined
+        }
+      />
     </main>
   )
 } 
