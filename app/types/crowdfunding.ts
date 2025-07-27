@@ -46,6 +46,12 @@ export interface CampaignReward {
   amount: number;
   quantity: number;
   remaining_quantity: number;
+  delivery_date?: string;
+  requires_shipping?: boolean;
+  shipping_info?: string;
+  images?: string[];
+  template?: string;
+  is_unlimited?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -100,6 +106,12 @@ export interface RewardFormData {
   description: string;
   amount: number;
   quantity: number;
+  delivery_date?: string;
+  requires_shipping?: boolean;
+  shipping_info?: string;
+  images?: string[];
+  template?: string;
+  is_unlimited?: boolean;
 }
 
 export interface SupportFormData {

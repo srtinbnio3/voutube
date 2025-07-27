@@ -297,10 +297,16 @@ export type Database = {
           amount: number
           campaign_id: string
           created_at: string
+          delivery_date: string | null
           description: string
           id: string
+          images: Json | null
+          is_unlimited: boolean | null
           quantity: number
           remaining_quantity: number
+          requires_shipping: boolean | null
+          shipping_info: string | null
+          template: string | null
           title: string
           updated_at: string
         }
@@ -308,10 +314,16 @@ export type Database = {
           amount: number
           campaign_id: string
           created_at?: string
+          delivery_date?: string | null
           description: string
           id?: string
+          images?: Json | null
+          is_unlimited?: boolean | null
           quantity: number
           remaining_quantity: number
+          requires_shipping?: boolean | null
+          shipping_info?: string | null
+          template?: string | null
           title: string
           updated_at?: string
         }
@@ -319,10 +331,16 @@ export type Database = {
           amount?: number
           campaign_id?: string
           created_at?: string
+          delivery_date?: string | null
           description?: string
           id?: string
+          images?: Json | null
+          is_unlimited?: boolean | null
           quantity?: number
           remaining_quantity?: number
+          requires_shipping?: boolean | null
+          shipping_info?: string | null
+          template?: string | null
           title?: string
           updated_at?: string
         }

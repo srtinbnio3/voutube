@@ -111,7 +111,13 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
         title: formData.title,
         description: formData.description,
         amount: formData.amount,
-        quantity: formData.isUnlimited ? 999999 : formData.quantity
+        quantity: formData.isUnlimited ? 1 : formData.quantity,
+        delivery_date: formData.deliveryDate,
+        requires_shipping: formData.requiresShipping,
+        shipping_info: formData.shippingInfo,
+        images: formData.images || [],
+        template: formData.template,
+        is_unlimited: formData.isUnlimited
       }
 
       let response
@@ -176,12 +182,12 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
       description: reward.description,
       amount: reward.amount,
       quantity: reward.quantity,
-      deliveryDate: '',
-      isUnlimited: reward.quantity >= 999999,
-      requiresShipping: false,
-      shippingInfo: '',
-      images: [],
-      template: 'その他'
+      deliveryDate: reward.delivery_date || '',
+      isUnlimited: reward.is_unlimited || false,
+      requiresShipping: reward.requires_shipping || false,
+      shippingInfo: reward.shipping_info || '',
+      images: reward.images || [],
+      template: reward.template || 'その他'
     })
     setShowAddDialog(true)
   }
@@ -252,9 +258,12 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
                       {reward.description}
                     </p>
                     <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
-                      <span>個数: {reward.quantity >= 999999 ? '無制限' : `${reward.quantity}個`}</span>
-                      {reward.quantity < 999999 && (
+                      <span>個数: {reward.is_unlimited ? '無制限' : `${reward.quantity}個`}</span>
+                      {!reward.is_unlimited && (
                         <span>残り: {reward.remaining_quantity}個</span>
+                      )}
+                      {reward.delivery_date && (
+                        <span>提供時期: {reward.delivery_date.replace('-', '年') + '月'}</span>
                       )}
                     </div>
                   </div>

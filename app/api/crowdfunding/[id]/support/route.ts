@@ -55,7 +55,7 @@ export async function POST(
       return NextResponse.json({ error: "特典が見つかりません" }, { status: 404 });
     }
 
-    if (reward.remaining_quantity <= 0) {
+    if (!reward.is_unlimited && reward.remaining_quantity <= 0) {
       return NextResponse.json({ error: "この特典は完売しました" }, { status: 400 });
     }
 

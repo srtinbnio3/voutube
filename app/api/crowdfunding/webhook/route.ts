@@ -116,16 +116,46 @@ async function handlePaymentIntentSucceeded(supabase: any, paymentIntent: any) {
     return;
   }
   
-  // 支払い情報を更新
+    // 支払い情報を更新
   const { error: paymentError } = await supabase
     .from("crowdfunding_payments")
     .update({ status: "completed" })
     .eq("supporter_id", supporterId)
     .eq("stripe_payment_intent_id", paymentIntent.id);
-  
+
   if (paymentError) {
     console.error("Failed to update payment status:", paymentError);
+    return;
   }
+
+  // リワードの在庫を減らす（無制限でない場合のみ）
+  const { data: reward, error: rewardError } = await supabase
+    .from("crowdfunding_rewards")
+    .select("id, is_unlimited, remaining_quantity")
+    .eq("id", reward_id)
+    .single();
+
+  if (rewardError) {
+    console.error("Failed to get reward info:", rewardError);
+    return;
+  }
+
+  // 無制限でない場合のみ在庫を減らす
+  if (!reward.is_unlimited && reward.remaining_quantity > 0) {
+    const { error: quantityError } = await supabase
+      .from("crowdfunding_rewards")
+      .update({ 
+        remaining_quantity: reward.remaining_quantity - 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", reward_id);
+
+    if (quantityError) {
+      console.error("Failed to update reward quantity:", quantityError);
+    }
+  }
+
+  // キャンペーンの現在支援額は supportersテーブルのトリガーで自動更新される
 }
 
 // 支払い失敗時の処理
