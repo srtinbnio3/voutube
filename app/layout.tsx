@@ -10,6 +10,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "sonner"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -186,6 +187,7 @@ export default function RootLayout({
             </div>
           </main>
           <Toaster />
+          <SonnerToaster />
           <Analytics />
           <SpeedInsights />
         </ThemeProvider>

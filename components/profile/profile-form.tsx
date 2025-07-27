@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AvatarUpload } from "./avatar-upload";
-import { Toaster } from "sonner";
+
 
 interface ProfileFormProps {
   initialData: {
@@ -72,7 +72,6 @@ export function ProfileForm({ initialData, message }: ProfileFormProps) {
           {message && <FormMessage message={message} />}
         </form>
       </CardContent>
-      <Toaster position="top-center" />
     </Card>
   );
 } 
