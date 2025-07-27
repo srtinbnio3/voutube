@@ -70,7 +70,19 @@ export function ProjectSettingsForm({ campaign }: ProjectSettingsFormProps) {
                 id="target_amount"
                 type="number"
                 value={formData.target_amount}
-                onChange={(e) => setFormData({ ...formData, target_amount: Number(e.target.value) })}
+                onChange={(e) => {
+                  const value = Number(e.target.value)
+                  setFormData({ ...formData, target_amount: value })
+                  // カスタムバリデーションメッセージを設定
+                  const element = e.target as HTMLInputElement
+                  if (value < 10000) {
+                    element.setCustomValidity('目標金額は10,000円以上で入力してください')
+                  } else if (value % 1000 !== 0) {
+                    element.setCustomValidity('目標金額は1,000円単位で入力してください')
+                  } else {
+                    element.setCustomValidity('')
+                  }
+                }}
                 placeholder="50000"
                 min="10000"
                 step="1000"

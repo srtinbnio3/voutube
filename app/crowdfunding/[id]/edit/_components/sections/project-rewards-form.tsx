@@ -441,7 +441,19 @@ function RewardFormDialog({
                 max="2900000"
                 step="1"
                 value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: parseInt(e.target.value) || 500 })}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value) || 500
+                  setFormData({ ...formData, amount: value })
+                  // カスタムバリデーションメッセージを設定
+                  const element = e.target as HTMLInputElement
+                  if (value < 500) {
+                    element.setCustomValidity('価格は500円以上で入力してください')
+                  } else if (value > 2900000) {
+                    element.setCustomValidity('価格は290万円以下で入力してください')
+                  } else {
+                    element.setCustomValidity('')
+                  }
+                }}
                 className="pr-8"
               />
               <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
@@ -530,7 +542,17 @@ function RewardFormDialog({
                     type="number"
                     min="1"
                     value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1
+                      setFormData({ ...formData, quantity: value })
+                      // カスタムバリデーションメッセージを設定
+                      const element = e.target as HTMLInputElement
+                      if (value < 1) {
+                        element.setCustomValidity('個数は1個以上で入力してください')
+                      } else {
+                        element.setCustomValidity('')
+                      }
+                    }}
                     className="pr-8"
                   />
                   <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
