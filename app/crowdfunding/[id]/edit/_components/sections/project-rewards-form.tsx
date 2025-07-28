@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,10 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Upload, X, Edit2, Trash2 } from "lucide-react"
+import { Plus, Upload, X, Edit2, Trash2, Image, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { CampaignReward, RewardFormData } from "@/app/types/crowdfunding"
 import { formatAmountForDisplay } from "@/app/lib/stripe"
+import { uploadRewardImageAction, deleteRewardImageAction } from "@/app/actions/profile"
 
 interface ProjectRewardsFormProps {
   campaign: any
@@ -48,6 +49,15 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
     images: [],
     template: ''
   })
+  
+  // 画像アップロード用の状態管理
+  const [uploadingImages, setUploadingImages] = useState<Set<number>>(new Set())
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([])
+  
+  // ファイル入力参照を初期化
+  useEffect(() => {
+    fileInputRefs.current = Array(5).fill(null).map(() => null)
+  }, [])
 
   // リターン一覧を取得
   useEffect(() => {
@@ -196,6 +206,96 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
     setShowAddDialog(true)
   }
 
+  // 画像アップロード処理
+  const handleImageUpload = async (index: number) => {
+    const fileInput = fileInputRefs.current[index]
+    if (!fileInput) return
+    
+    const file = fileInput.files?.[0]
+    if (!file) return
+
+    // ファイル形式チェック
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if (!validTypes.includes(file.type)) {
+      toast.error("JPG、PNG、GIF、WebP形式の画像のみアップロード可能です")
+      return
+    }
+
+    // ファイルサイズチェック (5MB以下)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("ファイルサイズは5MB以下にしてください")
+      return
+    }
+
+    // アップロード開始
+    setUploadingImages(prev => new Set([...Array.from(prev), index]))
+
+    try {
+      const formDataForUpload = new FormData()
+      formDataForUpload.append("image", file)
+      
+      const result = await uploadRewardImageAction(formDataForUpload)
+      
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+
+      // 画像URLを配列に追加
+      const newImages = [...(formData.images || [])]
+      newImages[index] = result.url!
+      
+      setFormData({
+        ...formData,
+        images: newImages
+      })
+      
+      toast.success("画像をアップロードしました")
+    } catch (error) {
+      console.error("画像アップロードエラー:", error)
+      toast.error("画像のアップロードに失敗しました")
+    } finally {
+      setUploadingImages(prev => {
+        const next = new Set(prev)
+        next.delete(index)
+        return next
+      })
+      // ファイル入力をリセット
+      if (fileInput) {
+        fileInput.value = ''
+      }
+    }
+  }
+
+  // 画像削除処理
+  const handleImageDelete = async (index: number) => {
+    const imageUrl = formData.images?.[index]
+    if (!imageUrl) return
+
+    try {
+      const result = await deleteRewardImageAction(imageUrl)
+      
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+
+      // 画像URLを配列から削除
+      const newImages = [...(formData.images || [])]
+      newImages[index] = undefined as any
+      
+      setFormData({
+        ...formData,
+        images: newImages.filter(img => img !== undefined)
+      })
+      
+      toast.success("画像を削除しました")
+    } catch (error) {
+      console.error("画像削除エラー:", error)
+      toast.error("画像の削除に失敗しました")
+    }
+  }
+
   // テンプレート選択時の処理
   const handleTemplateChange = (template: string) => {
     const templates = {
@@ -326,6 +426,10 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
                   onSave={handleSaveReward}
                   onTemplateChange={handleTemplateChange}
                   isEditing={!!editingReward}
+                  uploadingImages={uploadingImages}
+                  fileInputRefs={fileInputRefs}
+                  onImageUpload={handleImageUpload}
+                  onImageDelete={handleImageDelete}
                 />
               </Dialog>
             </div>
@@ -344,6 +448,10 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
                   onSave={handleSaveReward}
                   onTemplateChange={handleTemplateChange}
                   isEditing={!!editingReward}
+                  uploadingImages={uploadingImages}
+                  fileInputRefs={fileInputRefs}
+                  onImageUpload={handleImageUpload}
+                  onImageDelete={handleImageDelete}
                 />
               </Dialog>
           </div>
@@ -360,13 +468,21 @@ function RewardFormDialog({
   setFormData, 
   onSave, 
   onTemplateChange,
-  isEditing 
+  isEditing,
+  uploadingImages,
+  fileInputRefs,
+  onImageUpload,
+  onImageDelete
 }: {
   formData: RewardFormState
-  setFormData: (data: RewardFormState) => void
-  onSave: () => void
+  setFormData: React.Dispatch<React.SetStateAction<RewardFormState>>
+  onSave: () => Promise<void>
   onTemplateChange: (template: string) => void
   isEditing: boolean
+  uploadingImages: Set<number>
+  fileInputRefs: React.MutableRefObject<(HTMLInputElement | null)[]>
+  onImageUpload: (index: number) => Promise<void>
+  onImageDelete: (index: number) => Promise<void>
 }) {
   return (
     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -520,13 +636,81 @@ function RewardFormDialog({
             最大5個まで画像を設定することができます。同じサイズの画像をお使いいただけます。
           </p>
           <div className="grid grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5].map((index) => (
-              <div key={index} className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-primary cursor-pointer">画像を追加</p>
-              </div>
-            ))}
+            {[0, 1, 2, 3, 4].map((index) => {
+              const hasImage = formData.images && formData.images[index]
+              const isUploading = uploadingImages.has(index)
+              
+              return (
+                <div key={index} className="relative">
+                  <input
+                    type="file"
+                    ref={(el) => {
+                      if (fileInputRefs.current) {
+                        fileInputRefs.current[index] = el
+                      }
+                    }}
+                    className="hidden"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                                         onChange={() => onImageUpload(index)}
+                    disabled={isUploading}
+                  />
+                  
+                  {hasImage ? (
+                    // 画像が設定されている場合のプレビュー
+                    <div className="relative group">
+                      <div className="aspect-square border-2 border-border rounded-lg overflow-hidden">
+                        <img
+                          src={formData.images![index]}
+                          alt={`リワード画像 ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      {/* 削除ボタン */}
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                 onClick={() => onImageDelete(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                      {/* 画像番号表示 */}
+                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                        {index + 1}
+                      </div>
+                    </div>
+                  ) : (
+                    // 画像が設定されていない場合のアップロードエリア
+                    <div 
+                      className={`aspect-square border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors ${isUploading ? 'opacity-50' : ''}`}
+                      onClick={() => {
+                        if (!isUploading && fileInputRefs.current[index]) {
+                          fileInputRefs.current[index]!.click()
+                        }
+                      }}
+                    >
+                      {isUploading ? (
+                        <div className="flex flex-col items-center justify-center h-full">
+                          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+                          <p className="text-xs text-muted-foreground">アップロード中...</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full">
+                          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-primary">画像を追加</p>
+                          <p className="text-xs text-muted-foreground mt-1">{index + 1}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
+          <p className="text-xs text-muted-foreground">
+            JPG、PNG、GIF、WebP形式の画像をアップロードできます（最大5MB）
+          </p>
         </div>
 
         {/* リターンの個数制限 */}
