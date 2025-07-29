@@ -20,14 +20,12 @@ export function ProjectSettingsForm({ campaign, onUnsavedChangesUpdate }: Projec
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     target_amount: campaign.target_amount || 10000,
-    start_date: campaign.start_date ? new Date(campaign.start_date).toISOString().split('T')[0] : "",
     end_date: campaign.end_date ? new Date(campaign.end_date).toISOString().split('T')[0] : ""
   })
 
   // 初期データ（変更検出のベースライン）
   const initialData = {
     target_amount: campaign.target_amount || 10000,
-    start_date: campaign.start_date ? new Date(campaign.start_date).toISOString().split('T')[0] : "",
     end_date: campaign.end_date ? new Date(campaign.end_date).toISOString().split('T')[0] : ""
   }
 
@@ -124,42 +122,26 @@ export function ProjectSettingsForm({ campaign, onUnsavedChangesUpdate }: Projec
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="start_date">
-                  開始日 <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="start_date"
-                  type="date"
-                  value={formData.start_date}
-                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  min={new Date().toISOString().split('T')[0]}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="end_date">
-                  終了日 <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="end_date"
-                  type="date"
-                  value={formData.end_date}
-                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                  min={new Date().toISOString().split('T')[0]}
-                  max={(() => {
-                    const maxDate = new Date()
-                    maxDate.setDate(maxDate.getDate() + 99)
-                    return maxDate.toISOString().split('T')[0]
-                  })()}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  本日から99日先まで設定可能です
-                </p>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="end_date">
+                募集終了日 <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                min={new Date().toISOString().split('T')[0]}
+                max={(() => {
+                  const maxDate = new Date()
+                  maxDate.setDate(maxDate.getDate() + 99)
+                  return maxDate.toISOString().split('T')[0]
+                })()}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                本日から99日先まで設定可能です
+              </p>
             </div>
 
             <div className="flex justify-end">
