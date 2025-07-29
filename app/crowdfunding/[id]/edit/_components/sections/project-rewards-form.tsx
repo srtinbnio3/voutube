@@ -30,6 +30,9 @@ interface RewardFormState extends RewardFormData {
   shippingInfo?: string
   images?: string[]
   template?: string
+  requiresContactInfo?: boolean
+  requiresEmail?: boolean
+  requiresAddress?: boolean
 }
 
 export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
@@ -47,7 +50,10 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
     requiresShipping: false,
     shippingInfo: '',
     images: [],
-    template: ''
+    template: '',
+    requiresContactInfo: false,
+    requiresEmail: false,
+    requiresAddress: false
   })
   
   // 画像アップロード用の状態管理
@@ -91,7 +97,10 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
       requiresShipping: false,
       shippingInfo: '',
       images: [],
-      template: ''
+      template: '',
+      requiresContactInfo: false,
+      requiresEmail: false,
+      requiresAddress: false
     })
     setEditingReward(null)
   }
@@ -131,7 +140,10 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
         shipping_info: formData.shippingInfo,
         images: formData.images || [],
         template: formData.template,
-        is_unlimited: formData.isUnlimited
+        is_unlimited: formData.isUnlimited,
+        requires_contact_info: formData.requiresContactInfo,
+        requires_email: formData.requiresEmail,
+        requires_address: formData.requiresAddress
       }
 
       let response
@@ -201,7 +213,10 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
       requiresShipping: reward.requires_shipping || false,
       shippingInfo: reward.shipping_info || '',
       images: reward.images || [],
-      template: reward.template || 'その他'
+      template: reward.template || 'その他',
+      requiresContactInfo: reward.requires_contact_info || false,
+      requiresEmail: reward.requires_email || false,
+      requiresAddress: reward.requires_address || false
     })
     setShowAddDialog(true)
   }
@@ -331,7 +346,11 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
         ...formData,
         template,
         title: template === 'その他' ? formData.title : selectedTemplate.title,
-        description: template === 'その他' ? formData.description : selectedTemplate.description
+        description: template === 'その他' ? formData.description : selectedTemplate.description,
+        // テンプレート変更時は情報取得設定をリセット
+        requiresContactInfo: false,
+        requiresEmail: false,
+        requiresAddress: false
       })
     }
   }
@@ -629,6 +648,48 @@ function RewardFormDialog({
           </div>
         </div>
 
+        {/* 支援者情報の取得設定 */}
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="requiresContactInfo"
+                checked={formData.requiresContactInfo}
+                onCheckedChange={(checked) => setFormData({ ...formData, requiresContactInfo: !!checked })}
+              />
+              <Label htmlFor="requiresContactInfo" className="text-sm font-medium">
+                提供に支援者の情報が必要（氏名・連絡先など）
+              </Label>
+            </div>
+            
+            {formData.requiresContactInfo && (
+              <div className="ml-6 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="requiresEmail"
+                    checked={formData.requiresEmail}
+                    onCheckedChange={(checked) => setFormData({ ...formData, requiresEmail: !!checked })}
+                  />
+                  <Label htmlFor="requiresEmail" className="text-sm">
+                    メールアドレスを取得する
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="requiresAddress"
+                    checked={formData.requiresAddress}
+                    onCheckedChange={(checked) => setFormData({ ...formData, requiresAddress: !!checked })}
+                  />
+                  <Label htmlFor="requiresAddress" className="text-sm">
+                    住所・氏名・電話番号を取得する
+                  </Label>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* 画像設定 */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">画像設定</Label>
@@ -761,12 +822,12 @@ function RewardFormDialog({
           </div>
         </div>
 
-        {/* 発送情報の設定 */}
+        {/* 備考欄の設定 */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium">発送情報の設定</Label>
+          <Label className="text-sm font-medium">備考欄の設定</Label>
           <p className="text-xs text-muted-foreground">
-            支援者に関連情報の回答が求められる情報です。リターンの内容に応じて選択し調整してください。
-            メールアドレス・氏名・住所・電話番号・リターンのサイズなど支援者の情報が必要な場合があります。
+            支援者に備考欄への入力を求める場合は「入力を必須にする」を選択してください。<br />
+            【備考欄の使用例】「お名前掲載」のリターンに掲載するお名前を備考欄に記入してもらう、など
           </p>
           
           <div className="space-y-2">
@@ -788,13 +849,13 @@ function RewardFormDialog({
                 onCheckedChange={(checked) => setFormData({ ...formData, requiresShipping: !checked })}
               />
               <Label htmlFor="noInfo" className="text-sm">
-                入力を必須にしない
+                入力を任意にする
               </Label>
             </div>
           </div>
           
           <p className="text-xs text-muted-foreground">
-            必要に応じて詳細な個人情報「リターンの詳細」の入力欄に記載してください。
+            ※支援者に入力してほしい内容を「リターンの内容」に記載してください。
           </p>
         </div>
 

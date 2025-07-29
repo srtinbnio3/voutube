@@ -53,7 +53,10 @@ export async function PATCH(
       shipping_info,
       images,
       template,
-      is_unlimited
+      is_unlimited,
+      requires_contact_info,
+      requires_email,
+      requires_address
     } = body;
 
     // 更新するフィールドを準備
@@ -67,6 +70,9 @@ export async function PATCH(
     if (images !== undefined) updates.images = images;
     if (template !== undefined) updates.template = template;
     if (is_unlimited !== undefined) updates.is_unlimited = is_unlimited;
+    if (requires_contact_info !== undefined) updates.requires_contact_info = requires_contact_info;
+    if (requires_email !== undefined) updates.requires_email = requires_email;
+    if (requires_address !== undefined) updates.requires_address = requires_address;
     
     // 数量の更新（残り数量も調整）
     if (quantity !== undefined || is_unlimited !== undefined) {

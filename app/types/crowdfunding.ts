@@ -52,6 +52,9 @@ export interface CampaignReward {
   images?: string[];
   template?: string;
   is_unlimited?: boolean;
+  requires_contact_info?: boolean;
+  requires_email?: boolean;
+  requires_address?: boolean;
   created_at: string;
   updated_at: string;
 }

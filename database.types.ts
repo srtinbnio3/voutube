@@ -304,6 +304,9 @@ export type Database = {
           is_unlimited: boolean | null
           quantity: number
           remaining_quantity: number
+          requires_address: boolean | null
+          requires_contact_info: boolean | null
+          requires_email: boolean | null
           requires_shipping: boolean | null
           shipping_info: string | null
           template: string | null
@@ -321,6 +324,9 @@ export type Database = {
           is_unlimited?: boolean | null
           quantity: number
           remaining_quantity: number
+          requires_address?: boolean | null
+          requires_contact_info?: boolean | null
+          requires_email?: boolean | null
           requires_shipping?: boolean | null
           shipping_info?: string | null
           template?: string | null
@@ -338,6 +344,9 @@ export type Database = {
           is_unlimited?: boolean | null
           quantity?: number
           remaining_quantity?: number
+          requires_address?: boolean | null
+          requires_contact_info?: boolean | null
+          requires_email?: boolean | null
           requires_shipping?: boolean | null
           shipping_info?: string | null
           template?: string | null

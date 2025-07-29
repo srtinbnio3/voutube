@@ -53,7 +53,10 @@ export async function POST(
       shipping_info,
       images,
       template,
-      is_unlimited
+      is_unlimited,
+      requires_contact_info,
+      requires_email,
+      requires_address
     } = body;
 
     // 必須項目の検証
@@ -90,7 +93,10 @@ export async function POST(
         shipping_info: shipping_info || null,
         images: images || [],
         template: template || null,
-        is_unlimited: is_unlimited || false
+        is_unlimited: is_unlimited || false,
+        requires_contact_info: requires_contact_info || false,
+        requires_email: requires_email || false,
+        requires_address: requires_address || false
       })
       .select()
       .single();
