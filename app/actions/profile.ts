@@ -308,3 +308,189 @@ export async function deleteRewardImageAction(imageUrl: string) {
     return { error: "画像の削除処理に失敗しました" };
   }
 } 
+
+// プロジェクトのメイン画像をアップロードするサーバーアクション
+export async function uploadProjectMainImageAction(formData: FormData) {
+  const supabase = await createClient();
+  
+  // 現在のユーザーを取得
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !user) {
+    return { error: "ユーザー情報の取得に失敗しました" };
+  }
+
+  // 画像ファイルを取得
+  const file = formData.get("image") as File;
+  
+  if (!file) {
+    return { error: "画像ファイルが選択されていません" };
+  }
+  
+  // ファイルサイズチェック (10MB以下)
+  if (file.size > 10 * 1024 * 1024) {
+    return { error: "ファイルサイズは10MB以下にしてください" };
+  }
+  
+  // ファイル形式チェック
+  const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  if (!validTypes.includes(file.type)) {
+    return { error: "JPG、PNG、GIF、WebP形式の画像のみアップロード可能です" };
+  }
+
+  try {
+    // ファイルをArrayBufferに変換
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // メイン画像の最適化（16:9、1280x720推奨）
+    const optimizedBuffer = await sharp(buffer)
+      .resize(1280, 720, {
+        fit: 'cover',
+        position: 'center'
+      })
+      .webp({
+        quality: 85,
+        effort: 6
+      })
+      .toBuffer();
+
+    // ファイル名を生成（ユーザーID + タイムスタンプ + _main.webp）
+    const fileName = `${user.id}_${Date.now()}_main.webp`;
+    const filePath = `campaign-images/${fileName}`;
+    
+    // Storageにアップロード
+    const { error: uploadError, data } = await supabase.storage
+      .from("user-content")
+      .upload(filePath, optimizedBuffer, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: "image/webp"
+      });
+    
+    if (uploadError) {
+      console.error("メイン画像アップロードエラー:", uploadError);
+      return { error: "画像のアップロードに失敗しました" };
+    }
+    
+    // 画像の公開URLを取得
+    const { data: { publicUrl } } = supabase.storage
+      .from("user-content")
+      .getPublicUrl(filePath);
+    
+    return { url: publicUrl };
+  } catch (error) {
+    console.error("メイン画像処理エラー:", error);
+    return { error: "画像の処理に失敗しました" };
+  }
+}
+
+// プロジェクトのサムネイル画像をアップロードするサーバーアクション
+export async function uploadProjectThumbnailImageAction(formData: FormData) {
+  const supabase = await createClient();
+  
+  // 現在のユーザーを取得
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !user) {
+    return { error: "ユーザー情報の取得に失敗しました" };
+  }
+
+  // 画像ファイルを取得
+  const file = formData.get("image") as File;
+  
+  if (!file) {
+    return { error: "画像ファイルが選択されていません" };
+  }
+  
+  // ファイルサイズチェック (5MB以下)
+  if (file.size > 5 * 1024 * 1024) {
+    return { error: "ファイルサイズは5MB以下にしてください" };
+  }
+  
+  // ファイル形式チェック
+  const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  if (!validTypes.includes(file.type)) {
+    return { error: "JPG、PNG、GIF、WebP形式の画像のみアップロード可能です" };
+  }
+
+  try {
+    // ファイルをArrayBufferに変換
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // サムネイル画像の最適化（4:3、400x300推奨）
+    const optimizedBuffer = await sharp(buffer)
+      .resize(400, 300, {
+        fit: 'cover',
+        position: 'center'
+      })
+      .webp({
+        quality: 80,
+        effort: 6
+      })
+      .toBuffer();
+
+    // ファイル名を生成（ユーザーID + タイムスタンプ + _thumb.webp）
+    const fileName = `${user.id}_${Date.now()}_thumb.webp`;
+    const filePath = `campaign-images/${fileName}`;
+    
+    // Storageにアップロード
+    const { error: uploadError, data } = await supabase.storage
+      .from("user-content")
+      .upload(filePath, optimizedBuffer, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: "image/webp"
+      });
+    
+    if (uploadError) {
+      console.error("サムネイル画像アップロードエラー:", uploadError);
+      return { error: "画像のアップロードに失敗しました" };
+    }
+    
+    // 画像の公開URLを取得
+    const { data: { publicUrl } } = supabase.storage
+      .from("user-content")
+      .getPublicUrl(filePath);
+    
+    return { url: publicUrl };
+  } catch (error) {
+    console.error("サムネイル画像処理エラー:", error);
+    return { error: "画像の処理に失敗しました" };
+  }
+}
+
+// プロジェクト画像を削除するサーバーアクション
+export async function deleteProjectImageAction(imageUrl: string) {
+  const supabase = await createClient();
+  
+  // 現在のユーザーを取得
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !user) {
+    return { error: "ユーザー情報の取得に失敗しました" };
+  }
+
+  try {
+    // URLからファイルパスを抽出
+    const urlParts = imageUrl.split('/');
+    const fileName = urlParts[urlParts.length - 1];
+    const filePath = `campaign-images/${fileName}`;
+    
+    // Storageから画像を削除
+    const { error: deleteError } = await supabase.storage
+      .from("user-content")
+      .remove([filePath]);
+    
+    if (deleteError) {
+      console.error("プロジェクト画像削除エラー:", deleteError);
+      return { error: "画像の削除に失敗しました" };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error("プロジェクト画像削除処理エラー:", error);
+    return { error: "画像の削除処理に失敗しました" };
+  }
+} 

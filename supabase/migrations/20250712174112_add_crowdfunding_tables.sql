@@ -23,6 +23,7 @@ create table "public"."crowdfunding_campaigns" (
     "channel_id" uuid not null,
     "title" text not null,
     "description" text not null,
+    "story" text,
     "target_amount" integer not null,
     "current_amount" integer default 0,
     "start_date" timestamp with time zone not null,
@@ -30,6 +31,8 @@ create table "public"."crowdfunding_campaigns" (
     "status" text not null,
     "reward_enabled" boolean default false,
     "bank_account_info" jsonb,
+    "main_image" text,
+    "thumbnail_image" text,
     "created_at" timestamp with time zone not null default timezone('utc'::text, now()),
     "updated_at" timestamp with time zone not null default timezone('utc'::text, now())
 );
@@ -61,6 +64,15 @@ create table "public"."crowdfunding_rewards" (
     "amount" integer not null,
     "quantity" integer not null,
     "remaining_quantity" integer not null,
+    "delivery_date" text,
+    "requires_shipping" boolean default false,
+    "shipping_info" text,
+    "images" jsonb default '[]'::jsonb,
+    "template" text,
+    "is_unlimited" boolean default false,
+    "requires_contact_info" boolean default false,
+    "requires_email" boolean default false,
+    "requires_address" boolean default false,
     "created_at" timestamp with time zone not null default timezone('utc'::text, now()),
     "updated_at" timestamp with time zone not null default timezone('utc'::text, now())
 );
@@ -106,6 +118,11 @@ CREATE INDEX crowdfunding_payments_supporter_id_idx ON public.crowdfunding_payme
 -- crowdfunding_rewards用インデックス
 CREATE INDEX crowdfunding_rewards_campaign_id_idx ON public.crowdfunding_rewards USING btree (campaign_id);
 CREATE UNIQUE INDEX crowdfunding_rewards_pkey ON public.crowdfunding_rewards USING btree (id);
+CREATE INDEX crowdfunding_rewards_delivery_date_idx ON public.crowdfunding_rewards USING btree (delivery_date);
+CREATE INDEX crowdfunding_rewards_is_unlimited_idx ON public.crowdfunding_rewards USING btree (is_unlimited);
+CREATE INDEX crowdfunding_rewards_requires_contact_info_idx ON public.crowdfunding_rewards USING btree (requires_contact_info);
+CREATE INDEX crowdfunding_rewards_requires_email_idx ON public.crowdfunding_rewards USING btree (requires_email);
+CREATE INDEX crowdfunding_rewards_requires_address_idx ON public.crowdfunding_rewards USING btree (requires_address);
 
 -- crowdfunding_supporters用インデックス
 CREATE INDEX crowdfunding_supporters_campaign_id_idx ON public.crowdfunding_supporters USING btree (campaign_id);
@@ -159,6 +176,7 @@ alter table "public"."crowdfunding_campaigns" add constraint "crowdfunding_campa
 alter table "public"."crowdfunding_campaigns" add constraint "crowdfunding_campaigns_description_length" CHECK ((char_length(description) >= 10));
 alter table "public"."crowdfunding_campaigns" add constraint "crowdfunding_campaigns_end_date_after_start_date" CHECK ((end_date > start_date));
 alter table "public"."crowdfunding_campaigns" add constraint "crowdfunding_campaigns_title_length" CHECK ((char_length(title) >= 1));
+alter table "public"."crowdfunding_campaigns" add constraint "crowdfunding_campaigns_story_length" CHECK ((story IS NULL OR char_length(story) <= 20000));
 
 -- crowdfunding_payments制約
 alter table "public"."crowdfunding_payments" add constraint "crowdfunding_payments_amount_check" CHECK ((amount > 0));
@@ -171,6 +189,7 @@ alter table "public"."crowdfunding_rewards" add constraint "crowdfunding_rewards
 alter table "public"."crowdfunding_rewards" add constraint "crowdfunding_rewards_description_length" CHECK ((char_length(description) >= 1));
 alter table "public"."crowdfunding_rewards" add constraint "crowdfunding_rewards_remaining_quantity_less_than_quantity" CHECK ((remaining_quantity <= quantity));
 alter table "public"."crowdfunding_rewards" add constraint "crowdfunding_rewards_title_length" CHECK ((char_length(title) >= 1));
+alter table "public"."crowdfunding_rewards" add constraint "delivery_date_format" CHECK ((delivery_date IS NULL OR delivery_date ~ '^[0-9]{4}-[0-9]{2}$'));
 
 -- crowdfunding_supporters制約
 alter table "public"."crowdfunding_supporters" add constraint "crowdfunding_supporters_amount_check" CHECK ((amount > 0));
@@ -288,6 +307,20 @@ CREATE POLICY "支払い情報は本人のみ更新可能" ON "public"."crowdfun
 CREATE POLICY "クリエイター報酬は本人のみ閲覧可能" ON "public"."creator_rewards" FOR SELECT USING (auth.uid() IN (SELECT owner_user_id FROM channels WHERE channels.id = (SELECT channel_id FROM crowdfunding_campaigns WHERE crowdfunding_campaigns.id = creator_rewards.campaign_id)));
 CREATE POLICY "認証済みユーザーはクリエイター報酬を作成可能" ON "public"."creator_rewards" FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 CREATE POLICY "クリエイター報酬は本人のみ更新可能" ON "public"."creator_rewards" FOR UPDATE USING (auth.uid() IN (SELECT owner_user_id FROM channels WHERE channels.id = (SELECT channel_id FROM crowdfunding_campaigns WHERE crowdfunding_campaigns.id = creator_rewards.campaign_id)));
+
+-- ===============================
+-- カラムコメント
+-- ===============================
+
+-- crowdfunding_campaigns カラムコメント
+COMMENT ON COLUMN "public"."crowdfunding_campaigns"."story" IS 'プロジェクトの詳細なストーリー・説明（HTML形式）';
+COMMENT ON COLUMN "public"."crowdfunding_campaigns"."main_image" IS 'プロジェクトのメイン画像URL（推奨サイズ: 1280×720px）';
+COMMENT ON COLUMN "public"."crowdfunding_campaigns"."thumbnail_image" IS 'プロジェクトのサムネイル画像URL（推奨サイズ: 400×300px）';
+
+-- crowdfunding_rewards カラムコメント
+COMMENT ON COLUMN "public"."crowdfunding_rewards"."requires_contact_info" IS '支援者の情報が必要かどうか（氏名・連絡先など）';
+COMMENT ON COLUMN "public"."crowdfunding_rewards"."requires_email" IS 'メールアドレスの取得が必要かどうか';
+COMMENT ON COLUMN "public"."crowdfunding_rewards"."requires_address" IS '住所・氏名・電話番号の取得が必要かどうか';
 
 -- コメント: このマイグレーションファイルは、クラウドファンディング機能に必要な全てのテーブル、制約、関数、トリガー、RLSポリシーを作成します。
 -- 各テーブルには適切なインデックスが設定され、データの整合性を保つためのチェック制約も含まれています。

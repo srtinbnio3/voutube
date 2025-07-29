@@ -14,6 +14,8 @@ export interface Campaign {
   end_date: string;
   status: CampaignStatus;
   reward_enabled: boolean;
+  main_image?: string;
+  thumbnail_image?: string;
   bank_account_info?: {
     bank_name: string;
     branch_name: string;
