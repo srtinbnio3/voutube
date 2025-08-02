@@ -493,4 +493,6 @@ export async function deleteProjectImageAction(imageUrl: string) {
     console.error("プロジェクト画像削除処理エラー:", error);
     return { error: "画像の削除処理に失敗しました" };
   }
-} 
+}
+
+ 

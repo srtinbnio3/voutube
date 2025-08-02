@@ -94,6 +94,31 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
   }, [])
 
   /**
+   * キャンペーンデータを更新するコールバック関数
+   * 各フォームコンポーネントから保存後に呼び出される
+   */
+  const handleCampaignDataUpdate = useCallback(async () => {
+    try {
+      console.log("キャンペーンデータを更新中...", campaign.id)
+      const response = await fetch(`/api/crowdfunding/${campaign.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.campaign) {
+          console.log("キャンペーンデータ更新成功:", {
+            oldMainImage: campaignData.main_image,
+            newMainImage: data.campaign.main_image,
+            oldThumbnail: campaignData.thumbnail_image,
+            newThumbnail: data.campaign.thumbnail_image
+          })
+          setCampaignData(data.campaign)
+        }
+      }
+    } catch (error) {
+      console.error("キャンペーンデータの更新に失敗しました:", error)
+    }
+  }, [campaign.id, campaignData.main_image, campaignData.thumbnail_image])
+
+  /**
    * セクション切り替えを安全に実行する関数
    * 未保存の変更がある場合は確認ダイアログを表示
    */
@@ -174,7 +199,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
       case "settings":
         return <ProjectSettingsForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
       case "image":
-        return <ProjectImageForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
+        return <ProjectImageForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} onCampaignDataUpdate={handleCampaignDataUpdate} />
       case "owner":
         return <ProjectOwnerForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
       default:
