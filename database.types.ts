@@ -173,6 +173,7 @@ export type Database = {
         Row: {
           bank_account_info: Json | null
           channel_id: string
+          corporate_info: Json | null
           created_at: string
           current_amount: number | null
           description: string
@@ -181,17 +182,23 @@ export type Database = {
           identity_verification_id: string | null
           identity_verification_required: boolean | null
           identity_verification_status: string | null
+          legal_info: Json | null
+          main_image: string | null
+          operator_type: string | null
           post_id: string
           reward_enabled: boolean | null
           start_date: string
           status: string
+          story: string | null
           target_amount: number
+          thumbnail_image: string | null
           title: string
           updated_at: string
         }
         Insert: {
           bank_account_info?: Json | null
           channel_id: string
+          corporate_info?: Json | null
           created_at?: string
           current_amount?: number | null
           description: string
@@ -200,17 +207,23 @@ export type Database = {
           identity_verification_id?: string | null
           identity_verification_required?: boolean | null
           identity_verification_status?: string | null
+          legal_info?: Json | null
+          main_image?: string | null
+          operator_type?: string | null
           post_id: string
           reward_enabled?: boolean | null
           start_date: string
           status: string
+          story?: string | null
           target_amount: number
+          thumbnail_image?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           bank_account_info?: Json | null
           channel_id?: string
+          corporate_info?: Json | null
           created_at?: string
           current_amount?: number | null
           description?: string
@@ -219,11 +232,16 @@ export type Database = {
           identity_verification_id?: string | null
           identity_verification_required?: boolean | null
           identity_verification_status?: string | null
+          legal_info?: Json | null
+          main_image?: string | null
+          operator_type?: string | null
           post_id?: string
           reward_enabled?: boolean | null
           start_date?: string
           status?: string
+          story?: string | null
           target_amount?: number
+          thumbnail_image?: string | null
           title?: string
           updated_at?: string
         }

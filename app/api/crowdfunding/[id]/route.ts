@@ -83,7 +83,10 @@ export async function PATCH(
       reward_enabled,
       bank_account_info,
       main_image,
-      thumbnail_image
+      thumbnail_image,
+      operator_type,
+      corporate_info,
+      legal_info
     } = body;
 
     // 更新するフィールドを準備
@@ -99,6 +102,9 @@ export async function PATCH(
     if (bank_account_info) updates.bank_account_info = bank_account_info;
     if (main_image !== undefined) updates.main_image = main_image;
     if (thumbnail_image !== undefined) updates.thumbnail_image = thumbnail_image;
+    if (operator_type) updates.operator_type = operator_type;
+    if (corporate_info !== undefined) updates.corporate_info = corporate_info;
+    if (legal_info !== undefined) updates.legal_info = legal_info;
 
     // クラウドファンディングを更新
     const { data, error } = await supabase

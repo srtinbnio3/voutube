@@ -34,10 +34,75 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
     }
   }
   
+  // 既存データを読み込んでフォームを初期化する関数
+  const initializeFormData = useCallback(() => {
+    if (campaign) {
+      console.log("🔥 オーナー情報初期化開始:", campaign)
+      
+      // 運営主体タイプの設定
+      if (campaign.operator_type) {
+        setOperatorType(campaign.operator_type as "individual" | "corporate")
+      }
+      
+      // 銀行口座情報の設定
+      if (campaign.bank_account_info) {
+        const bankInfo = campaign.bank_account_info as any
+        setFormData({
+          bank_name: bankInfo.bank_name || "",
+          bank_branch: bankInfo.bank_branch || "",
+          bank_account_type: bankInfo.bank_account_type || "普通",
+          bank_account_number: bankInfo.bank_account_number || "",
+          bank_account_holder: bankInfo.bank_account_holder || ""
+        })
+        
+        // 銀行が選択されている場合、対応する銀行コードを設定（簡易実装）
+        if (bankInfo.bank_name) {
+          // 実際の実装では銀行名から銀行コードを取得する処理が必要
+          // ここでは既存データが表示されることを優先
+        }
+      }
+      
+      // 法人情報の設定
+      if (campaign.corporate_info) {
+        const corporateInfo = campaign.corporate_info as any
+        setCorporateFormData({
+          company_name: corporateInfo.company_name || "",
+          representative_name: corporateInfo.representative_name || "",
+          representative_name_kana: corporateInfo.representative_name_kana || "",
+          representative_birth_date: corporateInfo.representative_birth_date || "",
+          company_postal_code: corporateInfo.company_postal_code || "",
+          company_address: corporateInfo.company_address || "",
+          company_phone: corporateInfo.company_phone || "",
+          registration_number: corporateInfo.registration_number || ""
+        })
+      }
+      
+      // 特商法情報の設定
+      if (campaign.legal_info) {
+        const legalInfo = campaign.legal_info as any
+        setLegalDisplayMethod(legalInfo.display_method || "template")
+        setLegalFormData({
+          business_name: legalInfo.business_name || "",
+          business_representative: legalInfo.business_representative || "",
+          business_postal_code: legalInfo.business_postal_code || "",
+          business_address: legalInfo.business_address || "",
+          phone_number: legalInfo.phone_number || ""
+        })
+      }
+      
+      console.log("🔥 オーナー情報初期化完了")
+    }
+  }, [campaign])
+
   // コンポーネントマウント時にユーザーIDを取得
   useEffect(() => {
     fetchUserId()
   }, [])
+  
+  // キャンペーンデータが変更された時にフォームを初期化
+  useEffect(() => {
+    initializeFormData()
+  }, [initializeFormData])
   const [isLoading, setIsLoading] = useState(false)
   const [operatorType, setOperatorType] = useState<"individual" | "corporate">("individual")
   
@@ -160,36 +225,48 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
     setFormData({ ...formData, bank_branch: branch.name })
   }
 
+  // 統合された送信処理関数
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
+      // 更新するデータを準備
+      const updateData = {
+        operator_type: operatorType,
+        bank_account_info: formData,
+        corporate_info: operatorType === "corporate" ? corporateFormData : null,
+        legal_info: {
+          display_method: legalDisplayMethod,
+          ...(legalDisplayMethod === "input" ? legalFormData : {})
+        }
+      }
+
+      console.log("🔥 オーナー情報更新データ:", updateData)
+
       const response = await fetch(`/api/crowdfunding/${campaign.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          operator_type: operatorType,
-          bank_account_info: formData,
-          corporate_info: operatorType === "corporate" ? corporateFormData : null,
-          legal_info: legalFormData
-        }),
+        body: JSON.stringify(updateData),
       })
 
       if (!response.ok) {
-        throw new Error("更新に失敗しました")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "更新に失敗しました")
       }
 
-      toast.success("オーナー情報を更新しました")
+      toast.success("オーナー情報を保存しました")
     } catch (error) {
-      toast.error("更新に失敗しました")
+      console.error("🔥 オーナー情報更新エラー:", error)
+      toast.error(error instanceof Error ? error.message : "更新に失敗しました")
     } finally {
       setIsLoading(false)
     }
   }
 
+  // 個別の送信処理（個別保存が必要な場合のために残す）
   const handleCorporateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -209,7 +286,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
         throw new Error("更新に失敗しました")
       }
 
-      toast.success("法人情報を更新しました")
+      toast.success("法人情報を保存しました")
     } catch (error) {
       toast.error("更新に失敗しました")
     } finally {
@@ -239,7 +316,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
         throw new Error("更新に失敗しました")
       }
 
-      toast.success("特商法表記を更新しました")
+      toast.success("特商法表記を保存しました")
     } catch (error) {
       toast.error("更新に失敗しました")
     } finally {
@@ -255,6 +332,9 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
           運営主体、振込先口座情報、法人情報、特定商取引法に基づく表記を設定します。
         </p>
       </div>
+
+      {/* 統合フォーム開始 */}
+      <form onSubmit={handleSubmit} className="space-y-6">
 
       {/* 運営主体の選択 */}
       <Card>
@@ -325,7 +405,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="bank_name">
@@ -411,12 +491,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
               </p>
             </div>
 
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "保存中..." : "保存"}
-              </Button>
-            </div>
-          </form>
+          </div>
         </CardContent>
       </Card>
 
@@ -430,7 +505,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleCorporateSubmit} className="space-y-6">
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="company_name">
@@ -534,12 +609,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "保存中..." : "法人情報を保存"}
-                </Button>
-              </div>
-            </form>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -553,7 +623,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLegalSubmit} className="space-y-6">
+          <div className="space-y-6">
             {/* 特商法の表記方法選択 */}
             <div className="space-y-4">
               <Label>特商法の表記方法</Label>
@@ -626,13 +696,13 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
             {legalDisplayMethod === "template" ? (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>郵便番号</Label>
+                  <Label>郵便番号 <span className="text-destructive">*</span></Label>
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
                     <p className="text-sm text-gray-700 dark:text-gray-300">請求があり次第提供します。メッセージ機能にてご連絡ください。</p>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>事業者の住所</Label>
+                  <Label>事業者の住所 <span className="text-destructive">*</span></Label>
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
                     <p className="text-sm text-gray-700 dark:text-gray-300">請求があり次第提供します。メッセージ機能にてご連絡ください。</p>
                   </div>
@@ -700,14 +770,18 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
 
 
 
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "保存中..." : "特商法表記を保存"}
-              </Button>
-            </div>
-          </form>
+          </div>
         </CardContent>
       </Card>
+
+      {/* 統合フォーム全体の保存ボタン */}
+      <div className="flex justify-end pt-6 border-t">
+        <Button type="submit" disabled={isLoading} size="lg">
+          {isLoading ? "保存中..." : "オーナー情報を保存"}
+        </Button>
+      </div>
+
+      </form>
     </div>
   )
 } 
