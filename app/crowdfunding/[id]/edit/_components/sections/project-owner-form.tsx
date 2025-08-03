@@ -63,16 +63,17 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
   const [corporateFormData, setCorporateFormData] = useState({
     company_name: "",
     representative_name: "",
+    representative_name_kana: "",
+    representative_birth_date: "",
     company_postal_code: "",
     company_address: "",
     company_phone: "",
-    company_email: "",
-    registration_number: "",
-    establishment_date: ""
+    registration_number: ""
   })
 
   const [legalFormData, setLegalFormData] = useState({
     business_name: "",
+    business_representative: "",
     business_postal_code: "",
     business_address: "",
     phone_number: ""
@@ -444,17 +445,48 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="representative_name">
-                    代表者名 <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="representative_name"
-                    value={corporateFormData.representative_name}
-                    onChange={(e) => setCorporateFormData({ ...corporateFormData, representative_name: e.target.value })}
-                    placeholder="例: 山田太郎"
-                    required
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="representative_name">
+                      代表者名 <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="representative_name"
+                      value={corporateFormData.representative_name}
+                      onChange={(e) => setCorporateFormData({ ...corporateFormData, representative_name: e.target.value })}
+                      placeholder="例: 山田太郎"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="representative_name_kana">
+                      代表者名（カナ） <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="representative_name_kana"
+                      value={corporateFormData.representative_name_kana}
+                      onChange={(e) => setCorporateFormData({ ...corporateFormData, representative_name_kana: e.target.value })}
+                      placeholder="例: ヤマダ タロウ"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      半角カタカナで入力してください
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="representative_birth_date">
+                      代表者生年月日 <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="representative_birth_date"
+                      type="date"
+                      value={corporateFormData.representative_birth_date}
+                      onChange={(e) => setCorporateFormData({ ...corporateFormData, representative_birth_date: e.target.value })}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -474,7 +506,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="company_phone">
-                    電話番号 <span className="text-destructive">*</span>
+                    法人電話番号 <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="company_phone"
@@ -486,43 +518,19 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="company_email">
-                    メールアドレス <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="company_email"
-                    type="email"
-                    value={corporateFormData.company_email}
-                    onChange={(e) => setCorporateFormData({ ...corporateFormData, company_email: e.target.value })}
-                    placeholder="例: info@example.com"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
                   <Label htmlFor="registration_number">
-                    法人番号
+                    法人番号 <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="registration_number"
                     value={corporateFormData.registration_number}
                     onChange={(e) => setCorporateFormData({ ...corporateFormData, registration_number: e.target.value })}
                     placeholder="例: 1234567890123"
+                    required
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="establishment_date">
-                    設立年月日
-                  </Label>
-                  <Input
-                    id="establishment_date"
-                    type="date"
-                    value={corporateFormData.establishment_date}
-                    onChange={(e) => setCorporateFormData({ ...corporateFormData, establishment_date: e.target.value })}
-                  />
+                  <p className="text-xs text-muted-foreground">
+                    設立登記法人の法人番号は、登記事項証明書に記載されている会社法人等番号（12桁）を基礎番号とし、その前に1桁の検査用数字を付した13桁で構成されています。
+                  </p>
                 </div>
               </div>
 
@@ -578,7 +586,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="business_name">
-                事業者名 <span className="text-destructive">*</span>
+                販売事業者名 <span className="text-destructive">*</span>
               </Label>
               {legalDisplayMethod === "template" ? (
                 <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
@@ -590,6 +598,25 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                   value={legalFormData.business_name}
                   onChange={(e) => setLegalFormData({ ...legalFormData, business_name: e.target.value })}
                   placeholder="例: 株式会社〇〇"
+                  required
+                />
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="business_representative">
+                代表者または通信販売に関する業務責任者の氏名 <span className="text-destructive">*</span>
+              </Label>
+              {legalDisplayMethod === "template" ? (
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">請求があり次第提供します。メッセージ機能にてご連絡ください。</p>
+                </div>
+              ) : (
+                <Input
+                  id="business_representative"
+                  value={legalFormData.business_representative}
+                  onChange={(e) => setLegalFormData({ ...legalFormData, business_representative: e.target.value })}
+                  placeholder="例: 山田太郎"
                   required
                 />
               )}
@@ -627,7 +654,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="phone_number">
-                電話番号 <span className="text-destructive">*</span>
+                事業者の電話番号 <span className="text-destructive">*</span>
               </Label>
               {legalDisplayMethod === "template" ? (
                 <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
