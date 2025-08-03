@@ -8,10 +8,20 @@ ALTER TABLE "public"."crowdfunding_campaigns"
     ADD COLUMN IF NOT EXISTS "corporate_info" jsonb,
     ADD COLUMN IF NOT EXISTS "legal_info" jsonb;
 
--- 制約の追加
-ALTER TABLE "public"."crowdfunding_campaigns"
-    ADD CONSTRAINT IF NOT EXISTS "operator_type_check" 
-    CHECK (operator_type IN ('individual', 'corporate'));
+-- 制約の追加（存在確認をしてから追加）
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'operator_type_check' 
+        AND table_name = 'crowdfunding_campaigns'
+        AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE "public"."crowdfunding_campaigns"
+            ADD CONSTRAINT "operator_type_check" 
+            CHECK (operator_type IN ('individual', 'corporate'));
+    END IF;
+END $$;
 
 -- インデックス作成
 CREATE INDEX IF NOT EXISTS "crowdfunding_campaigns_operator_type_idx" 
