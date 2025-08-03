@@ -45,6 +45,21 @@ export function ProjectBasicForm({ campaign, onUnsavedChangesUpdate }: ProjectBa
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // 必須項目のバリデーション
+    if (!formData.title.trim()) {
+      toast.error("プロジェクトタイトルを入力してください")
+      return
+    }
+    if (!formData.description.trim()) {
+      toast.error("プロジェクト概要を入力してください")
+      return
+    }
+    if (!formData.story.trim()) {
+      toast.error("ストーリー・詳細説明を入力してください")
+      return
+    }
+    
     setIsLoading(true)
 
     try {
@@ -186,7 +201,9 @@ export function ProjectBasicForm({ campaign, onUnsavedChangesUpdate }: ProjectBa
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="story">ストーリー・詳細説明</Label>
+                <Label htmlFor="story">
+                  ストーリー・詳細説明 <span className="text-destructive">*</span>
+                </Label>
                 <Button
                   type="button"
                   variant="outline"
