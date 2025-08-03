@@ -57,6 +57,8 @@ export function WorkflowStatus({ campaign, onStatusChange }: WorkflowStatusProps
   const handleSubmitForReview = async () => {
     setIsSubmitting(true)
     try {
+      console.log("🔄 プロジェクト提出開始:", campaign.id)
+      
       const response = await fetch(`/api/crowdfunding/${campaign.id}`, {
         method: "PATCH",
         headers: {
@@ -68,13 +70,32 @@ export function WorkflowStatus({ campaign, onStatusChange }: WorkflowStatusProps
       })
 
       if (!response.ok) {
-        throw new Error("提出に失敗しました")
+        const errorData = await response.json().catch(() => null)
+        console.error("🚨 プロジェクト提出エラー:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        })
+        
+        // データベース制約エラーの場合の特別な処理
+        if (errorData?.error?.includes('crowdfunding_campaigns_status_check') || 
+            errorData?.error?.includes('status') ||
+            response.status === 500) {
+          throw new Error("システムエラー：現在この機能は準備中です。開発チームにお問い合わせください。")
+        }
+        
+        throw new Error(errorData?.error || "提出に失敗しました")
       }
 
+      console.log("✅ プロジェクト提出成功:", campaign.id)
       toast.success("プロジェクトを運営に提出しました")
       onStatusChange?.()
     } catch (error) {
-      toast.error("提出に失敗しました")
+      console.error("🚨 提出処理エラー:", error)
+      const errorMessage = error instanceof Error ? error.message : "提出に失敗しました"
+      toast.error(errorMessage, {
+        duration: 8000 // より長く表示
+      })
     } finally {
       setIsSubmitting(false)
     }
