@@ -487,7 +487,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                半角カタカナで入力してください
+              カタカナで入力してください
               </p>
             </div>
 
@@ -546,7 +546,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      半角カタカナで入力してください
+                      カタカナで入力してください
                     </p>
                   </div>
 
@@ -777,7 +777,7 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
       {/* 統合フォーム全体の保存ボタン */}
       <div className="flex justify-end pt-6 border-t">
         <Button type="submit" disabled={isLoading} size="lg">
-          {isLoading ? "保存中..." : "オーナー情報を保存"}
+          {isLoading ? "保存中..." : "保存"}
         </Button>
       </div>
 
