@@ -22,8 +22,8 @@ import { ProjectSettingsForm } from "./sections/project-settings-form"
 import { ProjectImageForm } from "./sections/project-image-form"
 import { ProjectOwnerForm } from "./sections/project-owner-form"
 import { WorkflowStatus } from "./workflow-status"
-import { AdminFeedback } from "./admin-feedback"
 import { UnsavedChangesDialog } from "./unsaved-changes-dialog"
+import { FeedbackNotification } from "./feedback-notification"
 
 interface ProjectEditLayoutProps {
   campaign: any
@@ -490,10 +490,8 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
             {/* ワークフロー状態表示 */}
             <WorkflowStatus campaign={campaignData} onStatusChange={handleStatusChange} />
             
-            {/* 運営フィードバック表示（ステータスに応じて） */}
-            {(campaignData.status === 'under_review' || campaignData.status === 'rejected') && (
-              <AdminFeedback campaign={campaignData} />
-            )}
+            {/* 運営とのやりとり通知 */}
+            <FeedbackNotification campaign={campaignData} />
 
             {/* デスクトップ用の進捗インジケーター（編集可能時のみ） */}
             {!isEditingLocked && (
