@@ -21,9 +21,9 @@ import { ProjectRewardsForm } from "./sections/project-rewards-form"
 import { ProjectSettingsForm } from "./sections/project-settings-form"
 import { ProjectImageForm } from "./sections/project-image-form"
 import { ProjectOwnerForm } from "./sections/project-owner-form"
+import { ProjectSubmitForm } from "./sections/project-submit-form"
 import { WorkflowStatus } from "./workflow-status"
 import { UnsavedChangesDialog } from "./unsaved-changes-dialog"
-import { FeedbackNotification } from "./feedback-notification"
 
 interface ProjectEditLayoutProps {
   campaign: any
@@ -68,6 +68,12 @@ const sidebarItems: SidebarItem[] = [
     label: "オーナー情報",
     icon: User,
     description: "振込先口座/法人設定/特商法"
+  },
+  {
+    id: "submit",
+    label: "提出・やりとり",
+    icon: CheckCircle,
+    description: "提出前チェック/運営とのやりとり"
   }
 ]
 
@@ -162,12 +168,6 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
 
   // ステータスに基づく編集権限の確認
   const isEditingLocked = campaignData.status === 'under_review' || campaignData.status === 'approved'
-  
-  const handleStatusChange = () => {
-    // ステータス変更後にキャンペーンデータを再取得
-    // 実際の実装では、APIから最新データを取得
-    setCampaignData({ ...campaignData, status: 'under_review' })
-  }
 
   const renderContent = () => {
     if (isEditingLocked) {
@@ -202,6 +202,8 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
         return <ProjectImageForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} onCampaignDataUpdate={handleCampaignDataUpdate} />
       case "owner":
         return <ProjectOwnerForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
+      case "submit":
+        return <ProjectSubmitForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} onCampaignDataUpdate={handleCampaignDataUpdate} />
       default:
         return <ProjectBasicForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
     }
@@ -487,11 +489,10 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
         {/* メインコンテンツエリア */}
         <div className="flex-1 min-w-0">
           <div className="max-w-4xl mx-auto p-2 lg:p-8">
-            {/* ワークフロー状態表示 */}
-            <WorkflowStatus campaign={campaignData} onStatusChange={handleStatusChange} />
-            
-            {/* 運営とのやりとり通知 */}
-            <FeedbackNotification campaign={campaignData} />
+            {/* ワークフロー状態表示（提出・やりとりページ以外） */}
+            {activeSection !== 'submit' && (
+              <WorkflowStatus campaign={campaignData} />
+            )}
 
             {/* デスクトップ用の進捗インジケーター（編集可能時のみ） */}
             {!isEditingLocked && (

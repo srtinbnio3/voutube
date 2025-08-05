@@ -1,11 +1,8 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, CheckCircle, Clock, Edit, FileText, Users } from "lucide-react"
-import { useState } from "react"
-import { toast } from "sonner"
 
 interface WorkflowStatusProps {
   campaign: {
@@ -48,58 +45,9 @@ const workflowSteps: WorkflowStep[] = [
   }
 ]
 
-export function WorkflowStatus({ campaign, onStatusChange }: WorkflowStatusProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
+export function WorkflowStatus({ campaign }: WorkflowStatusProps) {
   const currentStatus = campaign.status as WorkflowStatus
   const currentStepIndex = workflowSteps.findIndex(step => step.id === currentStatus)
-  
-  const handleSubmitForReview = async () => {
-    setIsSubmitting(true)
-    try {
-      console.log("🔄 プロジェクト提出開始:", campaign.id)
-      
-      const response = await fetch(`/api/crowdfunding/${campaign.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: "under_review"
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null)
-        console.error("🚨 プロジェクト提出エラー:", {
-          status: response.status,
-          statusText: response.statusText,
-          errorData
-        })
-        
-        // データベース制約エラーの場合の特別な処理
-        if (errorData?.error?.includes('crowdfunding_campaigns_status_check') || 
-            errorData?.error?.includes('status') ||
-            response.status === 500) {
-          throw new Error("システムエラー：現在この機能は準備中です。開発チームにお問い合わせください。")
-        }
-        
-        throw new Error(errorData?.error || "提出に失敗しました")
-      }
-
-      console.log("✅ プロジェクト提出成功:", campaign.id)
-      toast.success("プロジェクトを運営に提出しました")
-      onStatusChange?.()
-    } catch (error) {
-      console.error("🚨 提出処理エラー:", error)
-      const errorMessage = error instanceof Error ? error.message : "提出に失敗しました"
-      toast.error(errorMessage, {
-        duration: 8000 // より長く表示
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   const getStatusBadge = (status: WorkflowStatus) => {
     switch (status) {
@@ -238,99 +186,31 @@ export function WorkflowStatus({ campaign, onStatusChange }: WorkflowStatusProps
             </div>
           </div>
 
-          {/* 状態別の詳細情報とアクション */}
-          {currentStatus === 'draft' && (
-            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                    プロジェクト編集中
-                  </h4>
-                  <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
-                    プロジェクトの基本情報、リターン設定、募集設定などを入力してください。
-                    すべての必須項目が完了したら、運営チームに提出できます。
-                  </p>
-                  <Button 
-                    onClick={handleSubmitForReview}
-                    disabled={isSubmitting}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {isSubmitting ? "提出中..." : "運営に提出する"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {currentStatus === 'under_review' && (
-            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="font-medium text-amber-900 dark:text-amber-100 mb-2">
-                    運営チームで確認中
-                  </h4>
-                  <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
-                    IdeaTube運営チームがプロジェクト内容を確認しています。
-                    内容に応じてアドバイスや修正依頼をお送りする場合があります。
-                  </p>
-                  <p className="text-xs text-amber-700 dark:text-amber-300">
-                    通常、確認には1-3営業日程度お時間をいただいております。
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {currentStatus === 'approved' && (
-            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
-                    プロジェクト承認済み
-                  </h4>
-                  <p className="text-sm text-green-800 dark:text-green-200 mb-3">
-                    おめでとうございます！プロジェクトが承認され、支援者に公開されています。
-                    プロジェクトページで支援状況を確認できます。
-                  </p>
-                  <Button asChild variant="outline" className="border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-950">
-                    <a href={`/crowdfunding/${campaign.id}`} target="_blank" rel="noopener noreferrer">
-                      プロジェクトページを見る
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {currentStatus === 'rejected' && (
-            <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="font-medium text-red-900 dark:text-red-100 mb-2">
-                    修正が必要です
-                  </h4>
-                  <p className="text-sm text-red-800 dark:text-red-200 mb-3">
-                    運営チームからのフィードバックをご確認いただき、内容を修正してください。
-                    修正完了後、再度提出していただけます。
-                  </p>
-                  <Button 
-                    onClick={handleSubmitForReview}
-                    disabled={isSubmitting}
-                    variant="outline"
-                    className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                  >
-                    {isSubmitting ? "再提出中..." : "再提出する"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* 簡潔な状態表示 */}
+          <div className="text-center py-4">
+            {currentStatus === 'draft' && (
+              <p className="text-sm text-muted-foreground">
+                「提出・やりとり」ページから運営チームに提出できます
+              </p>
+            )}
+            {currentStatus === 'under_review' && (
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                運営チームで確認中です（通常1-3営業日）
+              </p>
+            )}
+            {currentStatus === 'approved' && (
+              <p className="text-sm text-green-700 dark:text-green-300">
+                プロジェクトが承認され、公開されています
+              </p>
+            )}
+            {currentStatus === 'rejected' && (
+              <p className="text-sm text-red-700 dark:text-red-300">
+                修正が必要です。「提出・やりとり」ページをご確認ください
+              </p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
   )
-} 
+}

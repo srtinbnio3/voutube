@@ -12,9 +12,9 @@
     "test:coverage": "vitest run --coverage",
     "test:file": "vitest run --testNamePattern",
     "test:post-card": "vitest run app/channels/\\[channel_id\\]/_components/__tests__/post-card.test.tsx",
-    "dev:test": "NODE_ENV=test next dev",
-    "build:test": "NODE_ENV=test next build",
-    "start:test": "NODE_ENV=test next start",
+    "dev:test": "dotenv -e .env.test -- next dev",
+    "build:test": "dotenv -e .env.test -- next build",
+    "start:test": "dotenv -e .env.test -- next start",
     "dev:supabase": "dotenv -e .env -- next dev"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-dropdown-menu": "^2.1.1",
     "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slider": "^1.2.3",
     "@radix-ui/react-slot": "^1.1.0",
