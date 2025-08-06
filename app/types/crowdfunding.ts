@@ -18,10 +18,10 @@ export interface Campaign {
   thumbnail_image?: string;
   bank_account_info?: {
     bank_name: string;
-    branch_name: string;
-    account_type: 'ordinary' | 'checking';
-    account_number: string;
-    account_holder: string;
+    bank_branch: string;
+    bank_account_type: string;
+    bank_account_number: string;
+    bank_account_holder: string;
   };
   created_at: string;
   updated_at: string;
@@ -99,10 +99,10 @@ export interface CampaignFormData {
   channel_id?: string;
   bank_account_info?: {
     bank_name: string;
-    branch_name: string;
-    account_type: 'ordinary' | 'checking';
-    account_number: string;
-    account_holder: string;
+    bank_branch: string;
+    bank_account_type: string;
+    bank_account_number: string;
+    bank_account_holder: string;
   };
 }
 

@@ -31,7 +31,6 @@ export function ProjectSubmitForm({
   onCampaignDataUpdate 
 }: ProjectSubmitFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showValidation, setShowValidation] = useState(true)
   const [validationErrors, setValidationErrors] = useState<any[]>([])
   const [isValidationComplete, setIsValidationComplete] = useState(false)
   
@@ -148,35 +147,9 @@ export function ProjectSubmitForm({
         <ProjectValidation 
           campaign={campaign}
           onValidationComplete={handleValidationComplete}
-          isVisible={showValidation}
+          isVisible={true}
         />
       )}
-
-      {/* 運営とのやりとり情報 */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <MessageSquare className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                運営チームとのやりとり
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                質問や相談、フィードバックの確認は専用のやりとりページで行えます。
-                運営チームからの重要な連絡もこちらで確認できます。
-              </p>
-              <Button asChild variant="outline">
-                <Link href={`/crowdfunding/${campaign.id}/feedback`}>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  やりとりページを開く
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* 提出アクション（draft状態） */}
       {currentStatus === 'draft' && (
@@ -194,22 +167,13 @@ export function ProjectSubmitForm({
                   すべての必須項目を入力完了後、運営チームに提出してプロジェクトの審査を受けることができます。
                   提出後は運営チームが内容を確認し、必要に応じてアドバイスや修正依頼をお送りします。
                 </p>
-                <div className="flex items-center gap-3">
-                  <Button 
-                    onClick={handleSubmitForReview}
-                    disabled={isSubmitting || !isValidationComplete}
-                    className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
-                  >
-                    {isSubmitting ? "提出中..." : "運営に提出する"}
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setShowValidation(!showValidation)}
-                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                  >
-                    {showValidation ? "チェックを非表示" : "提出前チェック"}
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleSubmitForReview}
+                  disabled={isSubmitting || !isValidationComplete}
+                  className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
+                >
+                  {isSubmitting ? "提出中..." : "運営に提出する"}
+                </Button>
                 {!isValidationComplete && (
                   <p className="text-xs text-blue-700 dark:text-blue-300 mt-3">
                     ※ すべての必須項目の入力が完了すると提出できるようになります
@@ -290,23 +254,14 @@ export function ProjectSubmitForm({
                   運営チームからのフィードバックをご確認いただき、内容を修正してください。
                   修正完了後、再度提出していただけます。
                 </p>
-                <div className="flex items-center gap-3">
-                  <Button 
-                    onClick={handleSubmitForReview}
-                    disabled={isSubmitting || !isValidationComplete}
-                    variant="outline"
-                    className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:bg-gray-100"
-                  >
-                    {isSubmitting ? "再提出中..." : "再提出する"}
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setShowValidation(!showValidation)}
-                    className="text-red-600 border-red-600 hover:bg-red-50"
-                  >
-                    {showValidation ? "チェックを非表示" : "提出前チェック"}
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleSubmitForReview}
+                  disabled={isSubmitting || !isValidationComplete}
+                  variant="outline"
+                  className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:bg-gray-100"
+                >
+                  {isSubmitting ? "再提出中..." : "再提出する"}
+                </Button>
                 {!isValidationComplete && (
                   <p className="text-xs text-red-700 dark:text-red-300 mt-3">
                     ※ すべての必須項目の入力が完了すると再提出できるようになります
@@ -327,10 +282,11 @@ export function ProjectSubmitForm({
             </div>
             <div className="flex-1">
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                運営チームとの詳細なやりとり
+                運営チームとのやりとり
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                質問や相談、詳細なフィードバックの確認は専用のやりとりページで行えます。
+                質問や相談、フィードバックの確認は専用のやりとりページで行えます。
+                運営チームからの重要な連絡もこちらで確認できます。
               </p>
               <Button asChild variant="outline">
                 <Link href={`/crowdfunding/${campaign.id}/feedback`}>

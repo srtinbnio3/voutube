@@ -15,7 +15,8 @@ import {
   Image as ImageIcon,
   User,
   ChevronRight,
-  Loader2
+  Loader2,
+  RotateCcw
 } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
 
@@ -39,6 +40,7 @@ export function ProjectValidation({ campaign, onValidationComplete, isVisible = 
   const [validationItems, setValidationItems] = useState<ValidationItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [completionRate, setCompletionRate] = useState(0)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const supabase = createClient()
 
   // バリデーションチェックを実行
@@ -149,6 +151,24 @@ export function ProjectValidation({ campaign, onValidationComplete, isVisible = 
         },
         // オーナー情報のバリデーション
         {
+          id: 'owner-identity-verification',
+          title: '本人確認',
+          description: '身分証明書による本人確認',
+          section: 'owner',
+          icon: User,
+          status: (campaign.identity_verification_required === false) 
+            ? 'completed'  // 本人確認が不要な場合は完了扱い
+            : (campaign.identity_verification_status === 'verified' || 
+               campaign.identity_verification_status === 'succeeded') 
+            ? 'completed' 
+            : 'incomplete',
+          details: (campaign.identity_verification_required !== false &&
+                   campaign.identity_verification_status !== 'verified' && 
+                   campaign.identity_verification_status !== 'succeeded')
+            ? '本人確認が完了していません'
+            : undefined
+        },
+        {
           id: 'owner-bank-info',
           title: '振込先口座情報',
           description: '支援金受け取り用の口座',
@@ -156,12 +176,12 @@ export function ProjectValidation({ campaign, onValidationComplete, isVisible = 
           icon: User,
           status: (campaign.bank_account_info && 
                    campaign.bank_account_info.bank_name && 
-                   campaign.bank_account_info.account_number) 
+                   campaign.bank_account_info.bank_account_number) 
             ? 'completed' 
             : 'incomplete',
           details: !campaign.bank_account_info || 
                    !campaign.bank_account_info.bank_name || 
-                   !campaign.bank_account_info.account_number
+                   !campaign.bank_account_info.bank_account_number
             ? '振込先口座情報が入力されていません'
             : undefined
         }
@@ -210,6 +230,7 @@ export function ProjectValidation({ campaign, onValidationComplete, isVisible = 
       console.error("バリデーションエラー:", error)
     } finally {
       setIsLoading(false)
+      setLastUpdated(new Date())
     }
   }
 
@@ -219,7 +240,9 @@ export function ProjectValidation({ campaign, onValidationComplete, isVisible = 
       runValidation()
     }
   }, [campaign?.id, campaign?.title, campaign?.description, campaign?.story, 
-      campaign?.target_amount, campaign?.start_date, campaign?.end_date, campaign?.main_image])
+      campaign?.target_amount, campaign?.start_date, campaign?.end_date, campaign?.main_image,
+      campaign?.identity_verification_status, campaign?.identity_verification_required,
+      campaign?.bank_account_info])
 
   if (!isVisible) {
     return null
@@ -265,16 +288,39 @@ export function ProjectValidation({ campaign, onValidationComplete, isVisible = 
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5" />
-          提出前チェック
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5" />
+            提出前チェック
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={runValidation}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? "チェック中" : "状態を更新"}
+          </Button>
+        </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">完了率</span>
             <span className="font-medium">{completionRate}%</span>
           </div>
           <Progress value={completionRate} className="h-2" />
+          {lastUpdated && (
+            <div className="text-xs text-muted-foreground text-center">
+              最終更新: {lastUpdated.toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>
