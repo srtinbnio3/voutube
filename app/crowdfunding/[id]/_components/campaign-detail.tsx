@@ -5,6 +5,8 @@ import { formatAmountForDisplay } from "@/app/lib/stripe";
 import { CampaignProgress } from "../../_components/campaign-progress";
 import { CampaignRewardList } from "./campaign-reward-list";
 import { SupportButton } from "./support-button";
+import { Badge } from "@/components/ui/badge";
+import { Clock, CheckCircle, AlertCircle, Edit } from "lucide-react";
 
 interface CampaignDetailProps {
   id: string;
@@ -27,6 +29,26 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
   
   if (error || !campaign) {
     return <div>キャンペーンの取得中にエラーが発生しました。</div>;
+  }
+
+  // アクティブでないキャンペーンの場合は表示を制限
+  if (campaign.status !== 'active' && campaign.status !== 'completed') {
+    return (
+      <div className="text-center py-12">
+        <div className="max-w-md mx-auto">
+          <AlertCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            このプロジェクトは現在公開されていません
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            {campaign.status === 'draft' && 'プロジェクトは編集中です'}
+            {campaign.status === 'under_review' && 'プロジェクトは運営チームによる確認中です'}
+            {campaign.status === 'rejected' && 'プロジェクトは修正が必要な状態です'}
+            {campaign.status === 'cancelled' && 'プロジェクトはキャンセルされました'}
+          </p>
+        </div>
+      </div>
+    );
   }
   
   // 関連する特典を取得
@@ -65,7 +87,21 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
             ← クラウドファンディング一覧に戻る
           </Link>
           
-          <h1 className="text-3xl font-bold mb-4">{campaign.title}</h1>
+          <div className="flex items-start justify-between mb-4">
+            <h1 className="text-3xl font-bold">{campaign.title}</h1>
+            {campaign.status === 'active' && (
+              <Badge variant="default" className="gap-1 bg-green-600 hover:bg-green-700">
+                <CheckCircle className="h-3 w-3" />
+                公開中
+              </Badge>
+            )}
+            {campaign.status === 'completed' && (
+              <Badge variant="secondary" className="gap-1">
+                <CheckCircle className="h-3 w-3" />
+                完了
+              </Badge>
+            )}
+          </div>
           
           {/* チャンネル情報 */}
           <div className="flex items-center space-x-3 mb-6">

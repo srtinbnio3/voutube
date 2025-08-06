@@ -1,4 +1,4 @@
-export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
+export type CampaignStatus = 'draft' | 'under_review' | 'rejected' | 'active' | 'completed' | 'cancelled';
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 export type CreatorRewardStatus = 'pending' | 'paid';
 
