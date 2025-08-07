@@ -12,7 +12,6 @@ import {
   FileText,
   Gift,
   Settings,
-  Image as ImageIcon,
   User,
   ChevronRight,
   Loader2,
@@ -139,16 +138,7 @@ export function ProjectValidation({ campaign, onValidationComplete, isVisible = 
             ? '終了日は未来の日付で設定してください'
             : undefined
         },
-        // メイン画像のバリデーション
-        {
-          id: 'image-main',
-          title: 'メイン画像',
-          description: 'プロジェクトの顔となる画像',
-          section: 'image',
-          icon: ImageIcon,
-          status: campaign.main_image ? 'completed' : 'incomplete',
-          details: !campaign.main_image ? 'メイン画像が設定されていません' : undefined
-        },
+
         // オーナー情報のバリデーション
         {
           id: 'owner-identity-verification',
@@ -240,7 +230,7 @@ export function ProjectValidation({ campaign, onValidationComplete, isVisible = 
       runValidation()
     }
   }, [campaign?.id, campaign?.title, campaign?.description, campaign?.story, 
-      campaign?.target_amount, campaign?.start_date, campaign?.end_date, campaign?.main_image,
+      campaign?.target_amount, campaign?.start_date, campaign?.end_date,
       campaign?.identity_verification_status, campaign?.identity_verification_required,
       campaign?.bank_account_info])
 
@@ -253,7 +243,6 @@ export function ProjectValidation({ campaign, onValidationComplete, isVisible = 
       'basic': 'basic',
       'rewards': 'rewards', 
       'settings': 'settings',
-      'image': 'image',
       'owner': 'owner'
     }
     return sectionMap[section] || 'basic'

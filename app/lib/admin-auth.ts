@@ -18,14 +18,14 @@ export async function checkAdminPermission(): Promise<AdminCheckResult> {
   try {
     const supabase = await createClient();
     
-    // セッションを取得
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // ユーザー情報を安全に取得（Supabase認証サーバーで検証）
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    if (sessionError || !session) {
+    if (userError || !user) {
       return { isAdmin: false, roles: [] };
     }
     
-    const userId = session.user.id;
+    const userId = user.id;
     
     // プロファイルから基本的な管理者フラグをチェック
     const { data: profile, error: profileError } = await supabase
@@ -71,7 +71,8 @@ export async function checkAdminPermission(): Promise<AdminCheckResult> {
  */
 export async function hasAdminRole(requiredRole: AdminRole): Promise<boolean> {
   const result = await checkAdminPermission();
-  return result.isAdmin && result.roles.includes(requiredRole);
+  // super_adminは全ての権限を持つものとして扱う
+  return result.isAdmin && (result.roles.includes(requiredRole) || result.roles.includes('super_admin'));
 }
 
 /**
@@ -112,15 +113,24 @@ export function createAdminErrorResponse(message: string = "管理者権限が�
  * @returns Promise<AdminCheckResult | Response>
  */
 export async function requireAdminAuth(requiredRole?: AdminRole): Promise<AdminCheckResult | Response> {
-  const result = await checkAdminPermission();
-  
-  if (!result.isAdmin) {
-    return createAdminErrorResponse("管理者権限が必要です");
+  try {
+    const result = await checkAdminPermission();
+    
+    if (!result.isAdmin) {
+      return createAdminErrorResponse("管理者権限が必要です");
+    }
+    
+    // super_adminは全ての権限を持つものとして扱う
+    const hasSuperAdmin = result.roles.includes('super_admin');
+    const hasRequiredRole = !requiredRole || result.roles.includes(requiredRole) || hasSuperAdmin;
+    
+    if (!hasRequiredRole) {
+      return createAdminErrorResponse(`${requiredRole}権限が必要です`);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('[requireAdminAuth] 認証エラー:', error);
+    return createAdminErrorResponse("認証処理でエラーが発生しました");
   }
-  
-  if (requiredRole && !result.roles.includes(requiredRole)) {
-    return createAdminErrorResponse(`${requiredRole}権限が必要です`);
-  }
-  
-  return result;
 }
