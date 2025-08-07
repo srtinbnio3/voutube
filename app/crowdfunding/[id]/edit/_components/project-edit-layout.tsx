@@ -197,7 +197,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
       case "rewards":
         return <ProjectRewardsForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
       case "settings":
-        return <ProjectSettingsForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
+        return <ProjectSettingsForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} onCampaignDataUpdate={handleCampaignDataUpdate} />
       case "image":
         return <ProjectImageForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} onCampaignDataUpdate={handleCampaignDataUpdate} />
       case "owner":
