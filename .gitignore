@@ -98,6 +98,9 @@ coverage/
 .cursor/
 
 # Database backups
+
+# Admin scripts (security sensitive)
+scripts/admin/
 /supabase/backup/
 
 # Obsidian
