@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getFileLastModified } from "@/app/lib/file-utils"
 
@@ -48,7 +49,8 @@ export default async function HelpPage() {
             <div>
               <h2 className="sr-only">カテゴリ</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card className="hover:shadow-md transition-shadow bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0">
+                <Link href="/help/about" className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-md" aria-label="IdeaTubeについて">
+                  <Card className="hover:shadow-md group-hover:shadow-md cursor-pointer transition-shadow bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0">
                   <CardHeader className="py-4">
                     <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
                       IdeaTubeについて
@@ -57,7 +59,8 @@ export default async function HelpPage() {
                   <CardContent className="pt-0 pb-4 text-sm text-gray-600 dark:text-gray-300">
                     各種使い方や基本情報のガイド
                   </CardContent>
-                </Card>
+                  </Card>
+                </Link>
 
                 <Card className="hover:shadow-md transition-shadow bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0">
                   <CardHeader className="py-4">
@@ -70,16 +73,18 @@ export default async function HelpPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="hover:shadow-md transition-shadow bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0">
-                  <CardHeader className="py-4">
-                    <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                      プロジェクトをはじめたい方へ
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 pb-4 text-sm text-gray-600 dark:text-gray-300">
-                    プロジェクト作成や審査の基本
-                  </CardContent>
-                </Card>
+                <Link href="/help/start-project" className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-md" aria-label="プロジェクトをはじめたい方へ">
+                  <Card className="hover:shadow-md group-hover:shadow-md cursor-pointer transition-shadow bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0">
+                    <CardHeader className="py-4">
+                      <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
+                        プロジェクトをはじめたい方へ
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0 pb-4 text-sm text-gray-600 dark:text-gray-300">
+                      プロジェクト作成や審査の基本
+                    </CardContent>
+                  </Card>
+                </Link>
 
                 <Card className="hover:shadow-md transition-shadow bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0">
                   <CardHeader className="py-4">
