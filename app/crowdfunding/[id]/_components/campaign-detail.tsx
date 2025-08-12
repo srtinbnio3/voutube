@@ -8,6 +8,7 @@ import { SupportButton } from "./support-button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, AlertCircle, Edit } from "lucide-react";
 import { checkAdminPermission } from "@/app/lib/admin-auth";
+import { sanitizeHtml } from "@/app/lib/sanitize-html";
 
 interface CampaignDetailProps {
   id: string;
@@ -64,6 +65,21 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
     .select("*")
     .eq("campaign_id", id)
     .order("amount", { ascending: true });
+
+  // 管理者向け: チャンネルオーナー情報を取得
+  let ownerProfile: { id: string; username: string; user_handle: string; avatar_url: string | null } | null = null;
+  try {
+    if (adminCheck.isAdmin && campaign?.channel?.owner_user_id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, username, user_handle, avatar_url")
+        .eq("id", campaign.channel.owner_user_id)
+        .single();
+      ownerProfile = profile ?? null;
+    }
+  } catch (_) {
+    ownerProfile = null;
+  }
   
   // 支援者数を取得
   const { count: supportersCount } = await supabase
@@ -198,17 +214,14 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
               ))}
             </div>
             
-            {/* ストーリー追加部分（将来的に使用） */}
+            {/* ストーリー（HTML想定）：サニタイズして安全に描画 */}
             {campaign.story && (
               <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border">
                 <h3 className="text-lg font-semibold mb-3 text-purple-900 dark:text-purple-100">プロジェクトストーリー</h3>
-                <div className="prose max-w-none dark:prose-invert">
-                  {campaign.story.split("\n").map((paragraph: string, index: number) => (
-                    <p key={index} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-3 last:mb-0">
-                      {paragraph || '\u00A0'}
-                    </p>
-                  ))}
-                </div>
+                <div
+                  className="prose max-w-none dark:prose-invert"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(campaign.story) }}
+                />
               </div>
             )}
           </div>
@@ -307,6 +320,107 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
                     </svg>
                     管理画面で処理
                   </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 管理者向け 審査情報セクション */}
+          {adminCheck.isAdmin && (
+            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/30 rounded-lg border">
+              <h3 className="text-sm font-semibold mb-3">審査情報（管理者のみ）</h3>
+              <div className="space-y-3 text-sm">
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="text-muted-foreground">運営主体</div>
+                  <div className="col-span-2">{campaign.operator_type === 'corporate' ? '法人' : '個人'}</div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="text-muted-foreground">チャンネルオーナー</div>
+                  <div className="col-span-2">
+                    {ownerProfile ? (
+                      <Link href={`/profile/${ownerProfile.id}`} className="hover:underline">
+                        {ownerProfile.username}（@{ownerProfile.user_handle}）
+                      </Link>
+                    ) : (
+                      <span>不明（owner_user_id: {campaign.channel?.owner_user_id || '未設定'}）</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="text-muted-foreground">本人確認</div>
+                  <div className="col-span-2">
+                    {campaign.identity_verification_required ? (
+                      <>
+                        必要 / 状況: {campaign.identity_verification_status || '未設定'}
+                      </>
+                    ) : (
+                      '不要'
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <div className="font-medium mb-1">振込先口座情報</div>
+                  {campaign.bank_account_info ? (
+                    <div className="rounded border p-3 bg-background">
+                      <div className="text-sm">銀行名: {(campaign.bank_account_info as any).bank_name || '—'}</div>
+                      <div className="text-sm">支店名: {(campaign.bank_account_info as any).bank_branch || '—'}</div>
+                      <div className="text-sm">口座種別: {(campaign.bank_account_info as any).bank_account_type || '—'}</div>
+                      <div className="text-sm">口座番号: {(campaign.bank_account_info as any).bank_account_number || '—'}</div>
+                      <div className="text-sm">口座名義: {(campaign.bank_account_info as any).bank_account_holder || '—'}</div>
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground">未設定</div>
+                  )}
+                </div>
+
+                {campaign.operator_type === 'corporate' && (
+                  <div className="pt-2">
+                    <div className="font-medium mb-1">法人情報</div>
+                    {campaign.corporate_info ? (
+                      <div className="rounded border p-3 bg-background space-y-1">
+                        <div className="text-sm">法人名: {(campaign.corporate_info as any).company_name || '—'}</div>
+                        <div className="text-sm">代表者名: {(campaign.corporate_info as any).representative_name || '—'}</div>
+                        <div className="text-sm">代表者名（カナ）: {(campaign.corporate_info as any).representative_name_kana || '—'}</div>
+                        <div className="text-sm">代表者生年月日: {(campaign.corporate_info as any).representative_birth_date || '—'}</div>
+                        <div className="text-sm">本店所在地: {(campaign.corporate_info as any).company_postal_code || ''} {(campaign.corporate_info as any).company_address || ''}</div>
+                        <div className="text-sm">法人電話番号: {(campaign.corporate_info as any).company_phone || '—'}</div>
+                        <div className="text-sm">法人番号: {(campaign.corporate_info as any).registration_number || '—'}</div>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground">未設定</div>
+                    )}
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <div className="font-medium mb-1">特定商取引法に基づく表記</div>
+                  {campaign.legal_info ? (
+                    <div className="rounded border p-3 bg-background space-y-1">
+                      <div className="text-sm">表記方法: {((campaign.legal_info as any).display_method === 'input') ? '入力内容を表示' : 'テンプレート'}</div>
+                      {((campaign.legal_info as any).display_method === 'input') && (
+                        <>
+                          <div className="text-sm">販売事業者名: {(campaign.legal_info as any).business_name || '—'}</div>
+                          <div className="text-sm">責任者名: {(campaign.legal_info as any).business_representative || '—'}</div>
+                          <div className="text-sm">所在地: {(campaign.legal_info as any).business_postal_code || ''} {(campaign.legal_info as any).business_address || ''}</div>
+                          <div className="text-sm">電話番号: {(campaign.legal_info as any).phone_number || '—'}</div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground">未設定</div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  <div className="text-muted-foreground">作成日時</div>
+                  <div className="col-span-2">{new Date(campaign.created_at).toLocaleString()}</div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="text-muted-foreground">更新日時</div>
+                  <div className="col-span-2">{new Date(campaign.updated_at).toLocaleString()}</div>
                 </div>
               </div>
             </div>
