@@ -325,8 +325,8 @@ export type Database = {
           requires_address: boolean | null
           requires_contact_info: boolean | null
           requires_email: boolean | null
-          requires_shipping: boolean | null
-          shipping_info: string | null
+          requires_note: boolean | null
+          note_info: string | null
           template: string | null
           title: string
           updated_at: string
@@ -345,8 +345,8 @@ export type Database = {
           requires_address?: boolean | null
           requires_contact_info?: boolean | null
           requires_email?: boolean | null
-          requires_shipping?: boolean | null
-          shipping_info?: string | null
+          requires_note?: boolean | null
+          note_info?: string | null
           template?: string | null
           title: string
           updated_at?: string
@@ -365,8 +365,8 @@ export type Database = {
           requires_address?: boolean | null
           requires_contact_info?: boolean | null
           requires_email?: boolean | null
-          requires_shipping?: boolean | null
-          shipping_info?: string | null
+          requires_note?: boolean | null
+          note_info?: string | null
           template?: string | null
           title?: string
           updated_at?: string

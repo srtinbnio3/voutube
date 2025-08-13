@@ -49,8 +49,8 @@ export async function PATCH(
       amount, 
       quantity,
       delivery_date,
-      requires_shipping,
-      shipping_info,
+      requires_note,
+      note_info,
       images,
       template,
       is_unlimited,
@@ -65,8 +65,8 @@ export async function PATCH(
     if (description) updates.description = description;
     if (amount) updates.amount = amount;
     if (delivery_date !== undefined) updates.delivery_date = delivery_date;
-    if (requires_shipping !== undefined) updates.requires_shipping = requires_shipping;
-    if (shipping_info !== undefined) updates.shipping_info = shipping_info;
+    if (requires_note !== undefined) updates.requires_note = requires_note;
+    if (note_info !== undefined) updates.note_info = note_info;
     if (images !== undefined) updates.images = images;
     if (template !== undefined) updates.template = template;
     if (is_unlimited !== undefined) updates.is_unlimited = is_unlimited;

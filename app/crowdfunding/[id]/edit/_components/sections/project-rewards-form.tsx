@@ -26,8 +26,8 @@ interface ProjectRewardsFormProps {
 interface RewardFormState extends RewardFormData {
   deliveryDate?: string
   isUnlimited?: boolean
-  requiresShipping?: boolean
-  shippingInfo?: string
+  requiresNote?: boolean
+  noteInfo?: string
   images?: string[]
   template?: string
   requiresContactInfo?: boolean
@@ -47,8 +47,8 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
     quantity: 1,
     deliveryDate: '',
     isUnlimited: true,
-    requiresShipping: false,
-    shippingInfo: '',
+    requiresNote: false,
+    noteInfo: '',
     images: [],
     template: '',
     requiresContactInfo: false,
@@ -94,8 +94,8 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
       quantity: 1,
       deliveryDate: '',
       isUnlimited: true,
-      requiresShipping: false,
-      shippingInfo: '',
+      requiresNote: false,
+      noteInfo: '',
       images: [],
       template: '',
       requiresContactInfo: false,
@@ -136,8 +136,8 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
         amount: formData.amount,
         quantity: formData.isUnlimited ? 1 : formData.quantity,
         delivery_date: formData.deliveryDate,
-        requires_shipping: formData.requiresShipping,
-        shipping_info: formData.shippingInfo,
+        requires_note: formData.requiresNote,
+        note_info: formData.noteInfo,
         images: formData.images || [],
         template: formData.template,
         is_unlimited: formData.isUnlimited,
@@ -210,8 +210,8 @@ export function ProjectRewardsForm({ campaign }: ProjectRewardsFormProps) {
       quantity: reward.quantity,
       deliveryDate: reward.delivery_date || '',
       isUnlimited: reward.is_unlimited || false,
-      requiresShipping: reward.requires_shipping || false,
-      shippingInfo: reward.shipping_info || '',
+      requiresNote: reward.requires_note || false,
+      noteInfo: reward.note_info || '',
       images: reward.images || [],
       template: reward.template || 'その他',
       requiresContactInfo: reward.requires_contact_info || false,
@@ -834,8 +834,8 @@ function RewardFormDialog({
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="requiresInfo"
-                checked={formData.requiresShipping}
-                onCheckedChange={(checked) => setFormData({ ...formData, requiresShipping: !!checked })}
+                checked={formData.requiresNote}
+                onCheckedChange={(checked) => setFormData({ ...formData, requiresNote: !!checked })}
               />
               <Label htmlFor="requiresInfo" className="text-sm">
                 入力を必須にする
@@ -845,8 +845,8 @@ function RewardFormDialog({
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="noInfo"
-                checked={!formData.requiresShipping}
-                onCheckedChange={(checked) => setFormData({ ...formData, requiresShipping: !checked })}
+                checked={!formData.requiresNote}
+                onCheckedChange={(checked) => setFormData({ ...formData, requiresNote: !checked })}
               />
               <Label htmlFor="noInfo" className="text-sm">
                 入力を任意にする

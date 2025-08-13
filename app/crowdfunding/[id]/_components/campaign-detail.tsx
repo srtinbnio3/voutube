@@ -414,6 +414,46 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
                   )}
                 </div>
 
+                {/* リワードの支援者情報要件 */}
+                <div className="pt-2">
+                  <div className="font-medium mb-1">特典の必要情報</div>
+                  {rewards && rewards.length > 0 ? (
+                    <div className="rounded border divide-y">
+                      {rewards.map((reward: any) => (
+                        <div key={reward.id} className="p-3 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium truncate mr-2">{reward.title}</div>
+                            <div className="text-muted-foreground whitespace-nowrap ml-2">
+                              {formatAmountForDisplay(reward.amount)}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_contact_info ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
+                              氏名・連絡先 {reward.requires_contact_info ? '要' : '不要'}
+                            </span>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_email ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
+                              メール {reward.requires_email ? '要' : '不要'}
+                            </span>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_address ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
+                              住所 {reward.requires_address ? '要' : '不要'}
+                            </span>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_note ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
+                              備考欄 {reward.requires_note ? '必須' : '任意'}
+                            </span>
+                          </div>
+                          {reward.requires_note && reward.note_info && (
+                            <div className="text-muted-foreground text-xs">
+                              備考欄説明: {reward.note_info}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground">特典は設定されていません</div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-3 gap-2 pt-2">
                   <div className="text-muted-foreground">作成日時</div>
                   <div className="col-span-2">{new Date(campaign.created_at).toLocaleString()}</div>

@@ -49,8 +49,8 @@ export interface CampaignReward {
   quantity: number;
   remaining_quantity: number;
   delivery_date?: string;
-  requires_shipping?: boolean;
-  shipping_info?: string;
+  requires_note?: boolean;
+  note_info?: string;
   images?: string[];
   template?: string;
   is_unlimited?: boolean;
@@ -112,8 +112,8 @@ export interface RewardFormData {
   amount: number;
   quantity: number;
   delivery_date?: string;
-  requires_shipping?: boolean;
-  shipping_info?: string;
+  requires_note?: boolean;
+  note_info?: string;
   images?: string[];
   template?: string;
   is_unlimited?: boolean;
