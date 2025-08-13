@@ -325,146 +325,7 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
             </div>
           )}
 
-          {/* 管理者向け 審査情報セクション */}
-          {adminCheck.isAdmin && (
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/30 rounded-lg border">
-              <h3 className="text-sm font-semibold mb-3">審査情報（管理者のみ）</h3>
-              <div className="space-y-3 text-sm">
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-muted-foreground">運営主体</div>
-                  <div className="col-span-2">{campaign.operator_type === 'corporate' ? '法人' : '個人'}</div>
-                </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-muted-foreground">チャンネルオーナー</div>
-                  <div className="col-span-2">
-                    {ownerProfile ? (
-                      <Link href={`/profile/${ownerProfile.id}`} className="hover:underline">
-                        {ownerProfile.username}（@{ownerProfile.user_handle}）
-                      </Link>
-                    ) : (
-                      <span>不明（owner_user_id: {campaign.channel?.owner_user_id || '未設定'}）</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-muted-foreground">本人確認</div>
-                  <div className="col-span-2">
-                    {campaign.identity_verification_required ? (
-                      <>
-                        必要 / 状況: {campaign.identity_verification_status || '未設定'}
-                      </>
-                    ) : (
-                      '不要'
-                    )}
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <div className="font-medium mb-1">振込先口座情報</div>
-                  {campaign.bank_account_info ? (
-                    <div className="rounded border p-3 bg-background">
-                      <div className="text-sm">銀行名: {(campaign.bank_account_info as any).bank_name || '—'}</div>
-                      <div className="text-sm">支店名: {(campaign.bank_account_info as any).bank_branch || '—'}</div>
-                      <div className="text-sm">口座種別: {(campaign.bank_account_info as any).bank_account_type || '—'}</div>
-                      <div className="text-sm">口座番号: {(campaign.bank_account_info as any).bank_account_number || '—'}</div>
-                      <div className="text-sm">口座名義: {(campaign.bank_account_info as any).bank_account_holder || '—'}</div>
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground">未設定</div>
-                  )}
-                </div>
-
-                {campaign.operator_type === 'corporate' && (
-                  <div className="pt-2">
-                    <div className="font-medium mb-1">法人情報</div>
-                    {campaign.corporate_info ? (
-                      <div className="rounded border p-3 bg-background space-y-1">
-                        <div className="text-sm">法人名: {(campaign.corporate_info as any).company_name || '—'}</div>
-                        <div className="text-sm">代表者名: {(campaign.corporate_info as any).representative_name || '—'}</div>
-                        <div className="text-sm">代表者名（カナ）: {(campaign.corporate_info as any).representative_name_kana || '—'}</div>
-                        <div className="text-sm">代表者生年月日: {(campaign.corporate_info as any).representative_birth_date || '—'}</div>
-                        <div className="text-sm">本店所在地: {(campaign.corporate_info as any).company_postal_code || ''} {(campaign.corporate_info as any).company_address || ''}</div>
-                        <div className="text-sm">法人電話番号: {(campaign.corporate_info as any).company_phone || '—'}</div>
-                        <div className="text-sm">法人番号: {(campaign.corporate_info as any).registration_number || '—'}</div>
-                      </div>
-                    ) : (
-                      <div className="text-muted-foreground">未設定</div>
-                    )}
-                  </div>
-                )}
-
-                <div className="pt-2">
-                  <div className="font-medium mb-1">特定商取引法に基づく表記</div>
-                  {campaign.legal_info ? (
-                    <div className="rounded border p-3 bg-background space-y-1">
-                      <div className="text-sm">表記方法: {((campaign.legal_info as any).display_method === 'input') ? '入力内容を表示' : 'テンプレート'}</div>
-                      {((campaign.legal_info as any).display_method === 'input') && (
-                        <>
-                          <div className="text-sm">販売事業者名: {(campaign.legal_info as any).business_name || '—'}</div>
-                          <div className="text-sm">責任者名: {(campaign.legal_info as any).business_representative || '—'}</div>
-                          <div className="text-sm">所在地: {(campaign.legal_info as any).business_postal_code || ''} {(campaign.legal_info as any).business_address || ''}</div>
-                          <div className="text-sm">電話番号: {(campaign.legal_info as any).phone_number || '—'}</div>
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground">未設定</div>
-                  )}
-                </div>
-
-                {/* リワードの支援者情報要件 */}
-                <div className="pt-2">
-                  <div className="font-medium mb-1">特典の必要情報</div>
-                  {rewards && rewards.length > 0 ? (
-                    <div className="rounded border divide-y">
-                      {rewards.map((reward: any) => (
-                        <div key={reward.id} className="p-3 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <div className="font-medium truncate mr-2">{reward.title}</div>
-                            <div className="text-muted-foreground whitespace-nowrap ml-2">
-                              {formatAmountForDisplay(reward.amount)}
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2 text-xs">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_contact_info ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
-                              氏名・連絡先 {reward.requires_contact_info ? '要' : '不要'}
-                            </span>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_email ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
-                              メール {reward.requires_email ? '要' : '不要'}
-                            </span>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_address ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
-                              住所 {reward.requires_address ? '要' : '不要'}
-                            </span>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_note ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
-                              備考欄 {reward.requires_note ? '必須' : '任意'}
-                            </span>
-                          </div>
-                          {reward.requires_note && reward.note_info && (
-                            <div className="text-muted-foreground text-xs">
-                              備考欄説明: {reward.note_info}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground">特典は設定されていません</div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 pt-2">
-                  <div className="text-muted-foreground">作成日時</div>
-                  <div className="col-span-2">{new Date(campaign.created_at).toLocaleString()}</div>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-muted-foreground">更新日時</div>
-                  <div className="col-span-2">{new Date(campaign.updated_at).toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
         
         {/* リワード一覧 */}
@@ -476,6 +337,152 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
               campaignId={id}
               campaignStatus={campaign.status}
             />
+          </div>
+        )}
+
+        {/* 管理者向け 審査情報セクション - 一番下に配置 */}
+        {adminCheck.isAdmin && (
+          <div className="mt-8 p-6 bg-red-50 dark:bg-red-900/10 rounded-lg border-2 border-red-200 dark:border-red-800">
+            <h3 className="text-lg font-bold mb-4 text-red-900 dark:text-red-100 flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              審査情報（管理者のみ）
+            </h3>
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="text-muted-foreground">運営主体</div>
+                <div className="col-span-2">{campaign.operator_type === 'corporate' ? '法人' : '個人'}</div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="text-muted-foreground">チャンネルオーナー</div>
+                <div className="col-span-2">
+                  {ownerProfile ? (
+                    <Link href={`/profile/${ownerProfile.id}`} className="hover:underline text-blue-600 dark:text-blue-400">
+                      {ownerProfile.username}（@{ownerProfile.user_handle}）
+                    </Link>
+                  ) : (
+                    <span>不明（owner_user_id: {campaign.channel?.owner_user_id || '未設定'}）</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="text-muted-foreground">本人確認</div>
+                <div className="col-span-2">
+                  {campaign.identity_verification_required ? (
+                    <>
+                      必要 / 状況: {campaign.identity_verification_status || '未設定'}
+                    </>
+                  ) : (
+                    '不要'
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <div className="font-medium mb-2">振込先口座情報</div>
+                {campaign.bank_account_info ? (
+                  <div className="rounded border p-3 bg-background">
+                    <div className="text-sm">銀行名: {(campaign.bank_account_info as any).bank_name || '—'}</div>
+                    <div className="text-sm">支店名: {(campaign.bank_account_info as any).bank_branch || '—'}</div>
+                    <div className="text-sm">口座種別: {(campaign.bank_account_info as any).bank_account_type || '—'}</div>
+                    <div className="text-sm">口座番号: {(campaign.bank_account_info as any).bank_account_number || '—'}</div>
+                    <div className="text-sm">口座名義: {(campaign.bank_account_info as any).bank_account_holder || '—'}</div>
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">未設定</div>
+                )}
+              </div>
+
+              {campaign.operator_type === 'corporate' && (
+                <div className="pt-2">
+                  <div className="font-medium mb-2">法人情報</div>
+                  {campaign.corporate_info ? (
+                    <div className="rounded border p-3 bg-background space-y-1">
+                      <div className="text-sm">法人名: {(campaign.corporate_info as any).company_name || '—'}</div>
+                      <div className="text-sm">代表者名: {(campaign.corporate_info as any).representative_name || '—'}</div>
+                      <div className="text-sm">代表者名（カナ）: {(campaign.corporate_info as any).representative_name_kana || '—'}</div>
+                      <div className="text-sm">代表者生年月日: {(campaign.corporate_info as any).representative_birth_date || '—'}</div>
+                      <div className="text-sm">本店所在地: {(campaign.corporate_info as any).company_postal_code || ''} {(campaign.corporate_info as any).company_address || ''}</div>
+                      <div className="text-sm">法人電話番号: {(campaign.corporate_info as any).company_phone || '—'}</div>
+                      <div className="text-sm">法人番号: {(campaign.corporate_info as any).registration_number || '—'}</div>
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground">未設定</div>
+                  )}
+                </div>
+              )}
+
+              <div className="pt-2">
+                <div className="font-medium mb-2">特定商取引法に基づく表記</div>
+                {campaign.legal_info ? (
+                  <div className="rounded border p-3 bg-background space-y-1">
+                    <div className="text-sm">表記方法: {((campaign.legal_info as any).display_method === 'input') ? '入力内容を表示' : 'テンプレート'}</div>
+                    {((campaign.legal_info as any).display_method === 'input') && (
+                      <>
+                        <div className="text-sm">販売事業者名: {(campaign.legal_info as any).business_name || '—'}</div>
+                        <div className="text-sm">責任者名: {(campaign.legal_info as any).business_representative || '—'}</div>
+                        <div className="text-sm">所在地: {(campaign.legal_info as any).business_postal_code || ''} {(campaign.legal_info as any).business_address || ''}</div>
+                        <div className="text-sm">電話番号: {(campaign.legal_info as any).phone_number || '—'}</div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">未設定</div>
+                )}
+              </div>
+
+              {/* リワードの支援者情報要件 */}
+              <div className="pt-2">
+                <div className="font-medium mb-2">特典の必要情報</div>
+                {rewards && rewards.length > 0 ? (
+                  <div className="rounded border divide-y">
+                    {rewards.map((reward: any) => (
+                      <div key={reward.id} className="p-3 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium truncate mr-2">{reward.title}</div>
+                          <div className="text-muted-foreground whitespace-nowrap ml-2">
+                            {formatAmountForDisplay(reward.amount)}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_contact_info ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
+                            氏名・連絡先 {reward.requires_contact_info ? '要' : '不要'}
+                          </span>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_email ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
+                            メール {reward.requires_email ? '要' : '不要'}
+                          </span>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_address ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
+                            住所 {reward.requires_address ? '要' : '不要'}
+                          </span>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded border ${reward.requires_note ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' : 'text-muted-foreground'}`}>
+                            備考欄 {reward.requires_note ? '必須' : '任意'}
+                          </span>
+                        </div>
+                        {reward.requires_note && reward.note_info && (
+                          <div className="text-muted-foreground text-xs">
+                            備考欄説明: {reward.note_info}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">特典は設定されていません</div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t">
+                <div className="text-muted-foreground">作成日時</div>
+                <div className="col-span-2">{new Date(campaign.created_at).toLocaleString()}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="text-muted-foreground">更新日時</div>
+                <div className="col-span-2">{new Date(campaign.updated_at).toLocaleString()}</div>
+              </div>
+            </div>
           </div>
         )}
       </div>
