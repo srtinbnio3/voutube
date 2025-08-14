@@ -106,3 +106,9 @@ scripts/admin/
 # Obsidian
 .obsidian/
 doc/.obsidian/
+
+# --- Security: Google Cloud service account keys (do not commit) ---
+# Common local key filename
+google-credentials.json
+# Specific project credential file
+/ideatube-469010-b0aff983f104.json
