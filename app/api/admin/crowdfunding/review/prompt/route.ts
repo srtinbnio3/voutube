@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     // リワード
     const { data: rewards } = await supabase
       .from('crowdfunding_rewards')
-      .select('id,title,description,amount,quantity,delivery_date,requires_address,requires_email,requires_contact_info,is_unlimited')
+      .select('id,title,description,amount,quantity,delivery_date,requires_address,requires_email,requires_contact_info,requires_note,note_info,is_unlimited')
       .eq('campaign_id', campaign_id)
 
     // 構造化データ（PIIは含めない）
@@ -70,6 +70,8 @@ export async function POST(req: NextRequest) {
         requires_address: r.requires_address,
         requires_email: r.requires_email,
         requires_contact_info: r.requires_contact_info,
+        requires_note: r.requires_note,
+        note_info: r.note_info,
         is_unlimited: r.is_unlimited,
       })),
       criteria: reviewCriteria,
