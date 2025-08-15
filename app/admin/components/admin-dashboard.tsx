@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   CheckCircle, 
   XCircle, 
@@ -100,10 +100,6 @@ export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
         throw new Error(errorData.error || "処理に失敗しました");
       }
       
-      const result = await response.json();
-      console.log(result.message);
-      
-      // 一覧を再取得
       await fetchPendingCampaigns();
       
     } catch (err) {
@@ -210,61 +206,38 @@ interface CampaignCardProps {
 
 function CampaignCard({ campaign, onApproval, isLoading }: CampaignCardProps) {
   const [rejectReason, setRejectReason] = useState("");
-  const [aiOpen, setAiOpen] = useState(false)
-  const [aiLoading, setAiLoading] = useState(false)
-  const [aiError, setAiError] = useState<string | null>(null)
-  const [aiDecision, setAiDecision] = useState<'approve'|'request_changes'|'reject'|null>(null)
-  const [aiDraftMessage, setAiDraftMessage] = useState("")
-  const [aiRequiredFixes, setAiRequiredFixes] = useState<Array<{field:string;description:string;example?:string;severity:string}>>([])
-  const [markNeedsRevision, setMarkNeedsRevision] = useState(false)
+  const [promptOpen, setPromptOpen] = useState(false)
+  const [promptLoading, setPromptLoading] = useState(false)
+  const [promptError, setPromptError] = useState<string | null>(null)
+  const [promptText, setPromptText] = useState("")
 
-  const handleGenerateAiDraft = async () => {
+  const handleGeneratePrompt = async () => {
     try {
-      setAiLoading(true)
-      setAiError(null)
-      const res = await fetch('/api/admin/crowdfunding/review/ai', {
+      setPromptLoading(true)
+      setPromptError(null)
+      const res = await fetch('/api/admin/crowdfunding/review/prompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ campaign_id: campaign.id })
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || 'AI審査生成に失敗しました')
+        throw new Error(err.error || '審査プロンプトの生成に失敗しました')
       }
       const data = await res.json()
-      setAiDecision(data.decision)
-      setAiDraftMessage(data.draftMessage || '')
-      setAiRequiredFixes(Array.isArray(data.requiredFixes) ? data.requiredFixes : [])
-      setMarkNeedsRevision(data.decision !== 'approve')
-      setAiOpen(true)
+      setPromptText(data.prompt || '')
+      setPromptOpen(true)
     } catch (e) {
-      setAiError(e instanceof Error ? e.message : 'エラーが発生しました')
+      setPromptError(e instanceof Error ? e.message : 'エラーが発生しました')
     } finally {
-      setAiLoading(false)
+      setPromptLoading(false)
     }
   }
 
-  const handleSendAdminMessage = async () => {
+  const handleCopy = async () => {
     try {
-      const res = await fetch('/api/admin/crowdfunding/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          campaign_id: campaign.id,
-          message: aiDraftMessage.trim(),
-          message_type: aiDecision === 'approve' ? 'advice' : 'request_change',
-          markNeedsRevision
-        })
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || 'メッセージ送信に失敗しました')
-      }
-      setAiOpen(false)
-      setAiDraftMessage("")
-    } catch (e) {
-      setAiError(e instanceof Error ? e.message : 'エラーが発生しました')
-    }
+      await navigator.clipboard.writeText(promptText)
+    } catch {}
   }
   
   return (
@@ -327,20 +300,20 @@ function CampaignCard({ campaign, onApproval, isLoading }: CampaignCardProps) {
               </a>
             </Button>
 
-            {/* AI審査下書き生成 */}
+            {/* 審査プロンプト生成 */}
             <Button
               variant="secondary"
               size="sm"
-              onClick={handleGenerateAiDraft}
-              disabled={aiLoading || isLoading}
+              onClick={handleGeneratePrompt}
+              disabled={promptLoading || isLoading}
               className="flex items-center gap-1"
             >
-              {aiLoading ? (
+              {promptLoading ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
                 <MessageSquare className="h-3 w-3" />
               )}
-              AI審査下書き
+              審査プロンプト
             </Button>
             
             {/* 承認ボタン */}
@@ -404,43 +377,23 @@ function CampaignCard({ campaign, onApproval, isLoading }: CampaignCardProps) {
               </AlertDialogContent>
             </AlertDialog>
           </div>
-          {/* AI審査結果ダイアログ */}
-          <Dialog open={aiOpen} onOpenChange={setAiOpen}>
+
+          {/* 審査プロンプトダイアログ */}
+          <Dialog open={promptOpen} onOpenChange={setPromptOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>AI審査下書き</DialogTitle>
-                <DialogDescription>
-                  審査基準に基づく提案内容を確認し、必要に応じて編集して送信してください。
-                </DialogDescription>
+                <DialogTitle>AI審査用プロンプト</DialogTitle>
+                <DialogDescription>任意のAIに貼り付けてお使いください（個人情報に注意）。</DialogDescription>
               </DialogHeader>
-              {aiError && (
-                <div className="text-sm text-red-600">{aiError}</div>
-              )}
-              {aiDecision && (
-                <div className="text-sm mb-2">判定: <span className="font-medium">{aiDecision}</span></div>
-              )}
-              {aiRequiredFixes?.length > 0 && (
-                <div className="mb-3">
-                  <Label className="text-sm">指摘事項</Label>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1 mt-1">
-                    {aiRequiredFixes.map((f, idx) => (
-                      <li key={idx}>{f.field ? `${f.field}: ` : ''}{f.description}</li>
-                    ))}
-                  </ul>
-                </div>
+              {promptError && (
+                <div className="text-sm text-red-600">{promptError}</div>
               )}
               <div className="space-y-2">
-                <Label htmlFor={`ai-draft-${campaign.id}`}>送信用メッセージ（編集可）</Label>
-                <Textarea id={`ai-draft-${campaign.id}`} rows={6} value={aiDraftMessage} onChange={(e) => setAiDraftMessage(e.target.value)} />
-              </div>
-              <div className="flex items-center gap-2 pt-2">
-                <Checkbox id={`needs-revision-${campaign.id}`} checked={markNeedsRevision} onCheckedChange={(v) => setMarkNeedsRevision(Boolean(v))} />
-                <Label htmlFor={`needs-revision-${campaign.id}`} className="text-sm">修正依頼として送信し、ステータスをneeds_revisionにする</Label>
+                <Label>プロンプト</Label>
+                <Textarea rows={12} value={promptText} readOnly />
               </div>
               <DialogFooter>
-                <Button onClick={handleSendAdminMessage} disabled={!aiDraftMessage.trim()}>
-                  メッセージ送信
-                </Button>
+                <Button onClick={handleCopy}>コピー</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
