@@ -105,13 +105,42 @@ export async function POST(req: NextRequest) {
     const generation = await model.generateContent({ contents: [userContent] })
     const text = generation.response.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
-    // JSON抽出（先頭の```などが混ざる可能性に対応）
-    const jsonMatch = text.match(/\{[\s\S]*\}$/)
-    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) as AiReviewOutput : JSON.parse(text) as AiReviewOutput
+    // JSON抽出（Markdown形式や説明文が混ざる可能性に対応）
+    let parsed: AiReviewOutput
+    try {
+      // まず全体をパースしてみる
+      parsed = JSON.parse(text) as AiReviewOutput
+    } catch {
+      try {
+        // ```json で囲まれた部分を抽出
+        const jsonMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/)
+        if (jsonMatch) {
+          parsed = JSON.parse(jsonMatch[1]) as AiReviewOutput
+        } else {
+          // 最後の { から } までを抽出
+          const lastBraceMatch = text.match(/\{[\s\S]*\}$/)
+          if (lastBraceMatch) {
+            parsed = JSON.parse(lastBraceMatch[0]) as AiReviewOutput
+          } else {
+            throw new Error('JSON形式が見つかりません')
+          }
+        }
+      } catch (parseError) {
+        console.error('[AI Review] JSON parse error:', parseError, 'Raw text:', text)
+        return NextResponse.json({ 
+          error: 'AI応答の解析に失敗しました', 
+          raw: text.substring(0, 500) + (text.length > 500 ? '...' : '')
+        }, { status: 502 })
+      }
+    }
 
     // 簡易バリデーション
     if (!parsed?.decision || !parsed?.draftMessage) {
-      return NextResponse.json({ error: 'invalid ai response', raw: text }, { status: 502 })
+      console.error('[AI Review] Invalid response structure:', parsed)
+      return NextResponse.json({ 
+        error: 'AI応答の形式が不正です', 
+        raw: text.substring(0, 500) + (text.length > 500 ? '...' : '')
+      }, { status: 502 })
     }
 
     return NextResponse.json({
@@ -123,7 +152,10 @@ export async function POST(req: NextRequest) {
     })
   } catch (err) {
     console.error('[AI Review] error:', err)
-    return NextResponse.json({ error: 'internal error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: '内部エラーが発生しました',
+      details: err instanceof Error ? err.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 
