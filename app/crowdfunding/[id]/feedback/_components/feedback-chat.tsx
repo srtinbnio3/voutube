@@ -60,6 +60,12 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
+  // デバッグ用：初期メッセージの確認
+  useEffect(() => {
+    console.log('📝 初期メッセージ:', initialMessages)
+    console.log('📝 現在のメッセージ状態:', messages)
+  }, [initialMessages, messages])
+
   // メッセージエリアを最下部にスクロール
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -87,7 +93,16 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
           if (payload.eventType === 'INSERT') {
             // 新しいメッセージを追加
             const newMsg = payload.new as FeedbackMessage
-            setMessages(prev => [...prev, newMsg])
+            // 送信者情報も含めてメッセージを構築
+            const fullMessage: FeedbackMessage = {
+              ...newMsg,
+              sender: newMsg.sender_id ? {
+                id: newMsg.sender_id,
+                username: isAdmin ? 'IdeaTube運営チーム' : 'あなた',
+                avatar_url: null
+              } : undefined
+            }
+            setMessages(prev => [...prev, fullMessage])
           } else if (payload.eventType === 'UPDATE') {
             // メッセージを更新
             const updatedMsg = payload.new as FeedbackMessage
@@ -99,18 +114,46 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('📝 リアルタイム購読ステータス:', status)
+      })
 
     return () => {
+      console.log('📝 リアルタイム購読を解除')
       supabase.removeChannel(channel)
     }
-  }, [campaign.id, supabase])
+  }, [campaign.id, supabase, isAdmin])
 
   // メッセージ送信
   const sendMessage = async () => {
     if (!newMessage.trim() || isLoading) return
 
     setIsLoading(true)
+    
+    // 送信中のメッセージをローカルに追加（楽観的更新）
+    const tempMessage: FeedbackMessage = {
+      id: `temp-${Date.now()}`,
+      campaign_id: campaign.id,
+      sender_id: currentUser.id,
+      sender_type: isAdmin ? 'admin' : 'user',
+      message: newMessage.trim(),
+      message_type: isAdmin ? 'response' : 'question',
+      is_read: false,
+      admin_name: isAdmin ? 'IdeaTube運営チーム' : null,
+      admin_avatar: isAdmin ? null : null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      sender: {
+        id: currentUser.id,
+        username: isAdmin ? 'IdeaTube運営チーム' : 'あなた',
+        avatar_url: null
+      }
+    }
+    
+    setMessages(prev => [...prev, tempMessage])
+    const messageToSend = newMessage.trim()
+    setNewMessage("")
+    
     try {
       const { error } = await supabase
         .from("campaign_feedback")
@@ -118,7 +161,7 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
           campaign_id: campaign.id,
           sender_id: currentUser.id,
           sender_type: isAdmin ? 'admin' : 'user',
-          message: newMessage.trim(),
+          message: messageToSend,
           message_type: isAdmin ? 'response' : 'question',
           is_read: false,
           admin_name: isAdmin ? 'IdeaTube運営チーム' : null,
@@ -127,13 +170,19 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
 
       if (error) throw error
 
-      setNewMessage("")
+      // 成功時は一時的なメッセージを削除（リアルタイム更新で実際のメッセージが追加される）
+      setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')))
+      
       toast({
         title: "メッセージを送信しました",
         description: isAdmin ? "ユーザーに返信しました。" : "運営チームからの返信をお待ちください。",
       })
     } catch (error) {
       console.error("メッセージ送信エラー:", error)
+      
+      // エラー時は一時的なメッセージを削除
+      setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')))
+      
       toast({
         title: "送信に失敗しました",
         description: "しばらく時間をおいて再度お試しください。",

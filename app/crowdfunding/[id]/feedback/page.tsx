@@ -107,10 +107,13 @@ export default async function FeedbackPage({
     notFound()
   }
 
+  // isAdminのデフォルト値を設定
+  const adminStatus = isAdmin ?? false
+
   console.log("📝 キャンペーン情報とメッセージ取得成功:", { 
     campaignId: campaign.id, 
     messagesCount: messages.length,
-    isAdmin
+    isAdmin: adminStatus
   })
 
   return (
@@ -147,7 +150,7 @@ export default async function FeedbackPage({
         campaign={campaign}
         initialMessages={messages}
         currentUser={user}
-        isAdmin={isAdmin}
+        isAdmin={adminStatus}
       />
     </div>
   )
