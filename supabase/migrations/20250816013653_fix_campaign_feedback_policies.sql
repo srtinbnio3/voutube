@@ -23,10 +23,10 @@ FOR INSERT WITH CHECK (
         -- または運営（sender_type = 'admin'）の場合
         OR (
             sender_type = 'admin' AND 
-            -- 管理者権限チェック（admin_check関数を使用）
+            -- 管理者権限チェック（profiles.is_adminを使用）
             EXISTS (
-                SELECT 1 FROM admin_users 
-                WHERE user_id = auth.uid() AND is_active = true
+                SELECT 1 FROM profiles 
+                WHERE id = auth.uid() AND is_admin = true
             )
         )
     )
@@ -47,8 +47,8 @@ FOR SELECT USING (
     )
     -- または管理者
     OR EXISTS (
-        SELECT 1 FROM admin_users 
-        WHERE user_id = auth.uid() AND is_active = true
+        SELECT 1 FROM profiles 
+        WHERE id = auth.uid() AND is_admin = true
     )
 );
 
