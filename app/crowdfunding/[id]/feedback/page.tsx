@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server"
 import { notFound, redirect } from "next/navigation"
 import { Metadata } from "next"
 import { FeedbackChat } from "./_components/feedback-chat"
+import { checkAdminPermission } from "@/app/lib/admin-auth"
 
 // 運営とのやりとりページ - クラウドファンディングプロジェクトのフィードバック
 export const metadata: Metadata = {
@@ -41,9 +42,14 @@ async function fetchCampaignAndMessages(supabase: any, campaignId: string, userI
       return { campaign: null, messages: [], error: campaignError }
     }
 
-    // ユーザーがキャンペーンの所有者かチェック
+    // 管理者権限をチェック
+    const adminCheck = await checkAdminPermission()
+    
+    // ユーザーがキャンペーンの所有者か、または管理者かチェック
     const isOwner = campaign.channel?.owner_user_id === userId
-    if (!isOwner) {
+    const isAdmin = adminCheck.isAdmin
+    
+    if (!isOwner && !isAdmin) {
       return { campaign: null, messages: [], error: new Error('権限がありません') }
     }
 
@@ -64,11 +70,12 @@ async function fetchCampaignAndMessages(supabase: any, campaignId: string, userI
     return { 
       campaign, 
       messages: messages || [], 
-      error: messagesError 
+      error: messagesError,
+      isAdmin
     }
   } catch (err) {
     console.error("フィードバック情報取得エラー:", err)
-    return { campaign: null, messages: [], error: err }
+    return { campaign: null, messages: [], error: err, isAdmin: false }
   }
 }
 
@@ -93,7 +100,7 @@ export default async function FeedbackPage({
   console.log("📝 認証成功:", user.id)
 
   // キャンペーンとメッセージの取得
-  const { campaign, messages, error } = await fetchCampaignAndMessages(supabase, id, user.id)
+  const { campaign, messages, error, isAdmin } = await fetchCampaignAndMessages(supabase, id, user.id)
 
   if (error || !campaign) {
     console.log("📝 キャンペーンが見つからないか権限がない:", { error: error?.message })
@@ -102,7 +109,8 @@ export default async function FeedbackPage({
 
   console.log("📝 キャンペーン情報とメッセージ取得成功:", { 
     campaignId: campaign.id, 
-    messagesCount: messages.length 
+    messagesCount: messages.length,
+    isAdmin
   })
 
   return (
@@ -113,15 +121,25 @@ export default async function FeedbackPage({
             運営とのやりとり
           </h1>
           <div className="flex-1"></div>
-          <a 
-            href={`/crowdfunding/${campaign.id}/edit`}
-            className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            ← プロジェクト編集に戻る
-          </a>
+          {isAdmin ? (
+            <a 
+              href={`/crowdfunding/${campaign.id}`}
+              className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              ← プロジェクト詳細に戻る
+            </a>
+          ) : (
+            <a 
+              href={`/crowdfunding/${campaign.id}/edit`}
+              className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              ← プロジェクト編集に戻る
+            </a>
+          )}
         </div>
         <p className="text-muted-foreground">
           {campaign.title} のフィードバック・やりとり
+          {isAdmin && " (管理者表示)"}
         </p>
       </div>
 
@@ -129,6 +147,7 @@ export default async function FeedbackPage({
         campaign={campaign}
         initialMessages={messages}
         currentUser={user}
+        isAdmin={isAdmin}
       />
     </div>
   )

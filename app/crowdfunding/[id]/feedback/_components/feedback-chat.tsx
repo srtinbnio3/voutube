@@ -50,9 +50,10 @@ interface FeedbackChatProps {
   campaign: Campaign
   initialMessages: FeedbackMessage[]
   currentUser: User
+  isAdmin: boolean
 }
 
-export function FeedbackChat({ campaign, initialMessages, currentUser }: FeedbackChatProps) {
+export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }: FeedbackChatProps) {
   const [messages, setMessages] = useState<FeedbackMessage[]>(initialMessages)
   const [newMessage, setNewMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -116,10 +117,12 @@ export function FeedbackChat({ campaign, initialMessages, currentUser }: Feedbac
         .insert({
           campaign_id: campaign.id,
           sender_id: currentUser.id,
-          sender_type: 'user',
+          sender_type: isAdmin ? 'admin' : 'user',
           message: newMessage.trim(),
-          message_type: 'question',
-          is_read: false
+          message_type: isAdmin ? 'response' : 'question',
+          is_read: false,
+          admin_name: isAdmin ? 'IdeaTube運営チーム' : null,
+          admin_avatar: isAdmin ? null : null
         })
 
       if (error) throw error
@@ -127,7 +130,7 @@ export function FeedbackChat({ campaign, initialMessages, currentUser }: Feedbac
       setNewMessage("")
       toast({
         title: "メッセージを送信しました",
-        description: "運営チームからの返信をお待ちください。",
+        description: isAdmin ? "ユーザーに返信しました。" : "運営チームからの返信をお待ちください。",
       })
     } catch (error) {
       console.error("メッセージ送信エラー:", error)
@@ -214,6 +217,7 @@ export function FeedbackChat({ campaign, initialMessages, currentUser }: Feedbac
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
           メッセージ
+          {isAdmin && <Badge variant="secondary" className="text-xs">管理者</Badge>}
         </CardTitle>
       </CardHeader>
       
@@ -225,7 +229,7 @@ export function FeedbackChat({ campaign, initialMessages, currentUser }: Feedbac
               <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>まだメッセージはありません</p>
               <p className="text-xs mt-1">
-                質問やご相談がございましたら、下記からメッセージをお送りください
+                {isAdmin ? "ユーザーからの質問や相談があれば、下記から返信してください" : "質問やご相談がございましたら、下記からメッセージをお送りください"}
               </p>
             </div>
           ) : (
@@ -305,7 +309,7 @@ export function FeedbackChat({ campaign, initialMessages, currentUser }: Feedbac
             <Textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="運営チームへのメッセージを入力してください..."
+              placeholder={isAdmin ? "ユーザーへの返信を入力してください..." : "運営チームへのメッセージを入力してください..."}
               rows={3}
               className="resize-none"
               onKeyDown={(e) => {
