@@ -117,41 +117,53 @@ export default async function FeedbackPage({
   })
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            運営とのやりとり
-          </h1>
-          <div className="flex-1"></div>
-          {isAdmin ? (
-            <a 
-              href={`/crowdfunding/${campaign.id}`}
-              className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              ← プロジェクト詳細に戻る
-            </a>
-          ) : (
-            <a 
-              href={`/crowdfunding/${campaign.id}/edit`}
-              className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              ← プロジェクト編集に戻る
-            </a>
-          )}
-        </div>
-        <p className="text-muted-foreground">
-          {campaign.title} のフィードバック・やりとり
-          {isAdmin && " (管理者表示)"}
-        </p>
+    <main className="relative overflow-hidden min-h-screen">
+      {/* 背景（他ページと整合） */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-purple-950/20 dark:to-blue-950/20" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-300/30 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-purple-400/20 via-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-spin-slow" />
       </div>
 
-      <FeedbackChat 
-        campaign={campaign}
-        initialMessages={messages}
-        currentUser={user}
-        isAdmin={adminStatus}
-      />
-    </div>
+      <div className="container relative py-6 md:py-10">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                運営とのやりとり
+              </h1>
+              <div className="flex-1" />
+              {isAdmin ? (
+                <a
+                  href={`/crowdfunding/${campaign.id}`}
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  ← プロジェクト詳細に戻る
+                </a>
+              ) : (
+                <a
+                  href={`/crowdfunding/${campaign.id}/edit`}
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  ← プロジェクト編集に戻る
+                </a>
+              )}
+            </div>
+            <p className="text-muted-foreground">
+              {campaign.title} のフィードバック・やりとり
+              {isAdmin && " (管理者表示)"}
+            </p>
+          </div>
+
+          <FeedbackChat
+            campaign={campaign}
+            initialMessages={messages}
+            currentUser={user}
+            isAdmin={adminStatus}
+          />
+        </div>
+      </div>
+    </main>
   )
 }

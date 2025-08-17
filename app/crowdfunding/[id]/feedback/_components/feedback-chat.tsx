@@ -102,7 +102,13 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
                 avatar_url: null
               } : undefined
             }
-            setMessages(prev => [...prev, fullMessage])
+            setMessages(prev => {
+              // 既に同じIDが存在する場合は重複追加しない
+              if (prev.some(m => m.id === fullMessage.id)) return prev
+              // 送信中の一時メッセージは置き換え対象にする（IDはtemp-で始まる）
+              const withoutTemps = prev.filter(m => !m.id.startsWith('temp-'))
+              return [...withoutTemps, fullMessage]
+            })
           } else if (payload.eventType === 'UPDATE') {
             // メッセージを更新
             const updatedMsg = payload.new as FeedbackMessage
@@ -155,7 +161,7 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
     setNewMessage("")
     
     try {
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from("campaign_feedback")
         .insert({
           campaign_id: campaign.id,
@@ -167,11 +173,25 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
           admin_name: isAdmin ? 'IdeaTube運営チーム' : null,
           admin_avatar: isAdmin ? null : null
         })
+        .select()
+        .single()
 
       if (error) throw error
 
-      // 成功時は一時的なメッセージを削除（リアルタイム更新で実際のメッセージが追加される）
-      setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')))
+      // 成功時：一時メッセージを実レコードで置換（リアルタイム未到達でも即時反映）
+      if (inserted) {
+        const confirmed: FeedbackMessage = {
+          ...(inserted as FeedbackMessage),
+          sender: {
+            id: currentUser.id,
+            username: isAdmin ? 'IdeaTube運営チーム' : 'あなた',
+            avatar_url: null
+          }
+        }
+        setMessages(prev => prev.map(m => m.id.startsWith('temp-') ? confirmed : m))
+      } else {
+        // 念のため：取得できなければ一時メッセージは残す
+      }
       
       toast({
         title: "メッセージを送信しました",
