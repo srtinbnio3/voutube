@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   CheckCircle, 
   XCircle, 
@@ -21,7 +22,7 @@ import { formatAmountForDisplay } from "@/app/lib/stripe";
 import { AdminRole } from "@/app/lib/admin-auth";
 
 // 承認待ちキャンペーンの型定義
-interface PendingCampaign {
+interface AdminCampaignItem {
   id: string;
   title: string;
   description: string;
@@ -48,15 +49,17 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
-  const [campaigns, setCampaigns] = useState<PendingCampaign[]>([]);
+  const [campaigns, setCampaigns] = useState<AdminCampaignItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<string>('under_review');
   
-  // 承認待ちキャンペーンを取得
-  const fetchPendingCampaigns = async () => {
+  // ステータス別にキャンペーンを取得
+  const fetchCampaigns = async (nextStatus: string) => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/crowdfunding/pending");
+      const params = new URLSearchParams({ status: nextStatus });
+      const response = await fetch(`/api/admin/crowdfunding?${params.toString()}`);
       
       if (!response.ok) {
         throw new Error("データの取得に失敗しました");
@@ -65,7 +68,7 @@ export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
       const data = await response.json();
       setCampaigns(data.campaigns || []);
     } catch (err) {
-      console.error("承認待ちキャンペーン取得エラー:", err);
+      console.error("キャンペーン取得エラー:", err);
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
       setLoading(false);
@@ -73,8 +76,8 @@ export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
   };
   
   useEffect(() => {
-    fetchPendingCampaigns();
-  }, []);
+    fetchCampaigns(status);
+  }, [status]);
   
   if (loading) {
     return (
@@ -116,21 +119,40 @@ export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
         </Card>
       )}
       
-      {/* 統計情報 */}
+      {/* 統計情報 + ステータス切替 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            承認待ちプロジェクト
+            プロジェクト一覧
           </CardTitle>
           <CardDescription>
-            運営チームによる確認が必要なプロジェクト一覧です。<br/>
-            各プロジェクトの「詳細確認」ボタンをクリックして、詳細ページで審査を行ってください。
+            ステータスで絞り込みできます。各プロジェクトの「詳細確認」から詳細審査へ。
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-orange-600">
-            {campaigns.length} 件
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-2xl font-bold text-orange-600">
+              {campaigns.length} 件
+            </div>
+            <div className="w-60">
+              <Label className="mb-1 block text-xs text-muted-foreground">ステータス</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="選択してください" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">すべて</SelectItem>
+                  <SelectItem value="under_review">承認待ち</SelectItem>
+                  <SelectItem value="draft">下書き</SelectItem>
+                  <SelectItem value="needs_revision">要修正</SelectItem>
+                  <SelectItem value="active">公開中</SelectItem>
+                  <SelectItem value="rejected">非承認</SelectItem>
+                  <SelectItem value="completed">完了</SelectItem>
+                  <SelectItem value="cancelled">キャンセル</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -141,7 +163,7 @@ export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center text-muted-foreground">
-                承認待ちのプロジェクトはありません
+                該当するプロジェクトはありません
               </div>
             </CardContent>
           </Card>
@@ -160,7 +182,7 @@ export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
 
 // 個別のキャンペーンカードコンポーネント
 interface CampaignCardProps {
-  campaign: PendingCampaign;
+  campaign: AdminCampaignItem;
 }
 
 function CampaignCard({ campaign }: CampaignCardProps) {
@@ -187,7 +209,7 @@ function CampaignCard({ campaign }: CampaignCardProps) {
           </div>
           <Badge variant="secondary" className="gap-1">
             <Clock className="h-3 w-3" />
-            承認待ち
+            {campaign.status}
           </Badge>
         </div>
       </CardHeader>
