@@ -281,8 +281,8 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
   }
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader>
+    <Card className="min-h-[600px] max-h-[80vh] flex flex-col bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border shadow-lg">
+      <CardHeader className="flex-shrink-0">
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
           メッセージ
@@ -290,7 +290,7 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 flex flex-col p-0">
+      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
         {/* メッセージリスト */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
@@ -350,7 +350,7 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
                       message.sender_type === 'admin' 
                         ? 'text-gray-800 dark:text-gray-200' 
                         : 'text-white'
-                    }`}>
+                    } whitespace-pre-wrap`}>
                       {message.message}
                     </p>
                   </div>
@@ -373,7 +373,7 @@ export function FeedbackChat({ campaign, initialMessages, currentUser, isAdmin }
         </div>
 
         {/* メッセージ入力エリア */}
-        <div className="border-t p-4">
+        <div className="border-t bg-white/95 dark:bg-gray-900/95 p-4 flex-shrink-0">
           <div className="flex gap-2">
             <Textarea
               value={newMessage}
