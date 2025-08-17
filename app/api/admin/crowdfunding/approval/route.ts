@@ -1,6 +1,21 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/app/lib/admin-auth";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+
+// サービスロール用のSupabaseクライアントを作成（RLS回避）
+const createServiceRoleClient = () => {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+};
 
 // 運営側のプロジェクト承認API
 export async function POST(req: NextRequest) {
@@ -10,7 +25,8 @@ export async function POST(req: NextRequest) {
     return authResult; // エラーレスポンスの場合はそのまま返す
   }
   
-  const supabase = await createClient();
+  // 管理者操作はRLSを回避する必要があるため、サービスロールを使用
+  const supabase = createServiceRoleClient();
   
   try {
     const body = await req.json();

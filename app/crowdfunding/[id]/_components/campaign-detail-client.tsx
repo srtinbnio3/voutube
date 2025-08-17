@@ -37,7 +37,6 @@ export function CampaignDetailClient({
   iconUrl, 
   adminCheck 
 }: CampaignDetailClientProps) {
-  const [rejectReason, setRejectReason] = useState("");
   const [promptOpen, setPromptOpen] = useState(false);
   const [promptLoading, setPromptLoading] = useState(false);
   const [promptError, setPromptError] = useState<string | null>(null);
@@ -67,13 +66,13 @@ export function CampaignDetailClient({
     }
   };
 
-  const handleApproval = async (action: 'approve' | 'reject', reason?: string) => {
+  const handleApproval = async (action: 'approve' | 'reject') => {
     try {
       setActionLoading(true);
       const response = await fetch("/api/admin/crowdfunding/approval", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ campaign_id: campaign.id, action, reason }),
+        body: JSON.stringify({ campaign_id: campaign.id, action }),
       });
       if (!response.ok) {
         const errorData = await response.json();
@@ -317,15 +316,12 @@ export function CampaignDetailClient({
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>プロジェクトを却下しますか？</AlertDialogTitle>
-                      <AlertDialogDescription>この操作により、プロジェクトは却下状態になります。却下理由を入力してください。</AlertDialogDescription>
+                      <AlertDialogDescription>この操作により、プロジェクトは却下状態になります。理由はチャットでユーザーに伝えてください。</AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="space-y-2">
-                      <Label htmlFor="reject-reason">却下理由</Label>
-                      <Textarea id="reject-reason" placeholder="却下の理由を入力してください..." value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3} />
-                    </div>
+                    <div className="text-sm text-muted-foreground">※ この操作は取り消せません。</div>
                     <AlertDialogFooter>
                       <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => { handleApproval('reject', rejectReason); setRejectReason(""); }} className="bg-red-600 hover:bg-red-700">却下する</AlertDialogAction>
+                      <AlertDialogAction onClick={() => { handleApproval('reject'); }} className="bg-red-600 hover:bg-red-700">却下する</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
