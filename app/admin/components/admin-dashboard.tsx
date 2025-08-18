@@ -20,7 +20,8 @@ import {
   Edit,
   AlertCircle,
   CheckCircle2,
-  Ban
+  Ban,
+  MessageSquare
 } from "lucide-react";
 import { formatAmountForDisplay } from "@/app/lib/stripe";
 import { AdminRole } from "@/app/lib/admin-auth";
@@ -321,6 +322,19 @@ function CampaignCard({ campaign, getStatusBadge }: CampaignCardProps) {
               <a href={`/crowdfunding/${campaign.id}`} target="_blank" rel="noopener noreferrer">
                 <Eye className="h-3 w-3" />
                 詳細確認
+              </a>
+            </Button>
+            
+            {/* 運営とのやりとりチャットボタン */}
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="flex items-center gap-1"
+            >
+              <a href={`/crowdfunding/${campaign.id}/feedback`} target="_blank" rel="noopener noreferrer">
+                <MessageSquare className="h-3 w-3" />
+                やりとり
               </a>
             </Button>
           </div>
