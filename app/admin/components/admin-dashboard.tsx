@@ -16,7 +16,11 @@ import {
   Target,
   Users,
   Loader2,
-  Settings
+  Settings,
+  Edit,
+  AlertCircle,
+  CheckCircle2,
+  Ban
 } from "lucide-react";
 import { formatAmountForDisplay } from "@/app/lib/stripe";
 import { AdminRole } from "@/app/lib/admin-auth";
@@ -53,6 +57,67 @@ export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string>('under_review');
+
+  // ステータスに応じたバッジを生成する関数
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'draft':
+        return (
+          <Badge variant="secondary" className="gap-1 bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+            <Edit className="h-3 w-3" />
+            下書き
+          </Badge>
+        );
+      case 'under_review':
+        return (
+          <Badge variant="default" className="gap-1 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200">
+            <Clock className="h-3 w-3" />
+            承認待ち
+          </Badge>
+        );
+      case 'needs_revision':
+        return (
+          <Badge variant="default" className="gap-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200">
+            <AlertCircle className="h-3 w-3" />
+            要修正
+          </Badge>
+        );
+      case 'active':
+        return (
+          <Badge variant="default" className="gap-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200">
+            <CheckCircle2 className="h-3 w-3" />
+            公開中
+          </Badge>
+        );
+      case 'rejected':
+        return (
+          <Badge variant="destructive" className="gap-1">
+            <XCircle className="h-3 w-3" />
+            非承認
+          </Badge>
+        );
+      case 'completed':
+        return (
+          <Badge variant="outline" className="gap-1 border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/20 dark:text-green-300">
+            <CheckCircle className="h-3 w-3" />
+            完了
+          </Badge>
+        );
+      case 'cancelled':
+        return (
+          <Badge variant="outline" className="gap-1 border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-700 dark:bg-gray-950/20 dark:text-gray-400">
+            <Ban className="h-3 w-3" />
+            キャンセル
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="secondary" className="gap-1">
+            {status}
+          </Badge>
+        );
+    }
+  };
   
   // ステータス別にキャンペーンを取得
   const fetchCampaigns = async (nextStatus: string) => {
@@ -172,6 +237,7 @@ export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
             <CampaignCard 
               key={campaign.id} 
               campaign={campaign} 
+              getStatusBadge={getStatusBadge}
             />
           ))
         )}
@@ -183,11 +249,26 @@ export function AdminDashboard({ adminRoles }: AdminDashboardProps) {
 // 個別のキャンペーンカードコンポーネント
 interface CampaignCardProps {
   campaign: AdminCampaignItem;
+  getStatusBadge: (status: string) => React.ReactElement;
 }
 
-function CampaignCard({ campaign }: CampaignCardProps) {
+function CampaignCard({ campaign, getStatusBadge }: CampaignCardProps) {
+  // ステータスに応じたボーダー色を取得
+  const getBorderColor = (status: string) => {
+    switch (status) {
+      case 'draft': return 'border-gray-200 dark:border-gray-700';
+      case 'under_review': return 'border-orange-200 dark:border-orange-800';
+      case 'needs_revision': return 'border-yellow-200 dark:border-yellow-800';
+      case 'active': return 'border-green-200 dark:border-green-800';
+      case 'rejected': return 'border-red-200 dark:border-red-800';
+      case 'completed': return 'border-green-200 dark:border-green-800';
+      case 'cancelled': return 'border-gray-200 dark:border-gray-700';
+      default: return 'border-gray-200 dark:border-gray-700';
+    }
+  };
+
   return (
-    <Card className="border-orange-200">
+    <Card className={getBorderColor(campaign.status)}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -207,10 +288,7 @@ function CampaignCard({ campaign }: CampaignCardProps) {
               </div>
             </div>
           </div>
-          <Badge variant="secondary" className="gap-1">
-            <Clock className="h-3 w-3" />
-            {campaign.status}
-          </Badge>
+          {getStatusBadge(campaign.status)}
         </div>
       </CardHeader>
       <CardContent>
