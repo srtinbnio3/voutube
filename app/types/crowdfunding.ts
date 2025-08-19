@@ -1,4 +1,4 @@
-export type CampaignStatus = 'draft' | 'active' | 'completed' | 'cancelled';
+export type CampaignStatus = 'draft' | 'under_review' | 'needs_revision' | 'rejected' | 'active' | 'completed' | 'cancelled';
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 export type CreatorRewardStatus = 'pending' | 'paid';
 
@@ -14,12 +14,14 @@ export interface Campaign {
   end_date: string;
   status: CampaignStatus;
   reward_enabled: boolean;
+  main_image?: string;
+  thumbnail_image?: string;
   bank_account_info?: {
     bank_name: string;
-    branch_name: string;
-    account_type: 'ordinary' | 'checking';
-    account_number: string;
-    account_holder: string;
+    bank_branch: string;
+    bank_account_type: string;
+    bank_account_number: string;
+    bank_account_holder: string;
   };
   created_at: string;
   updated_at: string;
@@ -46,6 +48,15 @@ export interface CampaignReward {
   amount: number;
   quantity: number;
   remaining_quantity: number;
+  delivery_date?: string;
+  requires_note?: boolean;
+  note_info?: string;
+  images?: string[];
+  template?: string;
+  is_unlimited?: boolean;
+  requires_contact_info?: boolean;
+  requires_email?: boolean;
+  requires_address?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -88,10 +99,10 @@ export interface CampaignFormData {
   channel_id?: string;
   bank_account_info?: {
     bank_name: string;
-    branch_name: string;
-    account_type: 'ordinary' | 'checking';
-    account_number: string;
-    account_holder: string;
+    bank_branch: string;
+    bank_account_type: string;
+    bank_account_number: string;
+    bank_account_holder: string;
   };
 }
 
@@ -100,6 +111,12 @@ export interface RewardFormData {
   description: string;
   amount: number;
   quantity: number;
+  delivery_date?: string;
+  requires_note?: boolean;
+  note_info?: string;
+  images?: string[];
+  template?: string;
+  is_unlimited?: boolean;
 }
 
 export interface SupportFormData {

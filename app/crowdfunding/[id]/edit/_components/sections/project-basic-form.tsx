@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,12 +9,17 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Wand2 } from "lucide-react"
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes"
 
 interface ProjectBasicFormProps {
   campaign: any
+  /**
+   * 未保存の変更状態を親コンポーネントに通知するコールバック関数
+   */
+  onUnsavedChangesUpdate?: (hasChanges: boolean) => void
 }
 
-export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
+export function ProjectBasicForm({ campaign, onUnsavedChangesUpdate }: ProjectBasicFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isGeneratingStory, setIsGeneratingStory] = useState(false)
   const [formData, setFormData] = useState({
@@ -23,8 +28,38 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
     story: campaign.story || ""
   })
 
+  // 初期データ（変更検出のベースライン）
+  const initialData = {
+    title: campaign.title || "",
+    description: campaign.post?.description || campaign.description || "",
+    story: campaign.story || ""
+  }
+
+  // 未保存の変更を追跡
+  const { hasUnsavedChanges, markAsSaved } = useUnsavedChanges(formData, initialData)
+
+  // 未保存の変更状態を親コンポーネントに通知
+  useEffect(() => {
+    onUnsavedChangesUpdate?.(hasUnsavedChanges)
+  }, [hasUnsavedChanges, onUnsavedChangesUpdate])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // 必須項目のバリデーション
+    if (!formData.title.trim()) {
+      toast.error("プロジェクトタイトルを入力してください")
+      return
+    }
+    if (!formData.description.trim()) {
+      toast.error("プロジェクト概要を入力してください")
+      return
+    }
+    if (!formData.story.trim()) {
+      toast.error("ストーリー・詳細説明を入力してください")
+      return
+    }
+    
     setIsLoading(true)
 
     try {
@@ -40,6 +75,8 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
         throw new Error("更新に失敗しました")
       }
 
+      // 保存成功時に未保存の変更状態をリセット
+      markAsSaved()
       toast.success("プロジェクト情報を更新しました")
     } catch (error) {
       toast.error("更新に失敗しました")
@@ -105,8 +142,13 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
       toast.success("ストーリーを生成しました！内容を確認して必要に応じて編集してください")
 
     } catch (error) {
-      console.error('ストーリー生成エラー:', error)
-      toast.error(error instanceof Error ? error.message : 'ストーリー生成に失敗しました')
+      // 開発環境でのみ詳細なエラー情報をログ出力
+      if (process.env.NODE_ENV === 'development') {
+        console.error('ストーリー生成エラー:', error)
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'ストーリー生成に失敗しました'
+      toast.error(errorMessage)
     } finally {
       setIsGeneratingStory(false)
     }
@@ -159,7 +201,9 @@ export function ProjectBasicForm({ campaign }: ProjectBasicFormProps) {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="story">ストーリー・詳細説明</Label>
+                <Label htmlFor="story">
+                  ストーリー・詳細説明 <span className="text-destructive">*</span>
+                </Label>
                 <Button
                   type="button"
                   variant="outline"

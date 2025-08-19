@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog'
-import { HandCoins, AlertTriangle, Clock } from 'lucide-react'
+import { HandCoins, AlertTriangle, Clock, Edit } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
 import { signInWithGoogleForYouTubeAction } from '@/app/actions'
@@ -22,6 +22,14 @@ interface StartCrowdfundingButtonProps {
   postId: string
   channelId: string
   postTitle: string
+}
+
+// 既存プロジェクト情報の型定義
+interface ExistingCampaign {
+  id: string
+  title: string
+  status: string
+  created_at?: string
 }
 
 export function StartCrowdfundingButton({ 
@@ -35,10 +43,41 @@ export function StartCrowdfundingButton({
   const [isLoading, setIsLoading] = useState(false)
   const [dialogError, setDialogError] = useState<string | null>(null)
   const [isReauthenticating, setIsReauthenticating] = useState(false)
+  const [existingCampaign, setExistingCampaign] = useState<ExistingCampaign | null>(null)
+  const [isCheckingExisting, setIsCheckingExisting] = useState(false)
   const { open, setOpen, checkAuthAndShowDialog } = useAuthDialog()
   
   // 環境変数からクラウドファンディング機能の有効性を確認
   const isCrowdfundingEnabled = process.env.NEXT_PUBLIC_CROWDFUNDING_ENABLED === 'true'
+  
+  // 既存プロジェクトをチェックする関数
+  const checkExistingCampaign = async () => {
+    setIsCheckingExisting(true)
+    try {
+      const response = await fetch(`/api/crowdfunding?post_id=${postId}`)
+      const data = await response.json()
+      
+      if (response.ok && data.exists && data.campaign) {
+        setExistingCampaign(data.campaign)
+        console.log("既存プロジェクトが見つかりました:", data.campaign)
+      } else {
+        setExistingCampaign(null)
+        console.log("既存プロジェクトは見つかりませんでした")
+      }
+    } catch (error) {
+      console.error("既存プロジェクトチェックエラー:", error)
+      setExistingCampaign(null)
+    } finally {
+      setIsCheckingExisting(false)
+    }
+  }
+  
+  // コンポーネントマウント時に既存プロジェクトをチェック
+  useEffect(() => {
+    if (isCrowdfundingEnabled && postId) {
+      checkExistingCampaign()
+    }
+  }, [postId, isCrowdfundingEnabled])
   
   // 再認証から戻った際の自動復元処理
   useEffect(() => {
@@ -79,12 +118,8 @@ export function StartCrowdfundingButton({
       
       if (error || !user) {
         console.error("ユーザー認証エラー:", error);
-        // toast.error("クラウドファンディングを開始するにはログインが必要です", {
-        //   duration: 10000
-        // })
         setIsLoading(false)
         setDialogOpen(false)
-        // router.push("/sign-in")
         // ログインダイアログを表示
         setOpen(true)
         return false
@@ -231,6 +266,20 @@ export function StartCrowdfundingButton({
         if (!createResponse.ok) {
           const errorData = await createResponse.json();
           console.error("プロジェクト作成APIエラー:", errorData);
+          
+          // 409エラー（既存プロジェクトあり）の場合は特別な処理
+          if (createResponse.status === 409 && errorData.existingCampaign) {
+            console.log("既存プロジェクトが見つかりました、編集ページに遷移...");
+            setExistingCampaign(errorData.existingCampaign)
+            
+            toast.success("既存のプロジェクトを編集します", {
+              duration: 3000
+            });
+            
+            router.push(errorData.redirectTo);
+            return true;
+          }
+          
           throw new Error(errorData.error || "プロジェクトの作成に失敗しました");
         }
 
@@ -277,6 +326,21 @@ export function StartCrowdfundingButton({
     }
   }
   
+  // 既存プロジェクトを編集する関数
+  const handleEditExistingProject = async () => {
+    if (!existingCampaign) return
+    
+    // 先に認証状態をチェック
+    const isAuthenticated = await checkAuthAndShowDialog()
+    if (!isAuthenticated) return
+    
+    // 編集ページに直接遷移
+    toast.success("既存のプロジェクトを編集します", {
+      duration: 3000
+    });
+    router.push(`/crowdfunding/${existingCampaign.id}/edit`)
+  }
+  
   // クラウドファンディング作成ページへ遷移
   const handleStartCrowdfunding = async () => {
     console.log("クラウドファンディング開始処理を開始:", { postId, channelId, postTitle });
@@ -289,14 +353,50 @@ export function StartCrowdfundingButton({
     await handleOwnershipVerification()
   }
   
+  // ボタンの表示状態を決定
+  const getButtonContent = () => {
+    if (isCheckingExisting) {
+      return {
+        icon: <Clock className="h-4 w-4 mr-2 animate-spin" />,
+        text: "確認中...",
+        variant: "ghost" as const,
+        disabled: true
+      }
+    }
+    
+    if (existingCampaign) {
+      return {
+        icon: <Edit className="h-4 w-4 mr-2" />,
+        text: "プロジェクトを編集",
+        variant: "ghost" as const,
+        disabled: false
+      }
+    }
+    
+    return {
+      icon: <HandCoins className="h-4 w-4 mr-2" />,
+      text: "クラウドファンディング開始",
+      variant: "ghost" as const,
+      disabled: false
+    }
+  }
+  
+  const buttonContent = getButtonContent()
+  
   return (
     <>
       {isCrowdfundingEnabled ? (
         <Button
-          variant="ghost"
+          variant={buttonContent.variant}
           size="sm"
           onClick={async () => {
             setDialogError(null);
+            
+            // 既存プロジェクトがある場合は直接編集ページに遷移
+            if (existingCampaign) {
+              await handleEditExistingProject()
+              return
+            }
             
             // まず認証状態をチェック
             const isAuthenticated = await checkAuthAndShowDialog()
@@ -305,10 +405,11 @@ export function StartCrowdfundingButton({
             // ログイン済みの場合はクラウドファンディングダイアログを表示
             setDialogOpen(true);
           }}
+          disabled={buttonContent.disabled}
           className="backdrop-blur-sm bg-gradient-to-r from-purple-500/70 to-blue-500/70 hover:from-purple-600/80 hover:to-blue-600/80 border-0 shadow-lg transition-all duration-200 text-white hover:text-white h-9 px-3"
         >
-          <HandCoins className="h-4 w-4 mr-2" />
-          <span className="text-sm font-medium">クラウドファンディング開始</span>
+          {buttonContent.icon}
+          <span className="text-sm font-medium">{buttonContent.text}</span>
         </Button>
                     ) : (
          <div className="flex flex-col items-center gap-1">

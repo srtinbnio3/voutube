@@ -104,7 +104,12 @@ coverage/
 .obsidian/
 doc/.obsidian/
 
-# Google Cloud Service Account keys
+# --- Security: Google Cloud service account keys (do not commit) ---
+# Common local key filename
+google-credentials.json
+# Specific project credential file
+/ideatube-469010-b0aff983f104.json
+# General JSON files (excluding essential config files)
 *.json
 !package.json
 !package-lock.json

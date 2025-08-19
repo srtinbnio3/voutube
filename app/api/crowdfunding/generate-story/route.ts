@@ -20,9 +20,19 @@ export async function POST(request: NextRequest) {
 
     // Google AI Studio API キーの確認
     const apiKey = process.env.GOOGLE_AI_API_KEY
+    
+    // 開発環境でのみデバッグ情報を出力（APIキーの値は出力しない）
+    if (process.env.NODE_ENV === 'development') {
+      console.log('APIキー設定状況:', apiKey ? '設定済み' : '未設定')
+      if (apiKey) {
+        // セキュリティのため、最初の4文字のみ表示
+        console.log('APIキープレフィックス:', apiKey.substring(0, 4) + '...')
+      }
+    }
+    
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'API設定エラー' },
+        { error: 'Google AI Studio API キーが設定されていません。.env.devファイルにGOOGLE_AI_API_KEY=your_api_keyを追加してください。' },
         { status: 500 }
       )
     }
@@ -112,9 +122,25 @@ ${description}
     )
 
     if (!response.ok) {
-      console.error('Gemini API エラー:', await response.text())
+      const errorText = await response.text()
+      
+      // 開発環境でのみ詳細なエラー情報をログ出力
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Gemini API エラー:', errorText)
+        console.error('ステータス:', response.status)
+        console.error('APIキーの状態:', apiKey ? '設定済み' : '未設定')
+      } else {
+        // 本番環境では基本情報のみログ出力
+        console.error('Gemini API エラー - ステータス:', response.status)
+      }
+      
+      // ユーザーには一般的なエラーメッセージを返す
+      const userErrorMessage = process.env.NODE_ENV === 'development' 
+        ? `ストーリー生成に失敗しました (${response.status}): ${errorText}`
+        : 'ストーリー生成に失敗しました。しばらく時間をおいてから再試行してください。'
+      
       return NextResponse.json(
-        { error: 'ストーリー生成に失敗しました' },
+        { error: userErrorMessage },
         { status: 500 }
       )
     }
@@ -134,7 +160,14 @@ ${description}
     return NextResponse.json({ story: generatedText })
 
   } catch (error) {
-    console.error('ストーリー生成エラー:', error)
+    // 開発環境でのみ詳細なエラー情報をログ出力
+    if (process.env.NODE_ENV === 'development') {
+      console.error('ストーリー生成エラー:', error)
+    } else {
+      // 本番環境では一般的なエラー情報のみ
+      console.error('ストーリー生成でエラーが発生しました')
+    }
+    
     return NextResponse.json(
       { error: 'サーバーエラーが発生しました' },
       { status: 500 }

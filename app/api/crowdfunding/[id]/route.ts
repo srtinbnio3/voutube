@@ -75,24 +75,38 @@ export async function PATCH(
     const {
       title,
       description,
+      story,
       target_amount,
       start_date,
       end_date,
       status,
       reward_enabled,
-      bank_account_info
+      bank_account_info,
+      main_image,
+      thumbnail_image,
+      operator_type,
+      corporate_info,
+      legal_info
     } = body;
 
     // 更新するフィールドを準備
     const updates: Record<string, any> = {};
     if (title) updates.title = title;
     if (description) updates.description = description;
+    if (story !== undefined) updates.story = story; // 空文字列でも更新できるように !== undefined を使用
     if (target_amount) updates.target_amount = target_amount;
     if (start_date) updates.start_date = start_date;
     if (end_date) updates.end_date = end_date;
     if (status) updates.status = status;
     if (reward_enabled !== undefined) updates.reward_enabled = reward_enabled;
     if (bank_account_info) updates.bank_account_info = bank_account_info;
+    if (main_image !== undefined) updates.main_image = main_image;
+    if (thumbnail_image !== undefined) updates.thumbnail_image = thumbnail_image;
+    if (operator_type) updates.operator_type = operator_type;
+    if (corporate_info !== undefined) updates.corporate_info = corporate_info;
+    if (legal_info !== undefined) updates.legal_info = legal_info;
+
+    console.log("🔄 プロジェクト更新開始:", { id, updates })
 
     // クラウドファンディングを更新
     const { data, error } = await supabase
@@ -103,9 +117,27 @@ export async function PATCH(
       .single();
 
     if (error) {
+      console.error("🚨 データベース更新エラー:", {
+        projectId: id,
+        error: error.message,
+        updates,
+        code: error.code,
+        details: error.details
+      })
+      
+      // データベース制約エラーの場合の特別な処理
+      if (error.message.includes('crowdfunding_campaigns_status_check') || 
+          error.code === '23514') {  // CHECK constraint violation
+        return NextResponse.json({ 
+          error: "プロジェクトのステータス更新でエラーが発生しました。システム管理者にお問い合わせください。",
+          details: "データベース制約エラー: 許可されていないステータス値です"
+        }, { status: 500 });
+      }
+      
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    console.log("✅ プロジェクト更新成功:", { id, newData: data })
     return NextResponse.json({ campaign: data });
   } catch (error) {
     return NextResponse.json({ error: "リクエストの処理中にエラーが発生しました" }, { status: 500 });

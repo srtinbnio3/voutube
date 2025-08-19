@@ -33,7 +33,7 @@ create_journal() {
 
 list_journals() {
     echo "📝 開発日誌一覧:"
-    find doc/development-journal -name "*.md" -not -name "README.md" -not -name "template.md" | sort | while read -r file; do
+    find docs/development-journal -name "*.md" -not -name "README.md" -not -name "template.md" | sort | while read -r file; do
         # ファイル名から日付を抽出
         basename=$(basename "$file" .md)
         if [[ $basename =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
@@ -51,7 +51,7 @@ open_journal() {
     year=$(date -j -f "%Y-%m-%d" "$date" +%Y 2>/dev/null || date +%Y)
     month=$(date -j -f "%Y-%m-%d" "$date" +%m 2>/dev/null || date +%m)
     
-    local journal_file="doc/development-journal/${year}/${month}/${date}.md"
+    local journal_file="docs/development-journal/${year}/${month}/${date}.md"
     
     if [ -f "$journal_file" ]; then
         if command -v cursor &> /dev/null; then
@@ -75,7 +75,7 @@ open_journal() {
 search_journals() {
     local keyword="$1"
     echo "🔍 「$keyword」を検索中..."
-    grep -r -l "$keyword" doc/development-journal --include="*.md" --exclude="README.md" --exclude="template.md" | while read -r file; do
+    grep -r -l "$keyword" docs/development-journal --include="*.md" --exclude="README.md" --exclude="template.md" | while read -r file; do
         basename=$(basename "$file" .md)
         echo "📄 $basename で見つかりました:"
         grep -n --color=always "$keyword" "$file" | head -3
@@ -95,7 +95,7 @@ generate_summary() {
         return 1
     fi
     
-    local journal_dir="doc/development-journal/${year}/${month_num}"
+    local journal_dir="docs/development-journal/${year}/${month_num}"
     
     if [ ! -d "$journal_dir" ]; then
         echo "❌ 指定された月のディレクトリが見つかりません: $journal_dir"

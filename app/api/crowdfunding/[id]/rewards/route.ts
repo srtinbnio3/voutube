@@ -43,10 +43,24 @@ export async function POST(
 
   try {
     const body = await req.json();
-    const { title, description, amount, quantity } = body;
+    const { 
+      title, 
+      description, 
+      amount, 
+      quantity,
+      delivery_date,
+      requires_note,
+      note_info,
+      images,
+      template,
+      is_unlimited,
+      requires_contact_info,
+      requires_email,
+      requires_address
+    } = body;
 
     // 必須項目の検証
-    if (!title || !description || !amount || !quantity) {
+    if (!title || !description || !amount || (!is_unlimited && !quantity) || !delivery_date) {
       return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
     }
 
@@ -62,6 +76,9 @@ export async function POST(
     }
 
     // 新しい特典を作成
+    const finalQuantity = is_unlimited ? 1 : quantity;
+    const finalRemainingQuantity = is_unlimited ? 1 : quantity;
+    
     const { data, error } = await supabase
       .from("crowdfunding_rewards")
       .insert({
@@ -69,8 +86,17 @@ export async function POST(
         title,
         description,
         amount,
-        quantity,
-        remaining_quantity: quantity
+        quantity: finalQuantity,
+        remaining_quantity: finalRemainingQuantity,
+        delivery_date,
+        requires_note: requires_note || false,
+        note_info: note_info || null,
+        images: images || [],
+        template: template || null,
+        is_unlimited: is_unlimited || false,
+        requires_contact_info: requires_contact_info || false,
+        requires_email: requires_email || false,
+        requires_address: requires_address || false
       })
       .select()
       .single();

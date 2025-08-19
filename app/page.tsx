@@ -54,7 +54,7 @@ export default function LandingPage() {
           <div className="space-y-6">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
               <span className="block bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x">
-                アイデアが
+                企画アイデアが
               </span>
               <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient-x delay-500">
                 収益になる
@@ -72,6 +72,30 @@ export default function LandingPage() {
                  ※ クラウドファンディング機能は近日公開予定
                </span>
             </p>
+          </div>
+
+          {/* サービス詳細説明 */}
+          <div className="max-w-2xl mx-auto mt-6">
+            <details className="group">
+              <summary className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer flex items-center gap-2 justify-center transition-colors">
+                <span>サービス詳細を見る</span>
+                <span className="transform group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="mt-4 p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-lg border border-gray-100 dark:border-gray-800">
+                <div className="grid md:grid-cols-2 gap-3 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="space-y-2">
+                    <p>• <strong>企画投稿プラットフォーム</strong><br/>YouTuber向けの動画企画アイデアを投稿・共有</p>
+                    <p>• <strong>クラウドファンディング機能</strong><br/>採用された企画の資金調達支援（All in型）</p>
+                    <p>• <strong>報酬還元システム</strong><br/>成功プロジェクトの3%を企画者に還元（最低5万円から）</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p>• <strong>安全な決済処理</strong><br/>Stripe社のPCI DSS準拠システム（日本円・JPY対応）</p>
+                    <p>• <strong>コミュニティ機能</strong><br/>投票・評価によるアイデアの品質向上</p>
+                    <p>• <strong>モバイル対応</strong><br/>スマートフォン・タブレットで快適に利用可能</p>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
 
           {/* CTA Buttons */}

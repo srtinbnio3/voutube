@@ -10,6 +10,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "sonner"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -145,7 +146,16 @@ export default function RootLayout({
 
               {/* フッター */}
               <footer className="w-full flex flex-col items-center justify-center border-t mx-auto text-center text-xs gap-4 py-8 bg-transparent">
-                <div className="flex gap-8 items-center">
+                {/* 連絡先情報 */}
+                <div className="flex flex-col sm:flex-row gap-4 items-center text-gray-600 dark:text-gray-400">
+                  <span>お問い合わせ: team@ideatube.net</span>
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
+                    Powered by Stripe (PCI DSS準拠)
+                  </span>
+                </div>
+                
+                {/* リンク */}
+                <div className="flex flex-wrap gap-6 items-center justify-center">
                   <Link
                     href="https://x.com/kmrmsys"
                     target="_blank"
@@ -160,9 +170,13 @@ export default function RootLayout({
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
                     </svg>
                   </Link>
+                  <Link href="/help" className="hover:underline">ヘルプ</Link>
                   <Link href="/terms" className="hover:underline">利用規約</Link>
                   <Link href="/privacy" className="hover:underline">プライバシーポリシー</Link>
+                  <Link href="/specified-commercial-code" className="hover:underline">特定商取引法に基づく表記</Link>
                 </div>
+                
+                {/* コピーライト */}
                 <div className="flex items-center gap-8">
                   <p>
                     &copy; {new Date().getFullYear()} IdeaTube
@@ -173,6 +187,7 @@ export default function RootLayout({
             </div>
           </main>
           <Toaster />
+          <SonnerToaster />
           <Analytics />
           <SpeedInsights />
         </ThemeProvider>

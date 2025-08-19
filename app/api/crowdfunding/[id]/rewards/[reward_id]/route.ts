@@ -43,16 +43,39 @@ export async function PATCH(
 
   try {
     const body = await req.json();
-    const { title, description, amount, quantity } = body;
+    const { 
+      title, 
+      description, 
+      amount, 
+      quantity,
+      delivery_date,
+      requires_note,
+      note_info,
+      images,
+      template,
+      is_unlimited,
+      requires_contact_info,
+      requires_email,
+      requires_address
+    } = body;
 
     // 更新するフィールドを準備
     const updates: Record<string, any> = {};
     if (title) updates.title = title;
     if (description) updates.description = description;
     if (amount) updates.amount = amount;
+    if (delivery_date !== undefined) updates.delivery_date = delivery_date;
+    if (requires_note !== undefined) updates.requires_note = requires_note;
+    if (note_info !== undefined) updates.note_info = note_info;
+    if (images !== undefined) updates.images = images;
+    if (template !== undefined) updates.template = template;
+    if (is_unlimited !== undefined) updates.is_unlimited = is_unlimited;
+    if (requires_contact_info !== undefined) updates.requires_contact_info = requires_contact_info;
+    if (requires_email !== undefined) updates.requires_email = requires_email;
+    if (requires_address !== undefined) updates.requires_address = requires_address;
     
     // 数量の更新（残り数量も調整）
-    if (quantity) {
+    if (quantity !== undefined || is_unlimited !== undefined) {
       // 現在の特典情報を取得
       const { data: currentReward, error: fetchError } = await supabase
         .from("crowdfunding_rewards")
@@ -64,10 +87,25 @@ export async function PATCH(
         return NextResponse.json({ error: "特典が見つかりません" }, { status: 404 });
       }
       
-      // 残り数量を調整（現在の残り数量を維持する割合を新しい数量に適用）
-      const soldCount = currentReward.quantity - currentReward.remaining_quantity;
-      updates.quantity = quantity;
-      updates.remaining_quantity = Math.max(0, quantity - soldCount);
+      // 無制限フラグが設定されている場合
+      if (is_unlimited !== undefined) {
+        if (is_unlimited) {
+          // 無制限に設定する場合
+          updates.quantity = 1;
+          updates.remaining_quantity = 1;
+        } else if (quantity) {
+          // 制限ありに戻す場合
+          const soldCount = currentReward.is_unlimited ? 0 : 
+            (currentReward.quantity - currentReward.remaining_quantity);
+          updates.quantity = quantity;
+          updates.remaining_quantity = Math.max(0, quantity - soldCount);
+        }
+      } else if (quantity && !currentReward.is_unlimited) {
+        // 数量のみ更新（無制限でない場合）
+        const soldCount = currentReward.quantity - currentReward.remaining_quantity;
+        updates.quantity = quantity;
+        updates.remaining_quantity = Math.max(0, quantity - soldCount);
+      }
     }
 
     // 特典を更新

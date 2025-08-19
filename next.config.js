@@ -20,6 +20,12 @@ const nextConfig = {
         hostname: 'i.ytimg.com',
         pathname: '**',
       },
+      // Supabase ストレージ（公開バケット）からの画像を許可
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
       {
         protocol: 'https',
         hostname: '**.googleusercontent.com',

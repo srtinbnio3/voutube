@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getUserProfile } from "@/app/actions/profile";
+import { checkAdminPermission } from "@/app/lib/admin-auth";
 
 export default async function AuthButton() {
   const supabase = await createClient();
@@ -24,6 +25,9 @@ export default async function AuthButton() {
   
   // ユーザープロフィールを取得
   const profile = user ? await getUserProfile() : null;
+  
+  // 管理者権限を確認
+  const adminResult = user ? await checkAdminPermission() : { isAdmin: false, roles: [] };
 
   if (!hasEnvVars) {
     return (
@@ -98,6 +102,11 @@ export default async function AuthButton() {
           <DropdownMenuItem asChild>
             <Link href="/dashboard">プロジェクト管理</Link>
           </DropdownMenuItem>
+          {adminResult.isAdmin && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin">運営管理</Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <form action={signOutAction} className="w-full">
