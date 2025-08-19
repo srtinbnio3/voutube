@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
     
     // ステータスを更新
-    const newStatus = action === 'approve' ? 'active' : 'rejected';
+    const newStatus = action === 'approve' ? 'approved' : 'rejected';
     const { data: updatedCampaign, error: updateError } = await supabase
       .from("crowdfunding_campaigns")
       .update({ 
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     });
     
     return NextResponse.json({ 
-      message: action === 'approve' ? "プロジェクトを承認しました" : "プロジェクトを却下しました",
+      message: action === 'approve' ? "プロジェクトを承認しました。プロジェクトオーナーが公開設定を行えます。" : "プロジェクトを却下しました",
       campaign: updatedCampaign 
     });
     
