@@ -45,6 +45,7 @@ next-env.d.ts
 .env.production
 .env.staging
 .env.test
+.env.dev
 .env*.backup
 .env.*.backup
 
@@ -102,3 +103,18 @@ coverage/
 # Obsidian
 .obsidian/
 doc/.obsidian/
+
+# Google Cloud Service Account keys
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!next.config.js
+!next.config.ts
+!tailwind.config.ts
+!postcss.config.js
+!vitest.config.ts
+!vitest.setup.ts
+
+# Admin scripts (may contain sensitive information)
+/scripts/admin/
