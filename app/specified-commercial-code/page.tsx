@@ -72,7 +72,7 @@ export default async function SpecifiedCommercialCodePage() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">所在地</h3>
-                    <p className="text-gray-600 dark:text-gray-300">福岡県</p>
+                    <p className="text-gray-600 dark:text-gray-300">〒812-0011<br />福岡県福岡市博多区博多駅前1丁目23番2号<br />ParkFront博多駅前1丁目5F-B</p>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">メールアドレス</h3>
@@ -166,9 +166,8 @@ export default async function SpecifiedCommercialCodePage() {
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-2">クラウドファンディング支援のキャンセル</h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  プロジェクト終了前まで：支援者マイページからキャンセル可能（手数料無料）<br/>
-                  プロジェクト終了後：返金不可（All in型のため）<br/>
-                  キャンセル処理期間：1-3営業日
+                  支援完了後のお支払いのキャンセルは原則お受けしておりません。<br/>
+                  ただし、法令により認められる場合、およびサービスごとの細則において定める場合に限り支援のキャンセルが可能です。
                 </p>
               </div>
               
@@ -182,14 +181,15 @@ export default async function SpecifiedCommercialCodePage() {
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-2">返金処理</h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  返金が承認された場合、決済に使用したクレジットカードに3-10営業日以内に返金されます。返金手数料は発生しません。
+                  返金が承認された場合、決済に使用したクレジットカードに30営業日以内に返金されます。返金手数料は発生しません。
                 </p>
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-2">プロジェクト中止時の対応</h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  プロジェクトオーナーによる中止、または管理者による停止の場合、支援金は全額返金されます。
+                  プロジェクトがIdeaTube上で中止・停止された場合、支援金がまだIdeaTubeに預けられている段階であれば、支援者に全額返金されます。これは、プロジェクトオーナーに支援金がまだ支払われていない場合です。<br/><br/>
+                  もし支援金がすでにプロジェクトオーナーに支払われている場合は、返金が保証されません。リターンの履行ができなくなった場合でも、支援者が返金を受けられないケースもあります。この場合、支援者とプロジェクトオーナー間で解決する必要があります。
                 </p>
               </div>
             </CardContent>
@@ -227,14 +227,14 @@ export default async function SpecifiedCommercialCodePage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">企画者への報酬還元</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    クラウドファンディング成功時、企画を考案した投稿者に対して集まった資金の3%が報酬として還元されます。
+                    クラウドファンディング成功時、企画を考案した投稿者に対して集まった資金の一部が報酬として還元されます。具体的な還元率はサービス利用規約で定めます。
                   </p>
                 </div>
 
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">最低報酬還元額</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    報酬還元の最低額は5万円以上とし、この金額に満たない場合は報酬の支払いは行いません。
+                    報酬還元には最低額が設定されており、この金額に満たない場合は報酬の支払いは行いません。具体的な金額はサービス利用規約で定めます。
                   </p>
                 </div>
 

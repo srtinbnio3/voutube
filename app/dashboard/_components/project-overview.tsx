@@ -16,6 +16,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { formatAmountForDisplay } from "@/app/lib/stripe";
+import { PublicationControl } from "./publication-control";
 
 interface ProjectOverviewProps {
   userId: string;
@@ -79,6 +80,8 @@ export async function ProjectOverview({ userId }: ProjectOverviewProps) {
     switch (status) {
       case 'draft': return { label: '下書き', variant: 'secondary' as const };
       case 'under_review': return { label: '審査中', variant: 'default' as const };
+      case 'approved': return { label: '承認済み', variant: 'secondary' as const };
+      case 'scheduled': return { label: '公開予約中', variant: 'secondary' as const };
       case 'active': return { label: '実行中', variant: 'default' as const };
       case 'completed': return { label: '終了', variant: 'outline' as const };
       case 'rejected': return { label: '審査否認', variant: 'destructive' as const };
@@ -218,6 +221,11 @@ export async function ProjectOverview({ userId }: ProjectOverviewProps) {
                             </span>
                           )}
                         </div>
+                        
+                        {/* 公開制御UI */}
+                        <PublicationControl 
+                          campaign={project}
+                        />
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1 truncate">
                           {project.title}
                         </h3>

@@ -1,4 +1,4 @@
-export type CampaignStatus = 'draft' | 'under_review' | 'needs_revision' | 'rejected' | 'active' | 'completed' | 'cancelled';
+export type CampaignStatus = 'draft' | 'under_review' | 'needs_revision' | 'approved' | 'scheduled' | 'rejected' | 'active' | 'completed' | 'cancelled';
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 export type CreatorRewardStatus = 'pending' | 'paid';
 
@@ -16,6 +16,9 @@ export interface Campaign {
   reward_enabled: boolean;
   main_image?: string;
   thumbnail_image?: string;
+  published_at?: string;
+  scheduled_publish_at?: string;
+  auto_publish_enabled?: boolean;
   bank_account_info?: {
     bank_name: string;
     bank_branch: string;

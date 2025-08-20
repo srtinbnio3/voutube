@@ -1,0 +1,41 @@
+name: Scheduled Publication
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # 5分ごと（UTC）
+  workflow_dispatch:         # 手動実行も可能
+
+jobs:
+  trigger-publication:
+    runs-on: ubuntu-latest
+    env:
+      APP_URL: ${{ secrets.APP_URL }}                    # 例: https://ideatube.vercel.app
+      CRON_SECRET_TOKEN: ${{ secrets.CRON_SECRET_TOKEN }}# 生成したトークン
+    steps:
+      - name: Call process-scheduled API (with retry)
+        run: |
+          set -e
+          for i in 1 2 3; do
+            echo "Attempt $i: Calling publication API..."
+            response=$(curl -sS -w "\n%{http_code}" -X POST "$APP_URL/api/admin/crowdfunding/process-scheduled" \
+              -H "Authorization: Bearer $CRON_SECRET_TOKEN" \
+              -H "Content-Type: application/json")
+            
+            http_code=$(echo "$response" | tail -n1)
+            body=$(echo "$response" | head -n -1)
+            
+            if [ "$http_code" -eq 200 ]; then
+              echo "Success: $body"
+              break
+            else
+              echo "Attempt $i failed with HTTP $http_code: $body"
+              if [ $i -lt 3 ]; then
+                echo "Retrying in 5 seconds..."
+                sleep 5
+              fi
+            fi
+          done
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "All attempts failed. Exiting with error."
+            exit 1
+          fi
