@@ -8,14 +8,15 @@ jobs:
   trigger-publication:
     runs-on: ubuntu-latest
     env:
-      APP_URL: ${{ secrets.APP_URL }}                    # 例: https://ideatube.vercel.app
+      # Previewデプロイを叩く（未設定ならジョブは失敗するのでSecretsの定義を忘れずに）
+      APP_URL: ${{ secrets.APP_URL_PREVIEW }}            # 例: https://<project>-git-branch-xxxx.vercel.app
       CRON_SECRET_TOKEN: ${{ secrets.CRON_SECRET_TOKEN }}# 生成したトークン
     steps:
       - name: Call process-scheduled API (with retry)
         run: |
           set -e
           for i in 1 2 3; do
-            echo "Attempt $i: Calling publication API..."
+            echo "Attempt $i: Calling publication API on $APP_URL ..."
             response=$(curl -sS -w "\n%{http_code}" -X POST "$APP_URL/api/admin/crowdfunding/process-scheduled" \
               -H "Authorization: Bearer $CRON_SECRET_TOKEN" \
               -H "Content-Type: application/json")
