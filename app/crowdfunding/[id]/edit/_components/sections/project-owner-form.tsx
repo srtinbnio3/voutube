@@ -392,7 +392,37 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
       {userId && (
         <IdentityVerification 
           campaign={campaign} 
-          userId={userId} 
+          userId={userId}
+          operatorType={operatorType}
+          onBeforeStart={async () => {
+            // 本人確認開始直前に、現在の入力内容を保存する
+            try {
+              const updateData = {
+                operator_type: operatorType,
+                bank_account_info: formData,
+                corporate_info: operatorType === "corporate" ? corporateFormData : null,
+                legal_info: {
+                  display_method: legalDisplayMethod,
+                  ...(legalDisplayMethod === "input" ? legalFormData : {})
+                }
+              }
+
+              const response = await fetch(`/api/crowdfunding/${campaign.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updateData)
+              })
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}))
+                toast.error(errorData.error || "保存に失敗しました")
+                return false
+              }
+              return true
+            } catch (e) {
+              toast.error("保存に失敗しました")
+              return false
+            }
+          }}
         />
       )}
 

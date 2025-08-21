@@ -19,6 +19,8 @@ import { toast } from "sonner"
 interface IdentityVerificationProps {
   campaign: any
   userId: string
+  operatorType?: "individual" | "corporate"
+  onBeforeStart?: () => Promise<boolean>
 }
 
 interface VerificationData {
@@ -39,7 +41,7 @@ interface VerificationData {
   updated_at: string
 }
 
-export function IdentityVerification({ campaign, userId }: IdentityVerificationProps) {
+export function IdentityVerification({ campaign, userId, operatorType = 'individual', onBeforeStart }: IdentityVerificationProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [verification, setVerification] = useState<VerificationData | null>(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -76,6 +78,15 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
   const startVerification = async () => {
     setIsLoading(true)
     try {
+      // 本人確認開始前に、フォーム側から渡された保存処理があれば実行
+      if (onBeforeStart) {
+        const ok = await onBeforeStart()
+        if (!ok) {
+          setIsLoading(false)
+          return
+        }
+      }
+
       const returnUrl = `${window.location.origin}/crowdfunding/${campaign.id}/edit?section=owner&verification=completed`
       
       const response = await fetch('/api/identity/verification', {
@@ -85,7 +96,7 @@ export function IdentityVerification({ campaign, userId }: IdentityVerificationP
         },
         body: JSON.stringify({
           campaign_id: campaign.id,
-          verification_type: 'individual',
+          verification_type: operatorType,
           return_url: returnUrl,
         }),
       })
