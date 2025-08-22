@@ -29,11 +29,17 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
     return <div>キャンペーンの取得中にエラーが発生しました。</div>;
   }
 
-  // アクティブでないキャンペーンの場合は表示を制限（管理者は除く）
-  const isPubliclyVisible = campaign.status === "active" || campaign.status === "completed";
-  const canViewAsAdmin = adminCheck.isAdmin && (campaign.status === "under_review" || campaign.status === "draft");
+  // 現在のユーザーを取得して所有者判定
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!isPubliclyVisible && !canViewAsAdmin) {
+  // アクティブでないキャンペーンの場合は表示を制限（管理者・所有者は除く）
+  // 公開可視: active / completed
+  // 例外: 管理者は常時、プロジェクトオーナーも常時閲覧可能
+  const isPubliclyVisible = campaign.status === "active" || campaign.status === "completed";
+  const canViewAsAdmin = adminCheck.isAdmin;
+  const canViewAsOwner = !!user && campaign?.channel?.owner_user_id === user.id;
+
+  if (!isPubliclyVisible && !canViewAsAdmin && !canViewAsOwner) {
     return (
       <div className="text-center py-12">
         <div className="max-w-md mx-auto">
@@ -42,7 +48,8 @@ export async function CampaignDetail({ id }: CampaignDetailProps) {
           <p className="text-gray-600 dark:text-gray-400">
             {campaign.status === "draft" && "プロジェクトは編集中です"}
             {campaign.status === "under_review" && "プロジェクトは運営チームによる確認中です"}
-            {campaign.status === "rejected" && "プロジェクトは修正が必要な状態です"}
+            {campaign.status === "needs_revision" && "プロジェクトは修正が必要な状態です"}
+            {campaign.status === "rejected" && "プロジェクトは公開見送りとなりました"}
             {campaign.status === "cancelled" && "プロジェクトはキャンセルされました"}
           </p>
         </div>

@@ -80,11 +80,11 @@ export async function ProjectOverview({ userId }: ProjectOverviewProps) {
     switch (status) {
       case 'draft': return { label: '下書き', variant: 'secondary' as const };
       case 'under_review': return { label: '審査中', variant: 'default' as const };
-      case 'approved': return { label: '承認済み', variant: 'secondary' as const };
-      case 'scheduled': return { label: '公開予約中', variant: 'secondary' as const };
+      case 'needs_revision': return { label: '要修正', variant: 'secondary' as const };
       case 'active': return { label: '実行中', variant: 'default' as const };
       case 'completed': return { label: '終了', variant: 'outline' as const };
-      case 'rejected': return { label: '審査否認', variant: 'destructive' as const };
+      case 'rejected': return { label: '公開見送り', variant: 'destructive' as const };
+      case 'cancelled': return { label: 'キャンセル', variant: 'secondary' as const };
       default: return { label: status, variant: 'secondary' as const };
     }
   };
