@@ -6,7 +6,6 @@ import { useState } from "react";
 import { formatAmountForDisplay } from "@/app/lib/stripe";
 import { CampaignProgress } from "../../_components/campaign-progress";
 import { CampaignRewardList } from "./campaign-reward-list";
-import { SupportButton } from "./support-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -216,7 +215,6 @@ export function CampaignDetailClient({
               <div className="text-muted-foreground">{campaign.status === "active" ? "残り" : "キャンペーン"}</div>
             </div>
           </div>
-          {campaign.status === "active" && (<SupportButton campaignId={campaign.id} />)}
           {campaign.status !== "active" && (
             <div className="p-4 text-center rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
               <div className="mb-2">

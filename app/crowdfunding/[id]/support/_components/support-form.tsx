@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+
 import { formatAmountForDisplay } from "@/app/lib/stripe";
 import { CampaignReward } from "@/app/types/crowdfunding";
 
@@ -55,10 +55,7 @@ export function SupportForm({ campaignId, selectedRewardId }: SupportFormProps) 
     setAmount(reward.amount);
   }
   
-  // 金額変更時の処理
-  function handleAmountChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setAmount(Number(e.target.value));
-  }
+
   
   // フォーム送信時の処理
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -146,27 +143,7 @@ export function SupportForm({ campaignId, selectedRewardId }: SupportFormProps) 
         )}
       </div>
       
-      {/* 支援金額 */}
-      {selectedReward && (
-        <div className="space-y-2">
-          <Label htmlFor="amount">
-            支援金額 (円) - 最低{formatAmountForDisplay(selectedReward.amount)}
-          </Label>
-          <Input
-            id="amount"
-            name="amount"
-            type="number"
-            min={selectedReward.amount}
-            step="1000"
-            value={amount}
-            onChange={handleAmountChange}
-            required
-          />
-          <p className="text-xs text-muted-foreground">
-            特典に表示されている金額以上で支援できます。
-          </p>
-        </div>
-      )}
+
       
       {/* 送信ボタン */}
       <div className="flex justify-end space-x-4 pt-4">

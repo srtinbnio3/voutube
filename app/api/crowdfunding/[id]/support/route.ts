@@ -59,9 +59,7 @@ export async function POST(
       return NextResponse.json({ error: "この特典は完売しました" }, { status: 400 });
     }
 
-    if (amount < reward.amount) {
-      return NextResponse.json({ error: "支援金額が不足しています" }, { status: 400 });
-    }
+
 
     // ユーザー情報の取得
     const { data: profile, error: profileError } = await supabase
