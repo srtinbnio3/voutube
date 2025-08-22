@@ -23,7 +23,7 @@ interface ProjectSubmitFormProps {
   onCampaignDataUpdate: () => void
 }
 
-type WorkflowStatus = 'draft' | 'under_review' | 'approved' | 'rejected'
+type WorkflowStatus = 'draft' | 'under_review' | 'approved' | 'needs_revision' | 'rejected'
 
 export function ProjectSubmitForm({ 
   campaign, 
@@ -115,8 +115,10 @@ export function ProjectSubmitForm({
         return <Badge variant="default" className="gap-1"><Clock className="h-3 w-3" />確認中</Badge>
       case 'approved':
         return <Badge variant="default" className="gap-1 bg-green-600 hover:bg-green-700"><CheckCircle className="h-3 w-3" />承認済み</Badge>
+      case 'needs_revision':
+        return <Badge variant="outline" className="gap-1 border-yellow-600 text-yellow-600"><AlertCircle className="h-3 w-3" />要修正</Badge>
       case 'rejected':
-        return <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />要修正</Badge>
+        return <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />却下</Badge>
       default:
         return <Badge variant="secondary">未設定</Badge>
     }
@@ -143,7 +145,7 @@ export function ProjectSubmitForm({
       </Card>
 
       {/* 提出前バリデーションチェック */}
-      {(currentStatus === 'draft' || currentStatus === 'rejected') && (
+      {(currentStatus === 'draft' || currentStatus === 'rejected' || currentStatus === 'needs_revision') && (
         <ProjectValidation 
           campaign={campaign}
           onValidationComplete={handleValidationComplete}
@@ -151,8 +153,8 @@ export function ProjectSubmitForm({
         />
       )}
 
-      {/* 提出アクション（draft状態） */}
-      {currentStatus === 'draft' && (
+      {/* 提出アクション（draft状態または要修正状態） */}
+      {(currentStatus === 'draft' || currentStatus === 'needs_revision') && (
         <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
@@ -238,7 +240,50 @@ export function ProjectSubmitForm({
         </Card>
       )}
 
-      {/* 修正依頼状態 */}
+      {/* 要修正状態 */}
+      {currentStatus === 'needs_revision' && (
+        <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/20">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                <AlertCircle className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">
+                  修正が必要です
+                </h3>
+                <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-4">
+                  運営チームからのフィードバックをご確認いただき、内容を修正してください。
+                  修正完了後、再度提出していただけます。
+                </p>
+                <div className="flex items-center gap-3">
+                  <Button 
+                    onClick={handleSubmitForReview}
+                    disabled={isSubmitting || !isValidationComplete}
+                    variant="outline"
+                    className="border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950 disabled:bg-gray-100"
+                  >
+                    {isSubmitting ? "再提出中..." : "修正完了・再提出する"}
+                  </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/crowdfunding/${campaign.id}/feedback`}>
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      フィードバックを確認
+                    </Link>
+                  </Button>
+                </div>
+                {!isValidationComplete && (
+                  <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-3">
+                    ※ すべての必須項目の入力が完了すると再提出できるようになります
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 却下状態 */}
       {currentStatus === 'rejected' && (
         <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
           <CardContent className="p-6">
@@ -248,25 +293,18 @@ export function ProjectSubmitForm({
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-red-900 dark:text-red-100 mb-2">
-                  修正が必要です
+                  プロジェクトが却下されました
                 </h3>
                 <p className="text-sm text-red-800 dark:text-red-200 mb-4">
-                  運営チームからのフィードバックをご確認いただき、内容を修正してください。
-                  修正完了後、再度提出していただけます。
+                  運営チームによりプロジェクトが却下されました。
+                  却下の理由はやりとりページでご確認ください。
                 </p>
-                <Button 
-                  onClick={handleSubmitForReview}
-                  disabled={isSubmitting || !isValidationComplete}
-                  variant="outline"
-                  className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:bg-gray-100"
-                >
-                  {isSubmitting ? "再提出中..." : "再提出する"}
+                <Button asChild variant="outline" className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950">
+                  <Link href={`/crowdfunding/${campaign.id}/feedback`}>
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    却下理由を確認
+                  </Link>
                 </Button>
-                {!isValidationComplete && (
-                  <p className="text-xs text-red-700 dark:text-red-300 mt-3">
-                    ※ すべての必須項目の入力が完了すると再提出できるようになります
-                  </p>
-                )}
               </div>
             </div>
           </CardContent>

@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
     
     // アクションの検証
-    if (!['approve', 'reject'].includes(action)) {
+    if (!['approve', 'reject', 'needs_revision'].includes(action)) {
       return NextResponse.json({ error: "無効なアクションです" }, { status: 400 });
     }
     
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
     
     // ステータスを更新
-    const newStatus = action === 'approve' ? 'approved' : 'rejected';
+    const newStatus = action === 'approve' ? 'approved' : action === 'needs_revision' ? 'needs_revision' : 'rejected';
     const { data: updatedCampaign, error: updateError } = await supabase
       .from("crowdfunding_campaigns")
       .update({ 
@@ -87,8 +87,22 @@ export async function POST(req: NextRequest) {
       timestamp: new Date().toISOString()
     });
     
+    // レスポンスメッセージを生成
+    let message = "";
+    switch (action) {
+      case 'approve':
+        message = "プロジェクトを承認しました。プロジェクトオーナーが公開設定を行えます。";
+        break;
+      case 'needs_revision':
+        message = "プロジェクトを要修正状態にしました。修正内容をチャットでユーザーに伝えてください。";
+        break;
+      case 'reject':
+        message = "プロジェクトを却下しました";
+        break;
+    }
+    
     return NextResponse.json({ 
-      message: action === 'approve' ? "プロジェクトを承認しました。プロジェクトオーナーが公開設定を行えます。" : "プロジェクトを却下しました",
+      message,
       campaign: updatedCampaign 
     });
     

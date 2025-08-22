@@ -66,7 +66,7 @@ export function CampaignDetailClient({
     }
   };
 
-  const handleApproval = async (action: 'approve' | 'reject') => {
+  const handleApproval = async (action: 'approve' | 'reject' | 'needs_revision') => {
     try {
       setActionLoading(true);
       const response = await fetch("/api/admin/crowdfunding/approval", {
@@ -238,13 +238,26 @@ export function CampaignDetailClient({
                     下書き
                   </div>
                 )}
+                {campaign.status === "needs_revision" && adminCheck.isAdmin && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-full text-sm font-medium">
+                    <AlertCircle className="h-4 w-4" />
+                    要修正
+                  </div>
+                )}
+                {campaign.status === "rejected" && adminCheck.isAdmin && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded-full text-sm font-medium">
+                    <AlertCircle className="h-4 w-4" />
+                    却下
+                  </div>
+                )}
               </div>
               <p className="text-muted-foreground text-sm">
                 {campaign.status === "completed" && "このプロジェクトは目標を達成して終了しました"}
                 {campaign.status === "under_review" && "運営チームによる確認中です"}
                 {campaign.status === "draft" && "プロジェクトは編集中です"}
                 {campaign.status === "cancelled" && "このプロジェクトはキャンセルされました"}
-                {campaign.status === "rejected" && "このプロジェクトは修正が必要です"}
+                {campaign.status === "needs_revision" && "このプロジェクトは修正が必要です"}
+                {campaign.status === "rejected" && "このプロジェクトは却下されました"}
               </p>
             </div>
           )}
@@ -304,6 +317,25 @@ export function CampaignDetailClient({
                   {actionLoading ? (<Loader2 className="h-3 w-3 animate-spin" />) : (<CheckCircle className="h-3 w-3" />)}
                   承認
                 </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={actionLoading} className="border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950 flex items-center gap-1">
+                      <Edit className="h-3 w-3" />
+                      要修正
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>修正が必要ですか？</AlertDialogTitle>
+                      <AlertDialogDescription>この操作により、プロジェクトは修正が必要な状態になります。修正内容はチャットでユーザーに詳細を伝えてください。</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="text-sm text-muted-foreground">※ ユーザーは修正後に再度審査申請できます。</div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => { handleApproval('needs_revision'); }} className="bg-yellow-600 hover:bg-yellow-700">要修正にする</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="sm" disabled={actionLoading} className="flex items-center gap-1">

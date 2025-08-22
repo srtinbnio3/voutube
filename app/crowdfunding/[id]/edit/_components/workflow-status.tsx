@@ -15,7 +15,7 @@ interface WorkflowStatusProps {
   onStatusChange?: () => void
 }
 
-type WorkflowStatus = 'draft' | 'under_review' | 'approved' | 'rejected'
+type WorkflowStatus = 'draft' | 'under_review' | 'approved' | 'needs_revision' | 'rejected'
 
 interface WorkflowStep {
   id: WorkflowStatus
@@ -57,8 +57,10 @@ export function WorkflowStatus({ campaign }: WorkflowStatusProps) {
         return <Badge variant="default" className="gap-1 whitespace-nowrap"><Clock className="h-3 w-3 flex-shrink-0" />確認中</Badge>
       case 'approved':
         return <Badge variant="default" className="gap-1 whitespace-nowrap bg-green-600 hover:bg-green-700"><CheckCircle className="h-3 w-3 flex-shrink-0" />承認済み</Badge>
+      case 'needs_revision':
+        return <Badge variant="outline" className="gap-1 whitespace-nowrap border-yellow-600 text-yellow-600"><AlertCircle className="h-3 w-3 flex-shrink-0" />要修正</Badge>
       case 'rejected':
-        return <Badge variant="destructive" className="gap-1 whitespace-nowrap"><AlertCircle className="h-3 w-3 flex-shrink-0" />要修正</Badge>
+        return <Badge variant="destructive" className="gap-1 whitespace-nowrap"><AlertCircle className="h-3 w-3 flex-shrink-0" />却下</Badge>
       default:
         return <Badge variant="secondary" className="whitespace-nowrap">未設定</Badge>
     }
