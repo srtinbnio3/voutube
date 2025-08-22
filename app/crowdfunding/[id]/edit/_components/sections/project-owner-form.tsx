@@ -19,9 +19,13 @@ interface ProjectOwnerFormProps {
    * 未保存の変更状態を親コンポーネントに通知するコールバック関数
    */
   onUnsavedChangesUpdate?: (hasChanges: boolean) => void
+  /**
+   * 保存後に最新のキャンペーンデータ取得を親へ依頼するコールバック
+   */
+  onCampaignDataUpdate?: () => Promise<void>
 }
 
-export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
+export function ProjectOwnerForm({ campaign, onCampaignDataUpdate }: ProjectOwnerFormProps) {
   // 現在のユーザーIDを取得
   const [userId, setUserId] = useState<string | null>(null)
   
@@ -257,6 +261,12 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
         throw new Error(errorData.error || "更新に失敗しました")
       }
 
+      // 親へ最新データの再取得を依頼（提出前チェックの即時反映用）
+      if (onCampaignDataUpdate) {
+        try {
+          await onCampaignDataUpdate()
+        } catch {}
+      }
       toast.success("オーナー情報を保存しました")
     } catch (error) {
       console.error("🔥 オーナー情報更新エラー:", error)
@@ -286,6 +296,9 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
         throw new Error("更新に失敗しました")
       }
 
+      if (onCampaignDataUpdate) {
+        try { await onCampaignDataUpdate() } catch {}
+      }
       toast.success("法人情報を保存しました")
     } catch (error) {
       toast.error("更新に失敗しました")
@@ -316,6 +329,9 @@ export function ProjectOwnerForm({ campaign }: ProjectOwnerFormProps) {
         throw new Error("更新に失敗しました")
       }
 
+      if (onCampaignDataUpdate) {
+        try { await onCampaignDataUpdate() } catch {}
+      }
       toast.success("特商法表記を保存しました")
     } catch (error) {
       toast.error("更新に失敗しました")

@@ -193,7 +193,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
     // 各フォームコンポーネントに未保存の変更状態を通知するためのプロパティを渡す
     switch (activeSection) {
       case "basic":
-        return <ProjectBasicForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
+        return <ProjectBasicForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} onCampaignDataUpdate={handleCampaignDataUpdate} />
       case "rewards":
         return <ProjectRewardsForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
       case "settings":
@@ -201,7 +201,7 @@ export function ProjectEditLayout({ campaign, currentSection }: ProjectEditLayou
       case "image":
         return <ProjectImageForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} onCampaignDataUpdate={handleCampaignDataUpdate} />
       case "owner":
-        return <ProjectOwnerForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} />
+        return <ProjectOwnerForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} onCampaignDataUpdate={handleCampaignDataUpdate} />
       case "submit":
         return <ProjectSubmitForm campaign={campaignData} onUnsavedChangesUpdate={handleUnsavedChangesUpdate} onCampaignDataUpdate={handleCampaignDataUpdate} />
       default:

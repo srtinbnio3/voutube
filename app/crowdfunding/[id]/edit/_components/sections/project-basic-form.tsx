@@ -17,9 +17,13 @@ interface ProjectBasicFormProps {
    * 未保存の変更状態を親コンポーネントに通知するコールバック関数
    */
   onUnsavedChangesUpdate?: (hasChanges: boolean) => void
+  /**
+   * 保存後に最新のキャンペーンデータ取得を親へ依頼するコールバック
+   */
+  onCampaignDataUpdate?: () => Promise<void>
 }
 
-export function ProjectBasicForm({ campaign, onUnsavedChangesUpdate }: ProjectBasicFormProps) {
+export function ProjectBasicForm({ campaign, onUnsavedChangesUpdate, onCampaignDataUpdate }: ProjectBasicFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isGeneratingStory, setIsGeneratingStory] = useState(false)
   const [formData, setFormData] = useState({
@@ -77,6 +81,14 @@ export function ProjectBasicForm({ campaign, onUnsavedChangesUpdate }: ProjectBa
 
       // 保存成功時に未保存の変更状態をリセット
       markAsSaved()
+      // 親のキャンペーンデータを再取得（提出前チェックの即時反映用）
+      if (onCampaignDataUpdate) {
+        try {
+          await onCampaignDataUpdate()
+        } catch (e) {
+          // 取得失敗しても致命的ではないためトーストは出さない
+        }
+      }
       toast.success("プロジェクト情報を更新しました")
     } catch (error) {
       toast.error("更新に失敗しました")
