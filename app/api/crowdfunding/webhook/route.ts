@@ -62,6 +62,15 @@ export async function POST(req: NextRequest) {
       case "payment_intent.payment_failed":
         await handlePaymentIntentFailed(supabase, event.data.object);
         break;
+      case "checkout.session.completed":
+        await handleCheckoutSessionCompleted(supabase, event.data.object);
+        break;
+      case "checkout.session.async_payment_succeeded":
+        await handleCheckoutSessionAsyncPaymentSucceeded(supabase, event.data.object);
+        break;
+      case "checkout.session.async_payment_failed":
+        await handleCheckoutSessionAsyncPaymentFailed(supabase, event.data.object);
+        break;
       case "identity.verification_session.verified":
         await handleIdentityVerificationSucceeded(supabase, event.data.object);
         break;
@@ -482,5 +491,127 @@ async function handleIdentityVerificationFailed(supabase: any, verificationSessi
 
   } catch (error) {
     console.error("🔐 本人確認失敗webhook処理エラー:", error);
+  }
+}
+
+// Stripe Checkoutセッション完了時の処理
+async function handleCheckoutSessionCompleted(supabase: any, session: any) {
+  console.log("💳 Checkoutセッション完了webhook処理開始:", { sessionId: session.id });
+  
+  try {
+    const { campaign_id, reward_id, user_id, supporter_id } = session.metadata;
+    
+    if (!supporter_id) {
+      console.error("支援者IDがメタデータにありません");
+      return;
+    }
+
+    // 支援者レコードを更新
+    const { error: updateError } = await supabase
+      .from("crowdfunding_supporters")
+      .update({ 
+        payment_status: "completed",
+        stripe_session_id: session.id
+      })
+      .eq("id", supporter_id);
+    
+    if (updateError) {
+      console.error("Failed to update supporter status:", updateError);
+      return;
+    }
+
+    // 特典の在庫を減らす（無制限でない場合のみ）
+    const { data: reward, error: rewardError } = await supabase
+      .from("crowdfunding_rewards")
+      .select("id, is_unlimited, remaining_quantity")
+      .eq("id", reward_id)
+      .single();
+
+    if (rewardError) {
+      console.error("Failed to get reward info:", rewardError);
+      return;
+    }
+
+    // 無制限でない場合のみ在庫を減らす
+    if (!reward.is_unlimited && reward.remaining_quantity > 0) {
+      const { error: quantityError } = await supabase
+        .from("crowdfunding_rewards")
+        .update({ 
+          remaining_quantity: reward.remaining_quantity - 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", reward_id);
+
+      if (quantityError) {
+        console.error("Failed to update reward quantity:", quantityError);
+      }
+    }
+
+    console.log("💳 Checkoutセッション完了処理成功:", { supporterId: supporter_id });
+    
+  } catch (error) {
+    console.error("💳 Checkoutセッション完了webhook処理エラー:", error);
+  }
+}
+
+// Stripe Checkout非同期決済成功時の処理
+async function handleCheckoutSessionAsyncPaymentSucceeded(supabase: any, session: any) {
+  console.log("💳 Checkout非同期決済成功webhook処理開始:", { sessionId: session.id });
+  
+  try {
+    const { supporter_id } = session.metadata;
+    
+    if (!supporter_id) {
+      console.error("支援者IDがメタデータにありません");
+      return;
+    }
+
+    // 支援者レコードを更新（既に完了済みの場合もあるため、upsert的な処理）
+    const { error: updateError } = await supabase
+      .from("crowdfunding_supporters")
+      .update({ 
+        payment_status: "completed"
+      })
+      .eq("id", supporter_id);
+    
+    if (updateError) {
+      console.error("Failed to update supporter status:", updateError);
+    }
+
+    console.log("💳 Checkout非同期決済成功処理完了:", { supporterId: supporter_id });
+    
+  } catch (error) {
+    console.error("💳 Checkout非同期決済成功webhook処理エラー:", error);
+  }
+}
+
+// Stripe Checkout非同期決済失敗時の処理
+async function handleCheckoutSessionAsyncPaymentFailed(supabase: any, session: any) {
+  console.log("💳 Checkout非同期決済失敗webhook処理開始:", { sessionId: session.id });
+  
+  try {
+    const { supporter_id } = session.metadata;
+    
+    if (!supporter_id) {
+      console.error("支援者IDがメタデータにありません");
+      return;
+    }
+
+    // 支援者レコードを失敗に更新
+    const { error: updateError } = await supabase
+      .from("crowdfunding_supporters")
+      .update({ 
+        payment_status: "failed"
+      })
+      .eq("id", supporter_id);
+    
+    if (updateError) {
+      console.error("Failed to update supporter status:", updateError);
+    }
+
+    console.log("💳 Checkout非同期決済失敗処理完了:", { supporterId: supporter_id });
+    
+  } catch (error) {
+    console.error("💳 Checkout非同期決済失敗webhook処理エラー:", error);
   }
 } 

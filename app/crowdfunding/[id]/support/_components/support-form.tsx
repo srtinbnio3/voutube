@@ -21,6 +21,7 @@ export function SupportForm({ campaignId, selectedRewardId }: SupportFormProps) 
   const [amount, setAmount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState<string>("");
   
   // 特典一覧の取得
   useEffect(() => {
@@ -73,22 +74,60 @@ export function SupportForm({ campaignId, selectedRewardId }: SupportFormProps) 
     
     setIsLoading(true);
     setError(null);
+    setLoadingMessage("支援情報を作成しています...");
     
     try {
-      // TODO: 実際の支援処理を実装する
-      console.log("支援データ:", {
-        campaignId,
-        rewardId: selectedReward.id,
-        amount
+      // 支援APIを呼び出してStripe Payment Intentを作成
+      const response = await fetch(`/api/crowdfunding/${campaignId}/support`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reward_id: selectedReward.id,
+          amount: amount,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "支援処理に失敗しました");
+      }
+
+      const { clientSecret, supporterId } = await response.json();
+
+      setLoadingMessage("決済ページを準備しています...");
+
+      // Stripe Checkoutセッションを作成して決済ページにリダイレクト
+      const checkoutResponse = await fetch(`/api/crowdfunding/${campaignId}/checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reward_id: selectedReward.id,
+          amount: amount,
+          supporter_id: supporterId,
+        }),
+      });
+
+      if (!checkoutResponse.ok) {
+        const errorData = await checkoutResponse.json();
+        throw new Error(errorData.error || "決済セッションの作成に失敗しました");
+      }
+
+      const { url } = await checkoutResponse.json();
       
-      // 成功した場合は完了ページに遷移
-      router.push(`/crowdfunding/${campaignId}/support/complete`);
+      setLoadingMessage("決済ページに移動しています...");
+      
+      // Stripe Checkoutページにリダイレクト
+      window.location.href = url;
+      
     } catch (err) {
       console.error("支援エラー:", err);
-      setError("支援処理中にエラーが発生しました。");
-    } finally {
+      setError(err instanceof Error ? err.message : "支援処理中にエラーが発生しました。");
       setIsLoading(false);
+      setLoadingMessage("");
     }
   }
   
@@ -156,7 +195,7 @@ export function SupportForm({ campaignId, selectedRewardId }: SupportFormProps) 
           キャンセル
         </Button>
         <Button type="submit" disabled={isLoading || !selectedReward}>
-          {isLoading ? "処理中..." : "支援する"}
+          {isLoading ? (loadingMessage || "処理中...") : "支援する"}
         </Button>
       </div>
     </form>

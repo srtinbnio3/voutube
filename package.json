@@ -30,6 +30,7 @@
     "@radix-ui/react-slider": "^1.2.3",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.6",
+    "@stripe/stripe-js": "^7.8.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "latest",
     "@tailwindcss/line-clamp": "^0.4.4",
