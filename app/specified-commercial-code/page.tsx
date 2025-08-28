@@ -80,7 +80,7 @@ export default async function SpecifiedCommercialCodePage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">電話番号</h3>
-                    <p className="text-gray-600 dark:text-gray-300">請求があった場合は遅滞なく開示します</p>
+                    <p className="text-gray-600 dark:text-gray-300">ご請求があった場合は遅滞なく開示いたします。</p>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">URL</h3>
@@ -135,7 +135,7 @@ export default async function SpecifiedCommercialCodePage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">手数料等の追加料金</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    クラウドファンディング機能利用時：運営手数料は支援金から控除されます（運営手数料11%には決済手数料を含みます）。
+                    クラウドファンディング機能をご利用の場合、運営手数料は支援金から控除されます（運営手数料11%には決済手数料を含みます）。
                   </p>
                 </div>
 
@@ -150,9 +150,9 @@ export default async function SpecifiedCommercialCodePage() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">申込みの有効期限</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">支援申込みの有効期限</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    クラウドファンディングプロジェクトの募集期間内
+                    各クラウドファンディングプロジェクトの募集期間内といたします。
                   </p>
                 </div>
 
@@ -160,6 +160,13 @@ export default async function SpecifiedCommercialCodePage() {
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">商品代金以外の必要料金</h3>
                   <p className="text-gray-600 dark:text-gray-300">
                     支援者が負担する追加料金はありません。決済手数料等は支援金から控除され、プロジェクトオーナーへの支払額に反映されます。
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">送料について</h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    送料は発生しない、または商品価格に含まれます。ただし、海外への発送は別途送料が発生する場合がありますので事前にプロジェクトオーナーまでお問い合わせください。
                   </p>
                 </div>
               </CardContent>
@@ -191,7 +198,7 @@ export default async function SpecifiedCommercialCodePage() {
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-2">返金処理</h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  返金が承認された場合、決済に使用したクレジットカードに30営業日以内に返金されます。返金手数料は発生しません。
+                  返金が承認された場合、決済に使用したクレジットカードへ30営業日以内に返金いたします。返金手数料は発生しません。
                 </p>
               </div>
 
@@ -250,16 +257,16 @@ export default async function SpecifiedCommercialCodePage() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">報酬の支払い</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">企画者報酬の支払い</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    原則毎月15日（銀行営業日でない場合は翌営業日）に、前月末までに確定した金額を支払います。
+                    原則、毎月15日（銀行営業日でない場合は翌営業日）に、前月末までに確定した金額をお支払いいたします。
                   </p>
                 </div>
 
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">支援金の支払い</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    募集終了日に自動的に振込申請が行われ、振込申請日当月末締めにてIdeaTube側で入金手配を行い、翌月末日にお振込をする（※土日祝の場合は前営業日）流れとなっております。<br /><br />
+                    募集終了日に自動的に振込申請が行われ、振込申請月の月末締めでIdeaTubeにて入金手配を行い、翌月末日にお振込みいたします（※土日祝の場合は前営業日）。<br /><br />
                     ＜例＞<br />
                     2025/8/25に募集終了 → 2025/9/30に振込<br />
                     2025/8/31に募集終了 → 2025/9/30に振込
