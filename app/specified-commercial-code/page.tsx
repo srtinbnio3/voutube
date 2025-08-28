@@ -80,7 +80,7 @@ export default async function SpecifiedCommercialCodePage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">電話番号</h3>
-                    <p className="text-gray-600 dark:text-gray-300">お問い合わせはメールにてお願いいたします</p>
+                    <p className="text-gray-600 dark:text-gray-300">請求があった場合は遅滞なく開示します</p>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">URL</h3>
