@@ -135,8 +135,18 @@ export default async function SpecifiedCommercialCodePage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">手数料等の追加料金</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    クラウドファンディング機能利用時：決済手数料は運営が負担いたします
+                    クラウドファンディング機能利用時：運営手数料は支援金から控除されます（運営手数料11%には決済手数料を含みます）。
                   </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">プロジェクトオーナーが支払う対価</h3>
+                  <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
+                    <li>運営手数料：支援金の11%（決済手数料を含む）。支援金から控除されます。</li>
+                    <li>企画者報酬：当該プロジェクトの支援金が5万円以上集まった場合に限り、支援金の3%を企画者へ還元（支援金から控除）。</li>
+                    <li>手数料合計：条件充足時は合計14%（運営手数料11%＋企画者報酬3%）、未達時は11%が控除されます。</li>
+                    <li>返金・チャージバック・不正検知等が生じた場合の関連費用は、原則としてプロジェクトオーナーの負担となり、当社は支払留保・相殺等の調整を行うことがあります。</li>
+                  </ul>
                 </div>
 
                 <div>
@@ -149,7 +159,7 @@ export default async function SpecifiedCommercialCodePage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">商品代金以外の必要料金</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    なし（決済手数料は運営が負担）
+                    支援者が負担する追加料金はありません。決済手数料等は支援金から控除され、プロジェクトオーナーへの支払額に反映されます。
                   </p>
                 </div>
               </CardContent>
@@ -227,21 +237,32 @@ export default async function SpecifiedCommercialCodePage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">企画者への報酬還元</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    クラウドファンディング成功時、企画を考案した投稿者に対して集まった資金の一部が報酬として還元されます。具体的な還元率はサービス利用規約で定めます。
+                    当社が認定した企画者に対し、当該プロジェクトの支援金に対して<strong>3%</strong>を報酬として還元します（当社所定の条件に基づき、決済事業者の要件等を含みます）。
                   </p>
                 </div>
 
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">最低報酬還元額</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    報酬還元には最低額が設定されており、この金額に満たない場合は報酬の支払いは行いません。具体的な金額はサービス利用規約で定めます。
+                    企画者報酬は、当該プロジェクトの支援金が<strong>5万円以上</strong>集まった場合に限り還元します。<br />
+                    5万円未満の場合は、企画者報酬の支払いは行いません。
                   </p>
                 </div>
 
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">報酬の支払い</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    報酬は毎月15日に、前月末までに確定した分が支払われます。
+                    原則毎月15日（銀行営業日でない場合は翌営業日）に、前月末までに確定した金額を支払います。
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">支援金の支払い</h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    募集終了日に自動的に振込申請が行われ、振込申請日当月末締めにてIdeaTube側で入金手配を行い、翌月末日にお振込をする（※土日祝の場合は前営業日）流れとなっております。<br /><br />
+                    ＜例＞<br />
+                    2025/8/25に募集終了 → 2025/9/30に振込<br />
+                    2025/8/31に募集終了 → 2025/9/30に振込
                   </p>
                 </div>
 
