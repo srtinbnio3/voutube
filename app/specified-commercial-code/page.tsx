@@ -135,7 +135,7 @@ export default async function SpecifiedCommercialCodePage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">手数料等の追加料金</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    クラウドファンディング機能利用時：決済手数料（Stripe手数料）が別途発生いたします
+                    クラウドファンディング機能利用時：決済手数料は運営が負担いたします
                   </p>
                 </div>
 
@@ -149,7 +149,7 @@ export default async function SpecifiedCommercialCodePage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">商品代金以外の必要料金</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    なし（ただし、クラウドファンディング機能利用時は決済手数料が発生）
+                    なし（決済手数料は運営が負担）
                   </p>
                 </div>
               </CardContent>

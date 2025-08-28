@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { AdminDashboard } from "./components/admin-dashboard";
 import { checkAdminPermission } from "@/app/lib/admin-auth";
+import { AdminNavigation } from "./components/admin-navigation";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -41,7 +42,7 @@ export default async function AdminPage() {
   
   return (
     <div className="container mx-auto py-6">
-      <AdminDashboard adminRoles={adminResult.roles} />
+      <AdminNavigation adminRoles={adminResult.roles} />
     </div>
   );
 }
